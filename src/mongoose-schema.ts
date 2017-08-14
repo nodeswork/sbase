@@ -1,4 +1,9 @@
 import { validator2 } from '@nodeswork/utils'
+import { Schema } from 'mongoose'
+
+export interface MongooseOptions {
+  mongooseSchema: Schema
+}
 
 export interface NodesworkMongooseSchemaClass {
 
@@ -18,7 +23,9 @@ export interface NodesworkMongooseSchemaClass {
 
   Post(): NodesworkMongooseSchemaClass
 
-  MongooseSchema(): object
+  MongooseOptions(): MongooseOptions
+
+  MongooseSchema(): Schema
 }
 
 export class NodesworkMongooseSchema {
@@ -52,7 +59,11 @@ export class NodesworkMongooseSchema {
     return this;
   }
 
-  static MongooseSchema(): object {
+  static MongooseOptions(): MongooseOptions {
+    if ('_mongooseOptions' in Object.getOwnPropertyNames(this)) {
+      return this._mongooseOptions;
+    }
+
     const validateSchema = validator2.isRequired({
       message: '$SCHEMA is missing',
       meta: {
@@ -62,10 +73,22 @@ export class NodesworkMongooseSchema {
 
     validateSchema(this.$SCHEMA);
 
-    return {};
+    var mongooseSchema: Schema = this.$SCHEMA as Schema;
+
+    this._mongooseOptions = {
+      mongooseSchema
+    };
+
+    return this._mongooseOptions;
+  }
+
+  static MongooseSchema(): Schema {
+
+    return this.MongooseOptions().mongooseSchema;
   }
 
   static $SCHEMA: object;
+  static _mongooseOptions: MongooseOptions;
 }
 
 NodesworkMongooseSchema

@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@nodeswork/utils": "0.0.5",
+    "@types/mongoose": "^4.7.19",
     "@types/underscore": "^1.8.1",
     "underscore": "^1.8.3"
   }
