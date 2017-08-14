@@ -1,4 +1,2 @@
 
-console.log('hello world')
-
-export = {}
+export * from './mongoose-schema'
