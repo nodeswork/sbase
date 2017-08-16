@@ -26,7 +26,20 @@ export class NModel extends model.Model {
   createdAt:       Date
   lastUpdateTime:  Date
   deleted:         boolean
+
+  async delete(): Promise<this> {
+    if (this.deleted) {
+      return this;
+    }
+    this.deleted = true;
+    return await this.save();
+  }
 }
+
+NModel.Pre({
+  name:  'remove',
+  fn:    blockRemove,
+})
 
 NModel.Pre({
   name:  'save',
@@ -64,5 +77,11 @@ function patchDelete() {
     this._conditions = {};
   }
 
-  this._conditions.deleted = false;
+  if (this._conditions.deleted === undefined && !this.options.withDeleted) {
+    this._conditions.deleted = false;
+  }
+}
+
+function blockRemove(next: Function) {
+  next(new Error('remove is not supported, use delete instead'));
 }
