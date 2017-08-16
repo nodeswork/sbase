@@ -4,8 +4,6 @@ should = require 'should'
 
 sbase = require '../../dist'
 
-mongoose.Promise = global.Promise
-
 describe 'nmodel', ->
 
   class UserModel extends sbase.mongoose.NModel

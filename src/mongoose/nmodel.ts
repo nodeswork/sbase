@@ -388,16 +388,17 @@ export module mongoose {
     let discriminatorKey = this.schema.options.discriminatorKey;
     let type = doc[discriminatorKey];
 
-    if (!type) { return; }
+    if (type) {
 
-    let model = this.db.model(type);
+      let model = this.db.model(type);
 
-    if (model) {
-      this.schema = model.schema;
-      this.__proto__ = model.prototype;
-      _init.call(this, doc, query);
-      if (fn) { fn(null); }
-      return this;
+      if (model) {
+        this.schema = model.schema;
+        this.__proto__ = model.prototype;
+        _init.call(this, doc, query);
+        if (fn) { fn(null); }
+        return this;
+      }
     }
 
     _init.call(this, doc, query, fn);
