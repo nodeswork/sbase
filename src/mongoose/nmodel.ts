@@ -88,9 +88,72 @@ export module mongoose {
       return this;
     }
 
+    static _$modifySchema(discriminatorKey: string) {
+      if (!this.hasOwnProperty('$SCHEMA')) {
+        this.$SCHEMA = {};
+      }
+
+      let uniqueFields: string[] = [];
+      for (let name in this.$SCHEMA) {
+        let opt = (this.$SCHEMA as any)[name];
+        if (opt.unique) {
+          opt.unique = false
+          uniqueFields.push(name);
+        }
+      }
+
+      for (let field in uniqueFields) {
+
+        let fieldUniqueKey        = `${field}_unique`;
+        let fields: any           = {};
+        fields[discriminatorKey]  = 1;
+        fields[field]             = 1;
+        fields[fieldUniqueKey]    = '2dsphere';
+
+        (this.$SCHEMA as any)[fieldUniqueKey] = {
+          type:       PointSchema,
+          // api:        AUTOGEN,
+          default:    PointSchema,
+          // dataLevel:  'HIDDEN',
+        };
+
+        this.Index({
+          fields,
+          options:   {
+            unique:  true
+          }
+        });
+      }
+
+      (this.$SCHEMA as any)[discriminatorKey] = { type: String };
+
+      this.Pre({
+        name: 'save',
+        fn: setDiscriminatorKey,
+      });
+
+      for (let name of [
+        'find', 'findOne', 'count', 'findOneAndUpdate', 'findOneAndRemove',
+        'update'
+      ]) {
+        this.Pre({ name, fn: patchDiscriminatorKey });
+      }
+
+      function setDiscriminatorKey(next: Function) {
+        if (this[discriminatorKey] == null) {
+          this[discriminatorKey] = this.constructor.modelName;
+        }
+        next();
+      }
+
+      function patchDiscriminatorKey() {
+        this._conditions[discriminatorKey] = this.model.modelName;
+      }
+    }
+
     static $mongooseOptions(): MongooseOptions {
       this._$initialize();
-      if (this._mongooseOptions.initialized) {
+      if (this._mongooseOptions.initialized || this === NModel) {
         return this._mongooseOptions;
       }
 
@@ -101,6 +164,10 @@ export module mongoose {
           initialized: false
         }
       );
+
+      if (superOptions.config.discriminatorKey) {
+        this._$modifySchema(superOptions.config.discriminatorKey);
+      }
 
       this._mongooseOptions.schema = _.extend(
         {}, superOptions.schema, this.$SCHEMA
@@ -153,6 +220,7 @@ export module mongoose {
           });
         }
       }
+
       for (let name of Object.getOwnPropertyNames(this)) {
         let descriptor = Object.getOwnPropertyDescriptor(this, name);
 
@@ -165,7 +233,7 @@ export module mongoose {
       }
 
       var mongooseSchema = new Schema(
-        this._mongooseOptions.schema, this._mongooseOptions.config
+        this._mongooseOptions.schema, _.clone(this._mongooseOptions.config)
       );
 
       for (let pre of this._mongooseOptions.pres) {
@@ -291,7 +359,47 @@ export module mongoose {
     options?:  Object
   }
 
-  export type Index = Object | boolean | string
+  export interface Index {
+    fields:      Object
+    options?:    {
+      expires?:  string;
+      [other:    string]:  any;
+    }
+  }
 
   export class NativeError extends global.Error {}
+
+  const PointSchema = new Schema({
+    type: {
+      type:       String,
+      enum:       ['Point'],
+      default:    'Point',
+    },
+    coordinates: {
+      type:       [Number],
+      default:    [0, 0],
+    }
+  });
+
+  // Patch Model.prototype.init
+  let _init = Model.prototype.init;
+
+  Model.prototype.init = function (doc: any, query: any, fn: Function) {
+    let discriminatorKey = this.schema.options.discriminatorKey;
+    let type = doc[discriminatorKey];
+
+    if (!type) { return; }
+
+    let model = this.db.model(type);
+
+    if (model) {
+      this.schema = model.schema;
+      this.__proto__ = model.prototype;
+      _init.call(this, doc, query);
+      if (fn) { fn(null); }
+      return this;
+    }
+
+    _init.call(this, doc, query, fn);
+  }
 }

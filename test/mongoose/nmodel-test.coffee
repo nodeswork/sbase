@@ -10,6 +10,7 @@ describe 'nmodel', ->
 
     @Config {
       collection: 'collection'
+      discriminatorKey: 'kind'
     }
 
     @registor: () ->
