@@ -4,16 +4,16 @@ should = require 'should'
 
 sbase = require '../../dist'
 
-describe 'nmodel', ->
+describe 'model', ->
 
-  class UserModel extends sbase.mongoose.NModel
+  class UserModel extends sbase.mongoose.Model
 
     @Schema {
       username: String
     }
 
     @Config {
-      collection: 'collection'
+      collection: 'sbase.model'
       discriminatorKey: 'kind'
     }
 
@@ -40,7 +40,7 @@ describe 'nmodel', ->
     User.schema.should.be.ok()
     User.schema.obj.username.should.be.ok()
 
-    User.collection.collectionName.should.be.equal 'collection'
+    User.collection.collectionName.should.be.equal 'sbase.model'
 
     User.registor.should.be.ok()
     user.isAdmin.should.be.ok()
@@ -75,7 +75,7 @@ describe 'nmodel', ->
     EmailUser.schema.obj.username.should.be.ok()
     EmailUser.schema.obj.email.should.be.ok()
 
-    EmailUser.collection.collectionName.should.be.equal 'collection'
+    EmailUser.collection.collectionName.should.be.equal 'sbase.model'
 
     EmailUser.registor.should.be.ok()
     EmailUser.registor2.should.be.ok()

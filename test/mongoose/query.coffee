@@ -6,7 +6,7 @@ describe 'nmodel', ->
   class BaseQuery extends sbase.mongoose.NModel
 
     @$CONFIG = {
-      collection: 'queries'
+      collection: 'sbase.queries'
       discriminatorKey: 'kind'
     }
 

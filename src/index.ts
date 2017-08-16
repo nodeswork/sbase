@@ -1,1 +1,5 @@
-export * from './mongoose'
+import * as mongoose from './mongoose'
+
+export {
+  mongoose
+}
