@@ -16,6 +16,10 @@ describe 'nmodel', ->
 
     isAdmin: () ->
 
+  Object.defineProperty UserModel::, 'fullname', {
+    get: () -> '123'
+  }
+
   User = UserModel.$register()
 
   it 'has correct setup', ->
@@ -29,4 +33,6 @@ describe 'nmodel', ->
 
     User.collection.collectionName.should.be.equal 'collection'
 
-    User.isAdmin.should.be.ok()
+    User.registor.should.be.ok()
+    user.isAdmin.should.be.ok()
+    user.fullname.should.be.equal '123'
