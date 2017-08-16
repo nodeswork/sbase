@@ -1,4 +1,10 @@
+mongoose = require 'mongoose'
+
+should = require 'should'
+
 sbase = require '../../dist'
+
+mongoose.Promise = global.Promise
 
 describe 'nmodel', ->
 
@@ -23,6 +29,9 @@ describe 'nmodel', ->
 
 
   User = UserModel.$register()
+
+  before () ->
+    await User.remove({})
 
   it 'has correct setup for User', ->
 
@@ -76,3 +85,9 @@ describe 'nmodel', ->
     user.isAdmin2.should.be.ok()
     user.fullname.should.be.equal '123'
     user.fullname2.should.be.equal '123'
+
+    should(user.kind).not.be.ok()
+
+    await user.save()
+
+    user.kind.should.be.ok()
