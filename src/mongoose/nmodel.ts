@@ -94,24 +94,40 @@ export module mongoose {
         return this._mongooseOptions;
       }
 
-      // TODO: expand fields from super class.
-      this._mongooseOptions.schema = this.$SCHEMA;
-      this._mongooseOptions.config = this.$CONFIG;
-      this._mongooseOptions.pres = (
+      let superClass = (this as any).__proto__ as NModelType;
+
+      let superOptions: MongooseOptions = (
+        superClass.$mongooseOptions? superClass.$mongooseOptions() : {
+          initialized: false
+        }
+      );
+
+      this._mongooseOptions.schema = _.extend(
+        {}, superOptions.schema, this.$SCHEMA
+      );
+      this._mongooseOptions.config = _.extend(
+        {}, superOptions.config, this.$CONFIG
+      );
+      this._mongooseOptions.pres = _.union(
+        superOptions.pres,
         this.hasOwnProperty('$PRES') ?  this.$PRES : []
       );
-      this._mongooseOptions.posts = (
+      this._mongooseOptions.posts = _.union(
+        superOptions.posts,
         this.hasOwnProperty('$POSTS') ? this.$POSTS : []
       );
-      this._mongooseOptions.virtuals = (
+      this._mongooseOptions.virtuals = _.union(
+        superOptions.virtuals,
         this.hasOwnProperty('$VIRTUALS') ? this.$VIRTUALS : []
       );
-      this._mongooseOptions.methods = [];
-      this._mongooseOptions.statics = [];
-      this._mongooseOptions.plugins = (
+      this._mongooseOptions.methods = _.union(superOptions.methods);
+      this._mongooseOptions.statics = _.union(superOptions.statics);
+      this._mongooseOptions.plugins = _.union(
+        superOptions.plugins,
         this.hasOwnProperty('$PLUGINS') ? this.$PLUGINS : []
       );
-      this._mongooseOptions.indexes = (
+      this._mongooseOptions.indexes = _.union(
+        superOptions.indexes,
         this.hasOwnProperty('$INDEXES') ? this.$INDEXES : []
       );
 
@@ -123,7 +139,6 @@ export module mongoose {
         let descriptor = Object.getOwnPropertyDescriptor(this.prototype, name);
 
         if (descriptor.value && _.isFunction(descriptor.value)) {
-          console.log('method', name);
           this._mongooseOptions.methods.push({
             name: name,
             fn: descriptor.value,
@@ -131,7 +146,6 @@ export module mongoose {
         }
 
         if (descriptor.get || descriptor.set) {
-          console.log('virtual method', name);
           this._mongooseOptions.virtuals.push({
             name: name,
             get: descriptor.get,
@@ -143,7 +157,6 @@ export module mongoose {
         let descriptor = Object.getOwnPropertyDescriptor(this, name);
 
         if (descriptor.value && _.isFunction(descriptor.value)) {
-          console.log('static', name);
           this._mongooseOptions.statics.push({
             name: name,
             fn: descriptor.value,
@@ -235,7 +248,7 @@ export module mongoose {
    */
   export interface MongooseOptions {
     initialized:     boolean
-    config:          NModelConfig
+    config?:         NModelConfig
     schema?:         {}
     mongooseSchema?: Schema
     pres?:           Pre[]
