@@ -26,6 +26,10 @@ export module mongoose {
 
     private static $VIRTUALS: Virtual[]
 
+    private static $PLUGINS: Plugin[]
+
+    private static $INDEXES: Index[]
+
     // placeholder for calculated mongoose options.
     static _mongooseOptions: MongooseOptions;
 
@@ -66,6 +70,24 @@ export module mongoose {
       return this;
     }
 
+    static Plugin(plugin: Plugin): NModelType {
+      if (this.hasOwnProperty('$PLUGINS')) {
+        this.$PLUGINS.push(plugin);
+      } else {
+        this.$PLUGINS = [plugin];
+      }
+      return this;
+    }
+
+    static Index(index: Index): NModelType {
+      if (this.hasOwnProperty('$INDEXES')) {
+        this.$INDEXES.push(index);
+      } else {
+        this.$INDEXES = [index];
+      }
+      return this;
+    }
+
     static $mongooseOptions(): MongooseOptions {
       this._$initialize();
       if (this._mongooseOptions.initialized) {
@@ -86,6 +108,12 @@ export module mongoose {
       );
       this._mongooseOptions.methods = [];
       this._mongooseOptions.statics = [];
+      this._mongooseOptions.plugins = (
+        this.hasOwnProperty('$PLUGINS') ? this.$PLUGINS : []
+      );
+      this._mongooseOptions.indexes = (
+        this.hasOwnProperty('$INDEXES') ? this.$INDEXES : []
+      );
 
       for (let name of Object.getOwnPropertyNames(this.prototype)) {
         if (name === 'constructor') {
@@ -148,12 +176,18 @@ export module mongoose {
 
       for (let method of this._mongooseOptions.methods) {
         mongooseSchema.methods[method.name] = method.fn;
-        console.log('methods', method.name)
       }
 
       for (let method of this._mongooseOptions.statics) {
-        console.log('statics', method.name)
         mongooseSchema.statics[method.name] = method.fn;
+      }
+
+      for (let plugin of this._mongooseOptions.plugins) {
+        mongooseSchema.plugin(plugin.fn, plugin.options);
+      }
+
+      for (let index of this._mongooseOptions.indexes) {
+        mongooseSchema.index(index);
       }
 
       this._mongooseOptions.mongooseSchema  = mongooseSchema;
@@ -209,6 +243,8 @@ export module mongoose {
     virtuals?:       Virtual[]
     methods?:        Method[]
     statics?:        Method[]
+    plugins?:        Plugin[]
+    indexes?:        Index[]
   }
 
   export interface Pre {
@@ -236,6 +272,13 @@ export module mongoose {
     name:     string
     fn:       Function
   }
+
+  export interface Plugin {
+    fn:        (schema:  Schema, options?:  Object) => void
+    options?:  Object
+  }
+
+  export type Index = Object | boolean | string
 
   export class NativeError extends global.Error {}
 }
