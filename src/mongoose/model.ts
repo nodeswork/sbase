@@ -10,6 +10,12 @@ export interface Model extends Document {}
 export type ModelType = typeof Model
 export type IModel<E extends Model> = MModel<E>
 
+declare module 'mongoose' {
+  interface Schema {
+    parentSchema?: Schema
+  }
+}
+
 /**
  * Wrapped Model from mongoose.Model.
  */
@@ -114,7 +120,7 @@ export class Model {
       }
     }
 
-    for (let field in uniqueFields) {
+    for (let field of uniqueFields) {
 
       let fieldUniqueKey        = `${field}_unique`;
       let fields: any           = {};
@@ -271,6 +277,8 @@ export class Model {
       this._mongooseOptions.schema, _.clone(this._mongooseOptions.config)
     );
 
+    mongooseSchema.parentSchema = superOptions.mongooseSchema;
+
     for (let pre of this._mongooseOptions.pres) {
       pre.parallel = pre.parallel || false;
       mongooseSchema.pre(pre.name, pre.parallel, pre.fn, pre.errorCb);
@@ -299,7 +307,8 @@ export class Model {
     }
 
     for (let plugin of this._mongooseOptions.plugins) {
-      mongooseSchema.plugin(plugin.fn, plugin.options);
+      let options = _.extend({}, this._mongooseOptions.config, plugin.options);
+      mongooseSchema.plugin(plugin.fn, options);
     }
 
     for (let index of this._mongooseOptions.indexes) {
