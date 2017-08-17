@@ -31,6 +31,8 @@ export class Model {
 
   private static $INDEXES: Index[]
 
+  private static $MIXINS: ModelType[]
+
   // placeholder for calculated mongoose options.
   static _mongooseOptions: MongooseOptions;
 
@@ -85,6 +87,15 @@ export class Model {
       this.$INDEXES.push(index);
     } else {
       this.$INDEXES = [index];
+    }
+    return this;
+  }
+
+  static Mixin(model: ModelType): ModelType {
+    if (this.hasOwnProperty('$MIXINS')) {
+      this.$MIXINS.push(model);
+    } else {
+      this.$MIXINS = [model];
     }
     return this;
   }
@@ -167,34 +178,60 @@ export class Model {
       this._$modifySchema(superOptions.config.discriminatorKey);
     }
 
-    this._mongooseOptions.schema = _.extend(
-      {}, superOptions.schema, this.$SCHEMA
+    let mixinModels = this.hasOwnProperty('$MIXINS') ? this.$MIXINS : [];
+    let mixinOptions = _.map(mixinModels, (model) => model.$mongooseOptions());
+
+    let mixinSchemas   = _.map(mixinOptions, (opt) => opt.schema);
+    let flattenSchemas = _.flatten(
+      [{}, mixinSchemas, superOptions.schema, this.$SCHEMA]
     );
-    this._mongooseOptions.config = _.extend(
-      {}, superOptions.config, this.$CONFIG
+    this._mongooseOptions.schema = _.extend.apply(null, flattenSchemas);
+
+    let mixinConfigs   = _.map(mixinOptions, (opt) => opt.config);
+    let flattenConfigs = _.flatten(
+      [{}, mixinConfigs, superOptions.config, this.$CONFIG]
     );
-    this._mongooseOptions.pres = _.union(
-      superOptions.pres,
+    this._mongooseOptions.config = _.extend.apply(null, flattenConfigs);
+
+    let mixinPres = _.map(mixinOptions, (opt) => opt.pres);
+    this._mongooseOptions.pres = _.union(_.flatten([
+      mixinPres, superOptions.pres || [],
       this.hasOwnProperty('$PRES') ?  this.$PRES : []
-    );
-    this._mongooseOptions.posts = _.union(
-      superOptions.posts,
+    ]));
+
+    let mixinPosts = _.map(mixinOptions, (opt) => opt.posts);
+    this._mongooseOptions.posts = _.union(_.flatten([
+      mixinPosts, superOptions.posts || [],
       this.hasOwnProperty('$POSTS') ? this.$POSTS : []
-    );
-    this._mongooseOptions.virtuals = _.union(
-      superOptions.virtuals,
+    ]));
+
+    let mixinVirtuals = _.map(mixinOptions, (opt) => opt.virtuals);
+    this._mongooseOptions.virtuals = _.union(_.flatten([
+      mixinVirtuals, superOptions.virtuals || [],
       this.hasOwnProperty('$VIRTUALS') ? this.$VIRTUALS : []
-    );
-    this._mongooseOptions.methods = _.union(superOptions.methods);
-    this._mongooseOptions.statics = _.union(superOptions.statics);
-    this._mongooseOptions.plugins = _.union(
-      superOptions.plugins,
+    ]));
+
+    let mixinPlugins = _.map(mixinOptions, (opt) => opt.plugins);
+    this._mongooseOptions.plugins = _.union(_.flatten([
+      mixinPlugins, superOptions.plugins || [],
       this.hasOwnProperty('$PLUGINS') ? this.$PLUGINS : []
-    );
-    this._mongooseOptions.indexes = _.union(
-      superOptions.indexes,
+    ]));
+
+    let mixinIndexes = _.map(mixinOptions, (opt) => opt.indexes);
+    this._mongooseOptions.indexes = _.union(_.flatten([
+      mixinIndexes, superOptions.indexes || [],
       this.hasOwnProperty('$INDEXES') ? this.$INDEXES : []
-    );
+    ]));
+
+    let mixinMethods = _.map(mixinOptions, (opt) => opt.methods);
+    this._mongooseOptions.methods = _.union(_.flatten([
+      mixinMethods, superOptions.methods || []
+    ]));
+
+    let mixinStatics = _.map(mixinOptions, (opt) => opt.statics);
+    this._mongooseOptions.statics = _.union(_.flatten([
+      mixinStatics, superOptions.statics || []
+    ]));
 
     for (let name of Object.getOwnPropertyNames(this.prototype)) {
       if (name === 'constructor') {

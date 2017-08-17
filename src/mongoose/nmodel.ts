@@ -1,6 +1,9 @@
 import * as model from './model'
+import * as koa from './koa'
 
-export type NModelType = typeof NModel
+type NModelType = typeof NModel & koa.KoaMiddlewaresType;
+
+export interface NModel extends koa.KoaMiddlewares {}
 
 export class NModel extends model.Model {
 
