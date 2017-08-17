@@ -14,6 +14,4 @@ export type KoaMiddlewaresType = typeof KoaMiddlewares
 export class KoaMiddlewares extends model.Model {
 
   static createMiddleware() {}
-
-  test() {}
 }
