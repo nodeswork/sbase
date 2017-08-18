@@ -2,7 +2,7 @@ import * as _ from 'underscore'
 import { IMiddleware, IRouterContext } from 'koa-router'
 import { ModelPopulateOptions } from 'mongoose'
 
-import { NodesworkError } from '@nodeswork/utils'
+import { NodesworkError, validator2 } from '@nodeswork/utils'
 
 import * as model from './model'
 
@@ -65,7 +65,75 @@ export class KoaMiddlewares extends model.Model {
     return get;
   }
 
-  static findMiddleware() {}
+  static findMiddleware(options: FindOptions): IMiddleware {
+    let self = this.cast<KoaMiddlewares>();
+
+    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+
+    if (options.pagination) {
+      _.defaults(options.pagination, DEFAULT_FIND_PAGINATION_OPTIONS);
+    }
+
+    const defaultPagination = {
+      page: 0,
+      size: options.pagination ? options.pagination.size : 0,
+    };
+
+    async function find(ctx: IContext, next: INext) {
+      let query             = ctx.overrides && ctx.overrides.query || {};
+      let queryOption: any  = {};
+      let pagination        = null;
+
+      if (options.pagination) {
+        // pagination          = VALIDATE_QUERY_PAGINATION(ctx.request.query);
+        pagination          = ctx.request.query;
+        _.defaults(pagination, defaultPagination);
+
+        queryOption.skip    = pagination.page * pagination.size;
+        queryOption.limit   = pagination.size;
+      }
+
+      if (options.level) {
+        queryOption.level = options.level;
+      }
+
+      let queryPromise  = self.find(query, options.project, queryOption);
+
+      if (options.populate) {
+        queryPromise    = queryPromise.populate(options.populate);
+      }
+
+      let object = await queryPromise;
+
+      (ctx as any)[options.target] = object;
+
+      if (options.triggerNext) {
+        await next();
+      }
+
+      if (pagination) {
+        let totalPage = Math.floor((
+          await self.find(query).count() - 1
+        ) / pagination.size + 1);
+        ctx.response.set('total_page', totalPage.toString());
+      }
+
+      if (!options.noBody) {
+        let body = (ctx as any)[options.target];
+        for (let i in body) {
+          body[i] = options.transform(body[i]);
+        }
+        ctx.body = body;
+      }
+    }
+
+    Object.defineProperty(find, 'name', {
+      value: `${self.modelName}#findMiddleware`,
+      writable: false,
+    });
+
+    return find;
+  }
 
   static udpateMiddleware() {}
 
@@ -88,6 +156,16 @@ const DEFAULT_COMMON_OPTIONS = {
   target:       'object',
   transform:    _.identity,
 }
+
+const DEFAULT_FIND_PAGINATION_OPTIONS = {
+  size:         20,
+  sizeChoices:  [20, 50, 100, 200],
+}
+
+const VALIDATE_QUERY_PAGINATION = validator2.compile({
+  page: [],
+  size: [],
+});
 
 export interface CommonResponseOptions {
   level?:       string    // the data level for projection
@@ -117,12 +195,25 @@ export interface GetOptions extends CommonOptions, CommonResponseOptions,
   nullable?:    boolean
 }
 
+export interface FindOptions extends CommonOptions, CommonResponseOptions,
+  CommonReadOptions {
+
+  pagination?:  {
+    size?:         number
+    sizeChoices?:  number[]
+  }
+}
+
 export interface IContext extends IRouterContext {
   overrides?:   IOverwrites
 }
 
 export interface IOverwrites {
   query?:       { [name: string]: any }
+  pagination?:  {
+    page:       number
+    size:       number
+  }
 }
 
 export type INext = () => Promise<any>
