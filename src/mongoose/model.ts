@@ -432,6 +432,8 @@ const PointSchema = new Schema({
 // Patch MModel.prototype.init
 let _init = MModel.prototype.init;
 
+(MModel as any).cast = Model.cast;
+
 MModel.prototype.init = function (doc: any, query: any, fn: Function) {
   let discriminatorKey = this.schema.options.discriminatorKey;
   let type = doc[discriminatorKey];
