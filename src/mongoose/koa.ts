@@ -8,6 +8,12 @@ import * as model from './model'
 
 export type KoaMiddlewaresType = typeof KoaMiddlewares
 
+declare module 'koa' {
+  export interface Request {
+    body: any;
+  }
+}
+
 export class KoaMiddlewares extends model.Model {
 
   static createMiddleware(options: CreateOptions): IMiddleware {
@@ -135,7 +141,47 @@ export class KoaMiddlewares extends model.Model {
     return find;
   }
 
-  static udpateMiddleware() {}
+  static updateMiddleware(options: UpdateOptions): IMiddleware {
+    let self = this.cast<KoaMiddlewares>();
+
+    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+
+    async function update(ctx: IContext, next: INext) {
+      let query             = ctx.overrides && ctx.overrides.query || {};
+      query._id             = ctx.params[options.field];
+      let queryOption: any  = {
+        new:     true,
+        fields:  options.project,
+        level:   options.level,
+      };
+      let update            = {
+        $set: ctx.request.body
+      };
+
+      var object = await self.findOneAndUpdate(query, update, queryOption);
+
+      (ctx as any)[options.target] = object;
+
+      if (options.triggerNext) {
+        await next();
+      }
+
+      if (!options.noBody) {
+        let body = (ctx as any)[options.target];
+        for (let i in body) {
+          body[i] = options.transform(body[i]);
+        }
+        ctx.body = body;
+      }
+    }
+
+    Object.defineProperty(update, 'name', {
+      value: `${self.modelName}#updateMiddleware`,
+      writable: false,
+    });
+
+    return update;
+  }
 
   static deleteMiddleware() {}
 }
@@ -202,6 +248,13 @@ export interface FindOptions extends CommonOptions, CommonResponseOptions,
     size?:         number
     sizeChoices?:  number[]
   }
+}
+
+export interface UpdateOptions extends CommonOptions, CommonResponseOptions,
+  CommonWriteOptions {
+
+  field:        string
+  nullable?:    boolean
 }
 
 export interface IContext extends IRouterContext {

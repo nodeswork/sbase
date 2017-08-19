@@ -192,3 +192,69 @@ describe 'model', ->
       deepJSONEqual ctx.object, [objects.a1, objects.a2]
 
       ctx.response.total_page.should.be.equal '1'
+
+  describe '#updateMiddleware', ->
+
+    it 'has the right name', ->
+      m = KoaModelA.updateMiddleware({})
+      m.should.be.ok()
+      m.name.should.be.equal 'KoaModelA#updateMiddleware'
+
+    it 'returns updated data', ->
+      m    = KoaModelA.updateMiddleware({ field: 'field' })
+      ctx  = {
+        params:
+          field: objects.a1._id
+        request:
+          body:
+            dataA1: 'c1'
+            dataA3: 'c3'
+      }
+      next = () ->
+
+      await m(ctx, next)
+
+      ctx.object.dataA1.should.be.equal 'c1'
+      should(ctx.object.dataA3).not.be.ok()
+
+    it 'returns updated project data', ->
+      m    = KoaModelA.updateMiddleware({
+        field: 'field'
+        project: [ 'dataA1' ]
+      })
+      ctx  = {
+        params:
+          field: objects.a1._id
+        request:
+          body:
+            dataA1: 'c1'
+            dataA3: 'c3'
+      }
+      next = () ->
+
+      await m(ctx, next)
+
+      ctx.object.dataA1.should.be.equal 'c1'
+      should(ctx.object.dataA3).not.be.ok()
+      should(ctx.object.dataA2).not.be.ok()
+
+    it 'returns level data', ->
+      m    = KoaModelA.updateMiddleware({
+        field: 'field'
+        level: '1'
+      })
+      ctx  = {
+        params:
+          field: objects.a1._id
+        request:
+          body:
+            dataA1: 'c1'
+            dataA3: 'c3'
+      }
+      next = () ->
+
+      await m(ctx, next)
+
+      ctx.object.dataA1.should.be.equal 'c1'
+      should(ctx.object.dataA3).not.be.ok()
+      should(ctx.object.dataA2).not.be.ok()

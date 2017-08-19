@@ -27,7 +27,7 @@ export function dataLevelPlugin(schema: Schema, options: ModelConfig) {
 
   schema.pre('find', modifyProjection);
   schema.pre('findOne', modifyProjection);
-
+  schema.pre('findOneAndUpdate', modifyProjection);
 }
 
 function modifyProjection(next: Function) {
