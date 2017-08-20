@@ -17,8 +17,9 @@ describe 'model', ->
 
     @Schema {
       dataA1: {
-        type:   String
-        level:  '1'
+        type:      String
+        level:     '1'
+        required:  true
       }
       dataA2: {
         type:   String
@@ -90,6 +91,59 @@ describe 'model', ->
     objects.b2 = await KoaModelB.create({
       dataB1: 'b1_2', dataB2: 'b2_2', refA: objects.a2
     })
+
+  describe '#createMiddleware', ->
+
+    it 'has the right name', ->
+      m = KoaModelA.createMiddleware({})
+      m.should.be.ok()
+      m.name.should.be.equal 'KoaModelA#createMiddleware'
+
+    it 'creates successfully', ->
+      m = KoaModelA.createMiddleware({})
+      ctx  = request: body: {
+        dataA1: 'c1'
+        dataA3: 'c3'
+        dataA4: 'c4'
+      }
+      next = () ->
+      await m(ctx, next)
+
+      ctx.object.dataA1.should.be.equal 'c1'
+      should(ctx.object.dataA2).not.be.ok()
+      ctx.object.dataA3.should.be.equal 'dataA3'
+      ctx.object.dataA4.should.be.equal 'c4'
+
+    it 'throw error when missing required key', ->
+
+      m = KoaModelA.createMiddleware({})
+      ctx  = request: body: {
+        dataA3: 'c3'
+        dataA4: 'c4'
+      }
+      next = () ->
+      try
+        await m(ctx, next)
+        should.fail()
+      catch e
+        e.errors.dataA1.kind.should.be.equal 'required'
+
+    it 'projects fields', ->
+
+      m = KoaModelA.createMiddleware({ level: '1' })
+      ctx  = request: body: {
+        dataA1: 'c1'
+        dataA2: 'c2'
+        dataA3: 'c3'
+        dataA4: 'c4'
+      }
+      next = () ->
+      await m(ctx, next)
+
+      ctx.object.dataA1.should.be.equal 'c1'
+      should(ctx.object.dataA2).not.be.ok()
+      ctx.object.dataA3.should.be.equal 'dataA3'
+      ctx.object.dataA4.should.be.equal 'c4'
 
   describe '#getMiddleware', ->
 

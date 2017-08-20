@@ -30,9 +30,50 @@ export const AUTOGEN  = 'AUTOGEN'
 export class KoaMiddlewares extends model.Model {
 
   static createMiddleware(options: CreateOptions): IMiddleware {
+    let self = this.cast<KoaMiddlewares>();
+
+    _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function create(ctx: IContext, next: INext) {
+      let model = self;
+
+      let doc    = _.extend(
+        {}, ctx.request.body, ctx.overrides && ctx.overrides.doc
+      );
+      let omits  = _.union(options.omits, self.schema.api.AUTOGEN);
+      doc        = _.omit(doc, omits);
+
+      (ctx as any)[options.target] = doc;
+
+      if (options.triggerNext) {
+        await next();
+      }
+
+      doc = (ctx as any)[options.target];
+      let object: KoaMiddlewares = (
+        await model.create(doc)
+      ) as any as KoaMiddlewares;
+
+      if (options.project || options.level) {
+        object = await self.findById(object._id, options.project, {
+          level: options.level,
+        });
+      }
+
+      (ctx as any)[options.target] = object;
+      if (options.populate) {
+        await model.populate(object, options.populate);
+      }
+
+      if (!options.noBody) {
+        ctx.body = options.transform(object);
+      }
     }
+
+    Object.defineProperty(create, 'name', {
+      value: `${self.modelName}#createMiddleware`,
+      writable: false,
+    });
 
     return create;
   }
@@ -284,6 +325,7 @@ export interface IOverwrites {
     page:       number
     size:       number
   }
+  doc?:         any
 }
 
 KoaMiddlewares.Plugin({
