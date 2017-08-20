@@ -14,6 +14,13 @@ declare module 'mongoose' {
   interface Schema {
     parentSchema?: Schema
   }
+
+  interface SchemaType {
+    options?:      SchemaTypeOptions
+  }
+}
+
+export interface SchemaTypeOptions {
 }
 
 /**

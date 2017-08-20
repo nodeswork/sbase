@@ -1,6 +1,6 @@
 import * as _ from 'underscore'
 import { IMiddleware, IRouterContext } from 'koa-router'
-import { ModelPopulateOptions } from 'mongoose'
+import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose'
 
 import { NodesworkError, validator2 } from '@nodeswork/utils'
 
@@ -13,6 +13,19 @@ declare module 'koa' {
     body: any;
   }
 }
+
+declare module 'mongoose' {
+  interface Schema {
+    api: {
+      READONLY:       string[]
+      AUTOGEN:        string[]
+      [name: string]: string[]
+    }
+  }
+}
+
+export const READONLY = 'READONLY'
+export const AUTOGEN  = 'AUTOGEN'
 
 export class KoaMiddlewares extends model.Model {
 
@@ -154,8 +167,12 @@ export class KoaMiddlewares extends model.Model {
         fields:  options.project,
         level:   options.level,
       };
+      let omits             = _.union(
+        [ '_id' ], options.omits,
+        self.schema.api.READONLY, self.schema.api.AUTOGEN
+      );
       let update            = {
-        $set: ctx.request.body
+        $set: _.omit(ctx.request.body, omits),
       };
 
       var object = await self.findOneAndUpdate(query, update, queryOption);
@@ -267,6 +284,36 @@ export interface IOverwrites {
     page:       number
     size:       number
   }
+}
+
+KoaMiddlewares.Plugin({
+  fn: apiLevel,
+});
+
+declare module './model' {
+  export interface SchemaTypeOptions {
+    api?: string
+  }
+}
+
+function apiLevel(schema: Schema, options: Object) {
+  if (schema.api == null) {
+    schema.api = {
+      READONLY:  [],
+      AUTOGEN:   []
+    }
+  }
+
+  schema.eachPath(function (pathname: string, schemaType: SchemaType) {
+    if ([ READONLY, AUTOGEN ].indexOf(schemaType.options.api) < 0) {
+      return;
+    }
+    for (let s = schema; s != null; s = s.parentSchema) {
+      s.api[schemaType.options.api] = _.union(
+        s.api[schemaType.options.api], [ pathname ]
+      );
+    }
+  });
 }
 
 export type INext = () => Promise<any>

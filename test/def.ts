@@ -43,5 +43,5 @@ async function E() {
   Email.bar();
   Email.bar1();
 
-  User.createMiddleware()
+  User.createMiddleware({})
 }

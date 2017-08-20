@@ -23,3 +23,6 @@ NModel.Mixin(timestamp.TimestampModel)
 NModel.Mixin(softDelete.SoftDeleteModel)
 
 NModel.Plugin({ fn: dataLevel.dataLevelPlugin })
+
+export const AUTOGEN   = koa.AUTOGEN;
+export const READONLY  = koa.READONLY;

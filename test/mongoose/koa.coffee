@@ -24,6 +24,16 @@ describe 'model', ->
         type:   String
         level:  '2'
       }
+      dataA3: {
+        type:     String
+        api:      sbase.mongoose.AUTOGEN
+        default:  'dataA3'
+      }
+      dataA4: {
+        type:     String
+        api:      sbase.mongoose.READONLY
+        default:  'dataA4'
+      }
     }
 
   class KoaModelB extends sbase.mongoose.NModel
@@ -208,14 +218,14 @@ describe 'model', ->
         request:
           body:
             dataA1: 'c1'
-            dataA3: 'c3'
+            data_X: 'c3'
       }
       next = () ->
 
       await m(ctx, next)
 
       ctx.object.dataA1.should.be.equal 'c1'
-      should(ctx.object.dataA3).not.be.ok()
+      should(ctx.object.data_X).not.be.ok()
 
     it 'returns updated project data', ->
       m    = KoaModelA.updateMiddleware({
@@ -228,14 +238,14 @@ describe 'model', ->
         request:
           body:
             dataA1: 'c1'
-            dataA3: 'c3'
+            data_X: 'c3'
       }
       next = () ->
 
       await m(ctx, next)
 
       ctx.object.dataA1.should.be.equal 'c1'
-      should(ctx.object.dataA3).not.be.ok()
+      should(ctx.object.data_X).not.be.ok()
       should(ctx.object.dataA2).not.be.ok()
 
     it 'returns level data', ->
@@ -249,12 +259,62 @@ describe 'model', ->
         request:
           body:
             dataA1: 'c1'
-            dataA3: 'c3'
+            data_X: 'c3'
       }
       next = () ->
 
       await m(ctx, next)
 
       ctx.object.dataA1.should.be.equal 'c1'
-      should(ctx.object.dataA3).not.be.ok()
+      should(ctx.object.data_X).not.be.ok()
       should(ctx.object.dataA2).not.be.ok()
+
+    it 'could not update _id', ->
+      m    = KoaModelA.updateMiddleware({
+        field: 'field'
+        level: '1'
+      })
+      ctx  = {
+        params:
+          field: objects.a1._id
+        request:
+          body:
+            _id:    'other things'
+            dataA1: 'c1'
+            data_X: 'c3'
+      }
+      next = () ->
+
+      await m(ctx, next)
+
+      ctx.object.dataA1.should.be.equal 'c1'
+      should(ctx.object.data_X).not.be.ok()
+      should(ctx.object.dataA2).not.be.ok()
+      ctx.object._id.toString().should.be.deepEqual objects.a1._id.toString()
+
+    it 'could not update AUTOGEN and READONLY fields', ->
+      m    = KoaModelA.updateMiddleware({
+        field: 'field'
+        level: '1'
+      })
+      ctx  = {
+        params:
+          field: objects.a1._id
+        request:
+          body:
+            _id:    'other things'
+            dataA1: 'c1'
+            data_X: 'c3'
+            dataA3: 'c3'
+            dataA4: 'c4'
+      }
+      next = () ->
+
+      await m(ctx, next)
+
+      ctx.object.dataA1.should.be.equal 'c1'
+      should(ctx.object.data_X).not.be.ok()
+      should(ctx.object.dataA2).not.be.ok()
+      ctx.object._id.toString().should.be.deepEqual objects.a1._id.toString()
+      ctx.object.dataA3.should.be.equal 'dataA3'
+      ctx.object.dataA4.should.be.equal 'dataA4'
