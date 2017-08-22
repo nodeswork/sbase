@@ -414,3 +414,18 @@ describe 'model', ->
       ctx.object._id.toString().should.be.deepEqual objects.a1._id.toString()
       ctx.object.dataA3.should.be.equal 'dataA3'
       ctx.object.dataA4.should.be.equal 'dataA4'
+
+  describe '#deleteMiddleware', ->
+
+    it 'has the right name', ->
+      m = KoaModelA.deleteMiddleware({ field: 'field' })
+      m.should.be.ok()
+      m.name.should.be.equal 'KoaModelA#deleteMiddleware'
+
+    it 'deletes the object', ->
+      m = KoaModelA.deleteMiddleware({ field: 'field' })
+      ctx  = { params: field: objects.a1._id }
+      next = () ->
+
+      await m(ctx, next)
+      ctx.status.should.be.equal 204

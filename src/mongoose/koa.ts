@@ -265,7 +265,48 @@ export class KoaMiddlewares extends model.Model {
     return update;
   }
 
-  static deleteMiddleware() {}
+  static deleteMiddleware(options: DeleteOptions): IMiddleware {
+    let self = this.cast<KoaMiddlewares>();
+
+    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+
+    async function del(ctx: IContext, next: INext) {
+      let query             = ctx.overrides && ctx.overrides.query || {};
+      query._id             = ctx.params[options.field];
+      let queryOption: any  = {};
+
+      let queryPromise  = self.findOne(query, undefined, queryOption);
+
+      let object = await queryPromise;
+
+      (ctx as any)[options.target] = object;
+
+      if (options.triggerNext) {
+        await next();
+      }
+
+      object = (ctx as any)[options.target];
+
+      if (!options.nullable && object == null) {
+        throw new NodesworkError('not found', {
+          responseCode: 404
+        });
+      }
+
+      if (object) {
+        await (object as any).delete();
+      }
+
+      ctx.status = 204;
+    }
+
+    Object.defineProperty(del, 'name', {
+      value: `${self.modelName}#deleteMiddleware`,
+      writable: false,
+    });
+
+    return del;
+  }
 }
 
 export interface CommonOptions {
@@ -336,6 +377,11 @@ export interface FindOptions extends CommonOptions, CommonResponseOptions,
 export interface UpdateOptions extends CommonOptions, CommonResponseOptions,
   CommonWriteOptions {
 
+  field:        string
+  nullable?:    boolean
+}
+
+export interface DeleteOptions extends CommonOptions {
   field:        string
   nullable?:    boolean
 }
