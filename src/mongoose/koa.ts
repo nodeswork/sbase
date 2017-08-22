@@ -43,6 +43,30 @@ export class KoaMiddlewares extends model.Model {
       let omits  = _.union(options.omits, self.schema.api.AUTOGEN);
       doc        = _.omit(doc, omits);
 
+      let discriminatorKey: string = self.schema.options.discriminatorKey;
+
+      if (discriminatorKey) {
+        let modelName = doc[discriminatorKey];
+
+        if (modelName) {
+          model = self.db.model(modelName);
+        }
+
+        if (!options.allowCreateFromParentModel && !modelName) {
+          throw new NodesworkError('unprocessable entity', {
+            responseCode: 422,
+            path: discriminatorKey,
+          });
+        }
+
+        if (!model) {
+          throw new NodesworkError('unprocessable entity', {
+            responseCode: 422,
+            path: discriminatorKey,
+          });
+        }
+      }
+
       (ctx as any)[options.target] = doc;
 
       if (options.triggerNext) {
@@ -289,7 +313,8 @@ export interface CommonWriteOptions {
 export interface CreateOptions extends CommonOptions, CommonResponseOptions,
   CommonWriteOptions {
 
-  noExtendion?: boolean   // not to use discriminitor models
+  // if allows to create from parent model when there's discriminator config
+  allowCreateFromParentModel?: boolean
 }
 
 export interface GetOptions extends CommonOptions, CommonResponseOptions,

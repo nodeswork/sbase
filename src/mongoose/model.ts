@@ -13,6 +13,7 @@ export type IModel<E extends Model> = MModel<E>
 declare module 'mongoose' {
   interface Schema {
     parentSchema?: Schema
+    options?:      ModelConfig
   }
 
   interface SchemaType {

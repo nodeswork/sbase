@@ -60,8 +60,11 @@ describe 'model', ->
       }
     }
 
-  KoaModelA = KoaModelA.$register()
-  KoaModelB = KoaModelB.$register()
+  class KoaModelAA extends KoaModelA
+
+  KoaModelA   = KoaModelA.$register()
+  KoaModelB   = KoaModelB.$register()
+  KoaModelAA  = KoaModelAA.$register()
 
   objects = {}
 
@@ -95,12 +98,12 @@ describe 'model', ->
   describe '#createMiddleware', ->
 
     it 'has the right name', ->
-      m = KoaModelA.createMiddleware({})
+      m = KoaModelA.createMiddleware({ allowCreateFromParentModel: true })
       m.should.be.ok()
       m.name.should.be.equal 'KoaModelA#createMiddleware'
 
     it 'creates successfully', ->
-      m = KoaModelA.createMiddleware({})
+      m = KoaModelA.createMiddleware({ allowCreateFromParentModel: true })
       ctx  = request: body: {
         dataA1: 'c1'
         dataA3: 'c3'
@@ -116,7 +119,7 @@ describe 'model', ->
 
     it 'throw error when missing required key', ->
 
-      m = KoaModelA.createMiddleware({})
+      m = KoaModelA.createMiddleware({ allowCreateFromParentModel: true })
       ctx  = request: body: {
         dataA3: 'c3'
         dataA4: 'c4'
@@ -130,7 +133,9 @@ describe 'model', ->
 
     it 'projects fields', ->
 
-      m = KoaModelA.createMiddleware({ level: '1' })
+      m = KoaModelA.createMiddleware({
+        level: '1', allowCreateFromParentModel: true
+      })
       ctx  = request: body: {
         dataA1: 'c1'
         dataA2: 'c2'
@@ -144,6 +149,43 @@ describe 'model', ->
       should(ctx.object.dataA2).not.be.ok()
       ctx.object.dataA3.should.be.equal 'dataA3'
       ctx.object.dataA4.should.be.equal 'c4'
+
+    it 'throws exeception without discriminatorKey', ->
+      m = KoaModelA.createMiddleware({
+        level: '1'
+      })
+      ctx  = request: body: {
+        dataA1: 'c1'
+        dataA2: 'c2'
+      }
+      next = () ->
+      try
+        await m(ctx, next)
+        should.fail()
+      catch e
+        e.meta.should.have.properties {
+          responseCode: 422
+          path: 'kind'
+        }
+
+    it 'allows create from sub model', ->
+      m = KoaModelA.createMiddleware({
+        level: '1'
+      })
+      ctx  = request: body: {
+        kind: 'KoaModelAA'
+        dataA1: 'c1'
+        dataA2: 'c2'
+      }
+      next = () ->
+      await m(ctx, next)
+      ctx.object.should.have.properties {
+        kind: 'KoaModelAA',
+        dataA1: 'c1',
+        dataA4: 'dataA4',
+        dataA3: 'dataA3',
+      }
+      should(ctx.object.dataA2).not.be.ok()
 
   describe '#getMiddleware', ->
 
