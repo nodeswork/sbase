@@ -41,6 +41,10 @@
     "@types/koa-router": "^7.0.22",
     "@types/mongoose": "^4.7.19",
     "@types/underscore": "^1.8.1",
-    "underscore": "^1.8.3"
+    "@types/validator": "^6.2.2",
+    "koa-router": "^7.2.1",
+    "reflect-metadata": "^0.1.10",
+    "underscore": "^1.8.3",
+    "validator": "^8.1.0"
   }
 }
