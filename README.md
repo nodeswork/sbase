@@ -29,10 +29,11 @@ export class User extends sbase.mongoose.NModel {
 
   // Mongoose schema
   static $SCHEMA = {
-    username:    String
+    email:    String
+    index:    true
   }
 
-  username:      string
+  email:      string
 }
 
 // models/index.ts
@@ -53,3 +54,31 @@ export let User = defs.User.$register<User, UserType>(mongoose);
 ### Customized Methods
 
 ### Model Bindings
+
+```Typescript
+import * as sbase from '@nodeswork/sbase'
+
+export class User extends sbase.mongoose.NModel {
+
+  @sbase.koa.bind('POST')
+  async verifyEmail(): Promise<User> {
+  }
+
+  @sbase.koa.bind('POST')
+  static async forgotPassword(
+    @sbase.koa.params('$request.body.email') email: string
+  ): Promise<void> {
+    let self = this.cast<UserType>();
+    let user = await self.findOne({ email });
+
+    if (user == null) {
+      throw new NodesworkError('Unknown email address', {
+        responseCode: 400,
+      });
+    }
+
+    await user.sendPasswordReset();
+  }
+}
+
+```
