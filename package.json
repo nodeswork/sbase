@@ -37,7 +37,7 @@
     "typescript": "^2.4.1"
   },
   "dependencies": {
-    "@nodeswork/utils": "0.0.5",
+    "@nodeswork/utils": "^0.0.5",
     "@types/koa-router": "^7.0.22",
     "@types/mongoose": "^4.7.19",
     "@types/underscore": "^1.8.1",
