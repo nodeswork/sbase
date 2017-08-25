@@ -16,6 +16,10 @@ function method(m: string) {
 type UserModelType = typeof UserModel & sbase.mongoose.NModelType
 class UserModel extends sbase.mongoose.NModel {
 
+  static $CONFIG: sbase.mongoose.ModelConfig = {
+    levels: []
+  }
+
   foo() { }
 
   static bar() {}

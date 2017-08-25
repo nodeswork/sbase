@@ -5,8 +5,10 @@ import * as model from './model'
 
 export const MINIMAL = 'MINIMAL'
 
-export interface ModelConfig {
-  levels?:  string[]
+declare module './model' {
+  export interface ModelConfig {
+    levels?:  string[]
+  }
 }
 
 declare module 'mongoose' {
@@ -18,7 +20,7 @@ declare module 'mongoose' {
   }
 }
 
-export function dataLevelPlugin(schema: Schema, options: ModelConfig) {
+export function dataLevelPlugin(schema: Schema, options: model.ModelConfig) {
   if (schema.levelMap == null) {
     schema.levelMap = {};
   }

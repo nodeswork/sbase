@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "./node_modules/.bin/gulp",
+    "build": "rm -rf dist && ./node_modules/.bin/gulp",
     "prepublish": "npm run build",
     "prestart": "npm run build",
     "start": "node dist/index.js",
