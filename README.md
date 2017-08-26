@@ -41,12 +41,12 @@ export class User extends sbase.mongoose.NModel {
   firstName:  string
   lastName:   string
 
-  // get maps to virtual get function
+  // get property maps to virtual get function
   get fullName(): string {
     return `${this.firstName} ${this.lastName}`;
   }
 
-  // set maps to virtual set function
+  // set property maps to virtual set function
   set fullName(fullName: string) {
     let [firstName, lastName] = fullName.split(' ');
     this.firstName = firstName;
