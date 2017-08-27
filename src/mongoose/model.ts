@@ -361,6 +361,8 @@ export class Model {
  */
 export interface ModelConfig extends SchemaOptions {
   discriminatorKey?: string
+  // TODO: Figure out when override from data-level.ts doesn't work
+  levels?:           string[]
 }
 
 /**

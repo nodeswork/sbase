@@ -32,7 +32,7 @@ export function bind(met: string, options: IMethodOptions = {}) {
   ) {
     let methodResolver: IParamFilter[] = Reflect.getOwnMetadata(
       sourceMetadataKey, target, propertyName
-    );
+    ) || [];
     let origMethod = descriptor.value;
 
     let newMethod = async function(
