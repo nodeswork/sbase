@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && ./node_modules/.bin/gulp",
-    "prepublish": "npm run build",
+    "prepublish": "npm test && npm run build",
     "prestart": "npm run build",
     "start": "node dist/index.js",
     "test": "./node_modules/.bin/gulp && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings"

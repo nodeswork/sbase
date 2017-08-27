@@ -38,18 +38,22 @@ export function bind(met: string, options: IMethodOptions = {}) {
     let newMethod = async function(
       ctx: IRouterContext, next: Function
     ): Promise<void> {
-      let args = [];
-      for (let idx = 0; idx < methodResolver.length; idx++) {
-        args[idx] = methodResolver[idx](ctx, ctx);
-      }
-      let obj = await origMethod.apply(this, args);
-      ctx.body = obj;
+      if (ctx != null && ctx.request != null && ctx.response != null) {
+        let args = [];
+        for (let idx = 0; idx < methodResolver.length; idx++) {
+          args[idx] = methodResolver[idx](ctx, ctx);
+        }
+        let obj = await origMethod.apply(this, args);
+        ctx.body = obj;
 
-      if (options.triggerNext) {
-        await next();
-      }
+        if (options.triggerNext && next) {
+          await next();
+        }
 
-      return obj;
+        return obj;
+      } else {
+        return await origMethod.apply(this, arguments);
+      }
     };
 
     (newMethod as any).method = met;
