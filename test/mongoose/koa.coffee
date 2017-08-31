@@ -165,6 +165,7 @@ describe 'model', ->
       catch e
         e.meta.should.have.properties {
           responseCode: 422
+          message: 'required field is missing'
           path: 'kind'
         }
 

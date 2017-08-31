@@ -53,14 +53,14 @@ export class KoaMiddlewares extends model.Model {
         }
 
         if (!options.allowCreateFromParentModel && !modelName) {
-          throw new NodesworkError('unprocessable entity', {
+          throw new NodesworkError('required field is missing', {
             responseCode: 422,
             path: discriminatorKey,
           });
         }
 
         if (!model) {
-          throw new NodesworkError('unprocessable entity', {
+          throw new NodesworkError('invalid value', {
             responseCode: 422,
             path: discriminatorKey,
           });
