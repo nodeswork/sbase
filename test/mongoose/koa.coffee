@@ -163,9 +163,9 @@ describe 'model', ->
         await m(ctx, next)
         should.fail()
       catch e
+        e.message.should.be.equal 'required field is missing'
         e.meta.should.have.properties {
           responseCode: 422
-          message: 'required field is missing'
           path: 'kind'
         }
 
