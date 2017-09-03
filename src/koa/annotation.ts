@@ -41,7 +41,7 @@ export function bind(met: string, options: IMethodOptions = {}) {
       if (ctx != null && ctx.request != null && ctx.response != null) {
         let args = [];
         for (let idx = 0; idx < methodResolver.length; idx++) {
-          args[idx] = methodResolver[idx](ctx, ctx);
+          args[idx] = await methodResolver[idx](ctx, ctx);
         }
         let obj = await origMethod.apply(this, args);
         ctx.body = obj;
