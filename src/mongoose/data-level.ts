@@ -44,10 +44,13 @@ function dataLevelPlugin(schema: Schema, options: ModelConfig) {
 }
 
 function modifyProjection(next: Function) {
-  let level = this.options.level;
+  let schema: Schema = this.schema;
+  let level = (
+    this.options.level ||
+    schema.options.dataLevel && schema.options.dataLevel.default
+  );
 
   if (level) {
-    let schema: Schema = this.schema;
     let fields = schema.dataLevel.levelMap[level] || [];
 
     if (this._fields == null) {
