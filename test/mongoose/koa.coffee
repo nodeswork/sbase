@@ -12,7 +12,8 @@ describe 'model', ->
     @Config {
       collection: 'sbase.koas.modelA'
       discriminatorKey: 'kind'
-      levels: [ '1', '2' ]
+      dataLevel:
+        levels: [ '1', '2' ]
     }
 
     @Schema {
@@ -42,7 +43,8 @@ describe 'model', ->
     @Config {
       collection: 'sbase.koas.modelB'
       discriminatorKey: 'kind'
-      levels: [ '1', '2' ]
+      dataLevel:
+        levels: [ '1', '2' ]
     }
 
     @Schema {

@@ -1,50 +1,61 @@
 import * as _ from 'underscore'
-import { Schema } from 'mongoose'
+import { DocumentToObjectOptions, Schema } from 'mongoose'
 
 import * as model from './model'
+import { ModelConfig, ToJSONOption } from './model-config';
 
-export const MINIMAL = 'MINIMAL'
+export const MINIMAL = 'MINIMAL';
+export const MAXIMAL = 'MAXIMAL';
 
-declare module './model' {
-  export interface ModelConfig {
-    levels?:  string[]
-  }
-}
+export type DataLevelModelType = typeof DataLevelModel;
+export class DataLevelModel extends model.Model {
 
-declare module 'mongoose' {
-  interface Schema {
-    levelMap?: {
-      [name: string]: string[]
+  toJSON(options?: DocumentToObjectOptions): object {
+    let obj = this.toObject();
+    if (options && options.level) {
+      const fields = (
+        this.schema.dataLevel && this.schema.dataLevel.levelMap[options.level]
+        || []
+      );
+      obj = _.pick(obj, fields);
     }
-    levels: string[]
+    return obj;
   }
 }
 
-export function dataLevelPlugin(schema: Schema, options: model.ModelConfig) {
-  if (schema.levelMap == null) {
-    schema.levelMap = {};
+DataLevelModel.Plugin({
+  fn: dataLevelPlugin,
+  priority: 100,
+});
+
+function dataLevelPlugin(schema: Schema, options: ModelConfig) {
+  if (schema.dataLevel == null) {
+    schema.dataLevel = {
+      levelMap: {},
+    };
   }
-  schema.levels = [ MINIMAL ].concat(options.levels || []);
+
+  // schema.levels = [ MINIMAL ].concat(options.levels || []);
   addToLevelMap(schema, levelPaths(schema));
 
-  schema.pre('find', modifyProjection);
-  schema.pre('findOne', modifyProjection);
-  schema.pre('findOneAndUpdate', modifyProjection);
+  for (let name of model.preQueries) {
+    schema.pre(name, modifyProjection);
+  }
 }
 
 function modifyProjection(next: Function) {
-  if (this.options.level) {
-    let schema: Schema = this.schema;
-    let index = schema.levels.indexOf(this.options.level);
+  let level = this.options.level;
 
-    if (this._fields == null && index >= 0) {
+  if (level) {
+    let schema: Schema = this.schema;
+    let fields = schema.dataLevel.levelMap[level] || [];
+
+    if (this._fields == null) {
       this._fields = {};
     }
 
-    for (let i = 0; i <= index; i++) {
-      for (let field of schema.levelMap[schema.levels[i]]) {
-        this._fields[field] = 1;
-      }
+    for (let field of fields) {
+      this._fields[field] = 1;
     }
   }
   next();
@@ -55,10 +66,27 @@ function addToLevelMap(schema: Schema, levelPaths: LevelPath[]) {
     addToLevelMap(schema.parentSchema, levelPaths);
   }
 
+  let dataLevelOptionsLevels = (
+    schema.options.dataLevel && schema.options.dataLevel.levels || []
+  );
+  let levelMap = schema.dataLevel.levelMap;
+
   for (let {path, level} of levelPaths) {
-    schema.levelMap[level] = _.union(
-      schema.levelMap[level], [path]
-    );
+    for (
+      let levelIndex = (
+        level === MINIMAL ? 0 : dataLevelOptionsLevels.indexOf(level)
+      );
+      levelIndex >= 0 && levelIndex < dataLevelOptionsLevels.length;
+      levelIndex++
+    ) {
+      let cLevel = dataLevelOptionsLevels[levelIndex];
+      levelMap[cLevel] = _.union(levelMap[cLevel], [path]);
+    }
+
+    if (level === MINIMAL) {
+      levelMap[MINIMAL] = _.union(levelMap[MINIMAL], [path]);
+    }
+    levelMap[MAXIMAL] = _.union(levelMap[MAXIMAL], [path]);
   }
 }
 

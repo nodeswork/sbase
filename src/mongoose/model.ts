@@ -1,8 +1,10 @@
 import * as _ from 'underscore'
 import {
-  Document, Model as MModel, Mongoose, Schema, SchemaOptions
+  Document, Model as MModel, Mongoose, Schema,
 } from 'mongoose'
 import { MongoError } from 'mongodb'
+
+import { ModelConfig } from './model-config';
 
 export interface Model extends Document {}
 
@@ -10,45 +12,31 @@ export interface Model extends Document {}
 export type ModelType = typeof Model
 export type IModel<E extends Model> = MModel<E>
 
-declare module 'mongoose' {
-  interface Schema {
-    parentSchema?: Schema
-    options?:      ModelConfig
-  }
-
-  interface SchemaType {
-    options?:      SchemaTypeOptions
-  }
-}
-
-export interface SchemaTypeOptions {
-}
-
 /**
  * Wrapped Model from mongoose.Model.
  */
 export class Model {
 
   // reflects the configuration for current model.
-  static $CONFIG: ModelConfig
+  static $CONFIG:            ModelConfig
 
   // preset the schema of current model.
-  static $SCHEMA: {}
+  static $SCHEMA:            {}
 
-  private static $PRES: Pre[]
+  private static $PRES:      Pre[]
 
-  private static $POSTS: Post[]
+  private static $POSTS:     Post[]
 
-  private static $VIRTUALS: Virtual[]
+  private static $VIRTUALS:  Virtual[]
 
-  private static $PLUGINS: Plugin[]
+  private static $PLUGINS:   Plugin[]
 
-  private static $INDEXES: Index[]
+  private static $INDEXES:   Index[]
 
-  private static $MIXINS: ModelType[]
+  private static $MIXINS:    ModelType[]
 
   // placeholder for calculated mongoose options.
-  static _mongooseOptions: MongooseOptions;
+  static _mongooseOptions:   MongooseOptions;
 
   static Config(config: ModelConfig): ModelType {
     this.$CONFIG = config;
@@ -230,6 +218,10 @@ export class Model {
       mixinPlugins, superOptions.plugins || [],
       this.hasOwnProperty('$PLUGINS') ? this.$PLUGINS : []
     ]));
+    this._mongooseOptions.plugins = _.sortBy(
+      this._mongooseOptions.plugins,
+      (plugin) => plugin.priority
+    );
 
     let mixinIndexes = _.map(mixinOptions, (opt) => opt.indexes);
     this._mongooseOptions.indexes = _.union(_.flatten([
@@ -357,15 +349,6 @@ export class Model {
 }
 
 /**
- * Configuration for Model.
- */
-export interface ModelConfig extends SchemaOptions {
-  discriminatorKey?: string
-  // TODO: Figure out when override from data-level.ts doesn't work
-  levels?:           string[]
-}
-
-/**
  * Mongoose options for current model.
  */
 export interface MongooseOptions {
@@ -409,8 +392,9 @@ export interface Method {
 }
 
 export interface Plugin {
-  fn:        (schema:  Schema, options?:  Object) => void
-  options?:  Object
+  fn:         (schema:  Schema, options?:  Object) => void
+  options?:   Object
+  priority?:  number
 }
 
 export interface Index {

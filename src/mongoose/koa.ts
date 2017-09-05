@@ -8,22 +8,6 @@ import * as model from './model'
 
 export type KoaMiddlewaresType = typeof KoaMiddlewares
 
-declare module 'koa' {
-  export interface Request {
-    body: any;
-  }
-}
-
-declare module 'mongoose' {
-  interface Schema {
-    api: {
-      READONLY:       string[]
-      AUTOGEN:        string[]
-      [name: string]: string[]
-    }
-  }
-}
-
 export const READONLY = 'READONLY'
 export const AUTOGEN  = 'AUTOGEN'
 
@@ -402,12 +386,6 @@ export interface IOverwrites {
 KoaMiddlewares.Plugin({
   fn: apiLevel,
 });
-
-declare module './model' {
-  export interface SchemaTypeOptions {
-    api?: string
-  }
-}
 
 function apiLevel(schema: Schema, options: Object) {
   if (schema.api == null) {

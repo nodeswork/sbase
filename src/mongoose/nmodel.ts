@@ -6,6 +6,7 @@ import * as dataLevel from './data-level'
 
 export type NModelType = (
   typeof NModel &
+  dataLevel.DataLevelModelType &
   koa.KoaMiddlewaresType &
   timestamp.TimestampModelType &
   softDelete.SoftDeleteModelType
@@ -21,8 +22,7 @@ export class NModel extends model.Model {
 NModel.Mixin(koa.KoaMiddlewares)
 NModel.Mixin(timestamp.TimestampModel)
 NModel.Mixin(softDelete.SoftDeleteModel)
-
-NModel.Plugin({ fn: dataLevel.dataLevelPlugin })
+NModel.Mixin(dataLevel.DataLevelModel)
 
 export const AUTOGEN   = koa.AUTOGEN;
 export const READONLY  = koa.READONLY;

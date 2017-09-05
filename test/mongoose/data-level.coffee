@@ -9,7 +9,8 @@ describe 'model', ->
     @Config {
       collection: 'sbase.dataLevels'
       discriminatorKey: 'kind'
-      levels: [ '1', '2' ]
+      dataLevel:
+        levels: [ '1', '2' ]
     }
 
     @Schema {
@@ -76,3 +77,8 @@ describe 'model', ->
     should(x.data2).not.be.ok()
     x.sub1.should.be.ok()
     should(x.sub2).not.be.ok()
+
+  it 'filters by toJSON()', ->
+    x = await DAModel.findOne(data1: 'a')
+    x.data2.should.be.ok()
+    should(x.toJSON(level: 1).data2).not.be.ok()
