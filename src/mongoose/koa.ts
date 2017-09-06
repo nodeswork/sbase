@@ -31,7 +31,11 @@ export class KoaMiddlewares extends model.Model {
         let modelName = doc[discriminatorKey];
 
         if (modelName) {
-          model = self.db.model(modelName);
+          try {
+            model = self.db.model(modelName);
+          } catch (e) {
+            /* handle error */
+          }
         }
 
         if (!options.allowCreateFromParentModel && !modelName) {
