@@ -18,7 +18,7 @@ export class KoaMiddlewares extends model.Model {
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
-    async function create(ctx: IContext, next: INext) {
+    async function create(ctx: IRouterContext, next: INext) {
       let model = self;
 
       let omits  = _.union([ '_id' ], options.omits, self.schema.api.AUTOGEN);
@@ -89,7 +89,7 @@ export class KoaMiddlewares extends model.Model {
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
-    async function get(ctx: IContext, next: INext) {
+    async function get(ctx: IRouterContext, next: INext) {
       let query             = ctx.overrides && ctx.overrides.query || {};
       query._id             = ctx.params[options.field];
       let queryOption: any  = {};
@@ -145,7 +145,7 @@ export class KoaMiddlewares extends model.Model {
       size: options.pagination ? options.pagination.size : 0,
     };
 
-    async function find(ctx: IContext, next: INext) {
+    async function find(ctx: IRouterContext, next: INext) {
       let query             = ctx.overrides && ctx.overrides.query || {};
       let queryOption: any  = {};
       let pagination        = null;
@@ -206,7 +206,7 @@ export class KoaMiddlewares extends model.Model {
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
-    async function update(ctx: IContext, next: INext) {
+    async function update(ctx: IRouterContext, next: INext) {
       let query             = ctx.overrides && ctx.overrides.query || {};
       query._id             = ctx.params[options.field];
       let queryOption: any  = {
@@ -254,7 +254,7 @@ export class KoaMiddlewares extends model.Model {
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
-    async function del(ctx: IContext, next: INext) {
+    async function del(ctx: IRouterContext, next: INext) {
       let query             = ctx.overrides && ctx.overrides.query || {};
       query._id             = ctx.params[options.field];
       let queryOption: any  = {};
@@ -368,10 +368,6 @@ export interface UpdateOptions extends CommonOptions, CommonResponseOptions,
 export interface DeleteOptions extends CommonOptions {
   field:        string
   nullable?:    boolean
-}
-
-export interface IContext extends IRouterContext {
-  overrides?:   IOverwrites
 }
 
 export interface IOverwrites {

@@ -6,6 +6,21 @@ declare module 'koa' {
   }
 }
 
+declare module 'koa-router' {
+  export interface IRouterContext {
+    overrides?:   IOverwrites
+  }
+}
+
+export interface IOverwrites {
+  query?:       { [name: string]: any }
+  pagination?:  {
+    page:       number
+    size:       number
+  }
+  doc?:         any
+}
+
 // Overwrite mongoose Schema.
 declare module 'mongoose' {
 
