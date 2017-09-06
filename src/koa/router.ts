@@ -1,17 +1,22 @@
+import Router = require('koa-router');
+
 import * as _ from 'underscore'
-import * as Router from 'koa-router'
 import { ModelPopulateOptions } from 'mongoose'
 
 import { CreateOptions, GetOptions } from '../mongoose/koa'
 import { NModelType } from '../mongoose/nmodel'
-
-var r: NRouter;
 
 export class NRouter extends Router {
 
   nModel<T extends NModelType>(model: T, options: KoaNModelOptions): NRouter {
     return this;
   }
+}
+
+export function bindModel<T extends NModelType>(
+  router: Router, model: T, options: KoaNModelOptions
+): Router {
+  return router;
 }
 
 export interface KoaNModelOptions {

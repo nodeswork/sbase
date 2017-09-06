@@ -21,11 +21,9 @@ export class KoaMiddlewares extends model.Model {
     async function create(ctx: IContext, next: INext) {
       let model = self;
 
-      let doc    = _.extend(
-        {}, ctx.request.body, ctx.overrides && ctx.overrides.doc
-      );
-      let omits  = _.union(options.omits, self.schema.api.AUTOGEN);
-      doc        = _.omit(doc, omits);
+      let omits  = _.union([ '_id' ], options.omits, self.schema.api.AUTOGEN);
+      let doc    = _.omit(ctx.request.body, omits);
+      doc        = _.extend(doc, ctx.overrides && ctx.overrides.doc);
 
       let discriminatorKey: string = self.schema.options.discriminatorKey;
 
@@ -220,8 +218,10 @@ export class KoaMiddlewares extends model.Model {
         [ '_id' ], options.omits,
         self.schema.api.READONLY, self.schema.api.AUTOGEN
       );
-      let update            = {
-        $set: _.omit(ctx.request.body, omits),
+      let doc     = _.omit(ctx.request.body, omits);
+      doc         = _.extend(doc, ctx.overrides && ctx.overrides.doc);
+      let update  = {
+        $set: doc,
       };
 
       var object = await self.findOneAndUpdate(query, update, queryOption);
