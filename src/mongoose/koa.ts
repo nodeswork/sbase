@@ -35,6 +35,7 @@ export class KoaMiddlewares extends model.Model {
             model = self.db.model(modelName);
           } catch (e) {
             /* handle error */
+            model = null;
           }
         }
 
