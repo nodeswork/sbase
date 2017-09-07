@@ -228,8 +228,20 @@ export class KoaMiddlewares extends model.Model {
       let update  = {
         $set: doc,
       };
+      let model   = self;
+      let discriminatorKey: string = self.schema.options.discriminatorKey;
+      let modelName = ctx.request.body[discriminatorKey];
 
-      var object = await self.findOneAndUpdate(query, update, queryOption);
+      if (discriminatorKey && modelName) {
+        try {
+          model = self.db.model(modelName);
+          query[discriminatorKey] = modelName;
+        } catch (e) {
+          /* handle error */
+        }
+      }
+
+      var object = await model.findOneAndUpdate(query, update, queryOption);
 
       (ctx as any)[options.target] = object;
 
