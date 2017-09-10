@@ -1,10 +1,9 @@
-
 import * as sbase from '../src'
 import * as mongoose from 'mongoose'
 
 function source(key: string) {
   return function(target: Object, propertyKey: string | symbol, paramIndex: number) {
-    console.log('target', target);
+    // console.log('target', target);
   };
 }
 

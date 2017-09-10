@@ -6,10 +6,11 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "rm -rf dist && ./node_modules/.bin/gulp",
-    "prepublish": "npm test && npm run build",
+    "prepublish": "npm test && npm run test2 && npm run build",
     "prestart": "npm run build",
     "start": "node dist/index.js",
-    "test": "./node_modules/.bin/gulp && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings"
+    "test": "./node_modules/.bin/gulp && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers coffee:coffeescript/register",
+    "test2": "NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers ts:ts-node/register"
   },
   "repository": {
     "type": "git",
@@ -26,7 +27,9 @@
   },
   "homepage": "https://github.com/nodeswork/sbase#readme",
   "devDependencies": {
+    "@types/mocha": "^2.2.43",
     "@types/node": "^8.0.8",
+    "@types/should": "^11.2.0",
     "chai": "^4.0.2",
     "coffeescript": "^2.0.0-beta3",
     "gulp": "^3.9.1",
@@ -35,15 +38,20 @@
     "mongoose": "^4.11.7",
     "should": "^11.2.1",
     "source-map-support": "^0.4.17",
+    "ts-node": "^3.3.0",
     "typescript": "^2.4.1"
   },
   "dependencies": {
-    "@nodeswork/utils": "^0.0.5",
+    "@nodeswork/utils": "^0.0.6",
     "@types/koa-router": "^7.0.22",
+    "@types/lru-cache": "^4.1.0",
     "@types/mongoose": "^4.7.19",
+    "@types/socket.io": "^1.4.30",
+    "@types/socket.io-client": "^1.4.30",
     "@types/underscore": "^1.8.1",
     "@types/validator": "^6.2.2",
     "koa-router": "^7.2.1",
+    "lru-cache": "^4.1.1",
     "reflect-metadata": "^0.1.10",
     "underscore": "^1.8.3",
     "validator": "^8.1.0"

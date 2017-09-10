@@ -1,3 +1,2 @@
 --recursive
---compilers coffee:coffeescript/register
 --require should
