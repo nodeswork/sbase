@@ -50,6 +50,7 @@
     "@types/socket.io-client": "^1.4.30",
     "@types/underscore": "^1.8.1",
     "@types/validator": "^6.2.2",
+    "dotty": "0.0.2",
     "koa-router": "^7.2.1",
     "lru-cache": "^4.1.1",
     "reflect-metadata": "^0.1.10",
