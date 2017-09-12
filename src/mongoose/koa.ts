@@ -25,7 +25,7 @@ export class KoaMiddlewares extends model.Model {
 
       const discriminatorKey: string = self.schema.options.discriminatorKey;
 
-      if (discriminatorKey) {
+      if (discriminatorKey && discriminatorKey !== '__t') {
         const modelName = doc[discriminatorKey];
 
         if (modelName) {
