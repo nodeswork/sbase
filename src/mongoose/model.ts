@@ -37,6 +37,8 @@ export class Model {
 
   private static $MIXINS:    ModelType[];
 
+  private static $VALIDATES: Validate[];
+
   // placeholder for calculated mongoose options.
   private static _mongooseOptions:   MongooseOptions;
 
@@ -100,6 +102,15 @@ export class Model {
       this.$MIXINS.push(model);
     } else {
       this.$MIXINS = [model];
+    }
+    return this;
+  }
+
+  public static Validate(validate: Validate): ModelType {
+    if (this.hasOwnProperty('$VALIDATES')) {
+      this.$VALIDATES.push(validate);
+    } else {
+      this.$VALIDATES = [validate];
     }
     return this;
   }
@@ -215,6 +226,12 @@ export class Model {
       this.hasOwnProperty('$VIRTUALS') ? this.$VIRTUALS : [],
     ]));
 
+    const mixinValidates = _.map(mixinOptions, (opt) => opt.validates);
+    this._mongooseOptions.validates = _.union(_.flatten([
+      mixinValidates, superOptions.validates || [],
+      this.hasOwnProperty('$VALIDATES') ? this.$VALIDATES : [],
+    ]));
+
     const mixinPlugins = _.map(mixinOptions, (opt) => opt.plugins);
     this._mongooseOptions.plugins = _.union(_.flatten([
       mixinPlugins, superOptions.plugins || [],
@@ -317,6 +334,12 @@ export class Model {
       mongooseSchema.index(index);
     }
 
+    for (const validate of this._mongooseOptions.validates) {
+      mongooseSchema
+        .path(validate.path)
+        .validate(validate.fn, validate.errorMsg, validate.type);
+    }
+
     this._mongooseOptions.mongooseSchema  = mongooseSchema;
     this._mongooseOptions.initialized     = true;
     return this._mongooseOptions;
@@ -365,6 +388,7 @@ export interface MongooseOptions {
   statics?:        Method[];
   plugins?:        Plugin[];
   indexes?:        Index[];
+  validates?:      Validate[];
 }
 
 export interface Pre {
@@ -405,6 +429,13 @@ export interface Index {
     expires?:  string;
     [other:    string]:  any;
   };
+}
+
+export interface Validate {
+  path:        string;
+  fn:          (val?: any) => boolean;
+  errorMsg?:   string;
+  type?:       string;
 }
 
 export class NativeError extends global.Error {}
