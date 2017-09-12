@@ -1,5 +1,3 @@
-import { SchemaOptions } from 'mongoose';
-
 declare module 'koa' {
   export interface Request {
     body: any;
@@ -8,64 +6,61 @@ declare module 'koa' {
 
 declare module 'koa-router' {
   export interface IRouterContext {
-    overrides?:   IOverwrites
+    overrides?:   IOverwrites;
   }
-}
-
-export interface IOverwrites {
-  query?:       { [name: string]: any }
-  pagination?:  {
-    page:       number
-    size:       number
-  }
-  doc?:         any
 }
 
 // Overwrite mongoose Schema.
 declare module 'mongoose' {
 
+  interface SchemaOptions {
+    discriminatorKey?: string;
+    dataLevel?:        DataLevelConfig;
+  }
+
   interface Schema {
-    dataLevel?:    {
-      levelMap:    { [name: string]: string[] },
-    },
-    parentSchema?: Schema
-    options?:      ModelConfig
-    api: {
-      READONLY:       string[]
-      AUTOGEN:        string[]
-      [name: string]: string[]
-    }
+    dataLevel?:           {
+      levelMap:           { [name: string]: string[] },
+    };
+    parentSchema?:        Schema;
+    options?:             SchemaOptions;
+    api:                  {
+      READONLY:           string[];
+      AUTOGEN:            string[];
+      [name:  string]:    string[];
+    };
   }
 
   interface SchemaType {
-    options?:      SchemaTypeOptions
+    options?:      SchemaTypeOptions;
   }
 
   interface DocumentToObjectOptions {
-    level?:        string
+    level?:        string;
   }
 }
 
-export interface SchemaTypeOptions {
-  api?: string
+export interface IOverwrites {
+  query?:       { [name: string]: any };
+  pagination?:  {
+    page:       number;
+    size:       number;
+  };
+  doc?:         any;
 }
 
-/**
- * Configuration for Model.
- */
-export interface ModelConfig extends SchemaOptions {
-  discriminatorKey?: string;
-  dataLevel?:        DataLevelConfig;
+export interface SchemaTypeOptions {
+  api?: string;
 }
 
 /**
  * Configuration for dataLevel.
  */
 export interface DataLevelConfig {
-  levels:     string[]
-  default?:   string
+  levels:     string[];
+  default?:   string;
 }
 
 export interface ToJSONOption {
-  level?:     string
+  level?:     string;
 }

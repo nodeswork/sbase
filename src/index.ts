@@ -6,4 +6,4 @@ export {
   koa,
   mongoose,
   socket,
-}
+};

@@ -1,8 +1,8 @@
-import * as _ from 'underscore'
-import { DocumentToObjectOptions, Schema } from 'mongoose'
+import * as _ from 'underscore';
+import { DocumentToObjectOptions, Schema, SchemaOptions } from 'mongoose';
 
 import * as model from './model'
-import { ModelConfig, ToJSONOption } from './model-config';
+import { ToJSONOption } from './model-config';
 
 export const MINIMAL = 'MINIMAL';
 export const MAXIMAL = 'MAXIMAL';
@@ -28,7 +28,7 @@ DataLevelModel.Plugin({
   priority: 100,
 });
 
-function dataLevelPlugin(schema: Schema, options: ModelConfig) {
+function dataLevelPlugin(schema: Schema, options: SchemaOptions) {
   if (schema.dataLevel == null) {
     schema.dataLevel = {
       levelMap: {},

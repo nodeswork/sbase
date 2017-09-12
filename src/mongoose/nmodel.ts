@@ -23,6 +23,3 @@ NModel.Mixin(koa.KoaMiddlewares)
 NModel.Mixin(timestamp.TimestampModel)
 NModel.Mixin(softDelete.SoftDeleteModel)
 NModel.Mixin(dataLevel.DataLevelModel)
-
-export const AUTOGEN   = koa.AUTOGEN;
-export const READONLY  = koa.READONLY;

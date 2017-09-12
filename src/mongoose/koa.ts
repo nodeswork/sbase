@@ -1,41 +1,39 @@
-import * as _ from 'underscore'
-import { IMiddleware, IRouterContext } from 'koa-router'
-import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose'
+import * as _                                       from 'underscore';
+import { IMiddleware, IRouterContext }              from 'koa-router';
+import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
 
-import { NodesworkError, validator2 } from '@nodeswork/utils'
+import { NodesworkError, validator2 }               from '@nodeswork/utils';
 
-import * as model from './model'
+import * as model                                   from './model';
 
-export type KoaMiddlewaresType = typeof KoaMiddlewares
+export const READONLY = 'READONLY';
+export const AUTOGEN  = 'AUTOGEN';
 
-export const READONLY = 'READONLY'
-export const AUTOGEN  = 'AUTOGEN'
-
+export type KoaMiddlewaresType = typeof KoaMiddlewares;
 export class KoaMiddlewares extends model.Model {
 
-  static createMiddleware(options: CreateOptions): IMiddleware {
-    let self = this.cast<KoaMiddlewares>();
+  public static createMiddleware(options: CreateOptions): IMiddleware {
+    const self = this.cast<KoaMiddlewares>();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function create(ctx: IRouterContext, next: INext) {
-      let model = self;
+      let rModel   = self;
+      const omits  = _.union([ '_id' ], options.omits, self.schema.api.AUTOGEN);
+      let doc      = _.omit(ctx.request.body, omits);
+      doc          = _.extend(doc, ctx.overrides && ctx.overrides.doc);
 
-      let omits  = _.union([ '_id' ], options.omits, self.schema.api.AUTOGEN);
-      let doc    = _.omit(ctx.request.body, omits);
-      doc        = _.extend(doc, ctx.overrides && ctx.overrides.doc);
-
-      let discriminatorKey: string = self.schema.options.discriminatorKey;
+      const discriminatorKey: string = self.schema.options.discriminatorKey;
 
       if (discriminatorKey) {
-        let modelName = doc[discriminatorKey];
+        const modelName = doc[discriminatorKey];
 
         if (modelName) {
           try {
-            model = self.db.model(modelName);
+            rModel = self.db.model(modelName);
           } catch (e) {
             /* handle error */
-            model = null;
+            rModel = null;
           }
         }
 
@@ -46,7 +44,7 @@ export class KoaMiddlewares extends model.Model {
           });
         }
 
-        if (!model) {
+        if (!rModel) {
           throw new NodesworkError('invalid value', {
             responseCode: 422,
             path: discriminatorKey,
@@ -62,7 +60,7 @@ export class KoaMiddlewares extends model.Model {
 
       doc = (ctx as any)[options.target];
       let object: KoaMiddlewares = (
-        await model.create(doc)
+        await rModel.create(doc)
       ) as any as KoaMiddlewares;
 
       if (options.project || options.level) {
@@ -73,7 +71,7 @@ export class KoaMiddlewares extends model.Model {
 
       (ctx as any)[options.target] = object;
       if (options.populate) {
-        await model.populate(object, options.populate);
+        await rModel.populate(object, options.populate);
       }
 
       if (!options.noBody) {
@@ -89,15 +87,15 @@ export class KoaMiddlewares extends model.Model {
     return create;
   }
 
-  static getMiddleware(options: GetOptions): IMiddleware {
-    let self = this.cast<KoaMiddlewares>();
+  public static getMiddleware(options: GetOptions): IMiddleware {
+    const self = this.cast<KoaMiddlewares>();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function get(ctx: IRouterContext, next: INext) {
-      let query             = ctx.overrides && ctx.overrides.query || {};
-      query._id             = ctx.params[options.field];
-      let queryOption: any  = {};
+      const query             = ctx.overrides && ctx.overrides.query || {};
+      query._id               = ctx.params[options.field];
+      const queryOption: any  = {};
 
       if (options.level) {
         queryOption.level = options.level;
@@ -109,7 +107,7 @@ export class KoaMiddlewares extends model.Model {
         queryPromise    = queryPromise.populate(options.populate);
       }
 
-      let object = await queryPromise;
+      const object = await queryPromise;
 
       (ctx as any)[options.target] = object;
 
@@ -119,12 +117,12 @@ export class KoaMiddlewares extends model.Model {
 
       if (!options.nullable && object == null) {
         throw new NodesworkError('not found', {
-          responseCode: 404
+          responseCode: 404,
         });
       }
 
       if (!options.noBody) {
-        ctx.body = options.transform((ctx as any)[options.target])
+        ctx.body = options.transform((ctx as any)[options.target]);
       }
     }
 
@@ -136,8 +134,8 @@ export class KoaMiddlewares extends model.Model {
     return get;
   }
 
-  static findMiddleware(options: FindOptions): IMiddleware {
-    let self = this.cast<KoaMiddlewares>();
+  public static findMiddleware(options: FindOptions): IMiddleware {
+    const self = this.cast<KoaMiddlewares>();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
@@ -151,12 +149,12 @@ export class KoaMiddlewares extends model.Model {
     };
 
     async function find(ctx: IRouterContext, next: INext) {
-      let query             = ctx.overrides && ctx.overrides.query || {};
-      let queryOption: any  = {};
-      let pagination        = null;
+      const query             = ctx.overrides && ctx.overrides.query || {};
+      const queryOption: any  = {};
+      let pagination          = null;
 
       if (options.pagination) {
-        // pagination          = VALIDATE_QUERY_PAGINATION(ctx.request.query);
+        // pagination       = VALIDATE_QUERY_PAGINATION(ctx.request.query);
         pagination          = ctx.request.query;
         _.defaults(pagination, defaultPagination);
 
@@ -174,7 +172,7 @@ export class KoaMiddlewares extends model.Model {
         queryPromise    = queryPromise.populate(options.populate);
       }
 
-      let object = await queryPromise;
+      const object = await queryPromise;
 
       (ctx as any)[options.target] = object;
 
@@ -183,15 +181,15 @@ export class KoaMiddlewares extends model.Model {
       }
 
       if (pagination) {
-        let totalPage = Math.floor((
+        const totalPage = Math.floor((
           await self.find(query).count() - 1
         ) / pagination.size + 1);
         ctx.response.set('total_page', totalPage.toString());
       }
 
       if (!options.noBody) {
-        let body = (ctx as any)[options.target];
-        for (let i in body) {
+        const body = (ctx as any)[options.target];
+        for (let i = 0; i < body.length; i++) {
           body[i] = options.transform(body[i]);
         }
         ctx.body = body;
@@ -206,42 +204,42 @@ export class KoaMiddlewares extends model.Model {
     return find;
   }
 
-  static updateMiddleware(options: UpdateOptions): IMiddleware {
-    let self = this.cast<KoaMiddlewares>();
+  public static updateMiddleware(options: UpdateOptions): IMiddleware {
+    const self = this.cast<KoaMiddlewares>();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function update(ctx: IRouterContext, next: INext) {
-      let query             = ctx.overrides && ctx.overrides.query || {};
-      query._id             = ctx.params[options.field];
-      let queryOption: any  = {
+      const query             = ctx.overrides && ctx.overrides.query || {};
+      query._id               = ctx.params[options.field];
+      const queryOption: any  = {
         new:     true,
         fields:  options.project,
         level:   options.level,
       };
-      let omits             = _.union(
+      const omits             = _.union(
         [ '_id' ], options.omits,
-        self.schema.api.READONLY, self.schema.api.AUTOGEN
+        self.schema.api.READONLY, self.schema.api.AUTOGEN,
       );
-      let doc     = _.omit(ctx.request.body, omits);
-      doc         = _.extend(doc, ctx.overrides && ctx.overrides.doc);
-      let update  = {
+      let doc       = _.omit(ctx.request.body, omits);
+      doc           = _.extend(doc, ctx.overrides && ctx.overrides.doc);
+      const upDoc   = {
         $set: doc,
       };
-      let model   = self;
-      let discriminatorKey: string = self.schema.options.discriminatorKey;
-      let modelName = ctx.request.body[discriminatorKey];
+      let rModel                     = self;
+      const discriminatorKey: string = self.schema.options.discriminatorKey;
+      const modelName                = ctx.request.body[discriminatorKey];
 
       if (discriminatorKey && modelName) {
         try {
-          model = self.db.model(modelName);
+          rModel = self.db.model(modelName);
           query[discriminatorKey] = modelName;
         } catch (e) {
           /* handle error */
         }
       }
 
-      var object = await model.findOneAndUpdate(query, update, queryOption);
+      const object = await rModel.findOneAndUpdate(query, upDoc, queryOption);
 
       (ctx as any)[options.target] = object;
 
@@ -250,8 +248,8 @@ export class KoaMiddlewares extends model.Model {
       }
 
       if (!options.noBody) {
-        let body = (ctx as any)[options.target];
-        for (let i in body) {
+        const body = (ctx as any)[options.target];
+        for (let i = 0; i < body.length; i++) {
           body[i] = options.transform(body[i]);
         }
         ctx.body = body;
@@ -266,17 +264,17 @@ export class KoaMiddlewares extends model.Model {
     return update;
   }
 
-  static deleteMiddleware(options: DeleteOptions): IMiddleware {
-    let self = this.cast<KoaMiddlewares>();
+  public static deleteMiddleware(options: DeleteOptions): IMiddleware {
+    const self = this.cast<KoaMiddlewares>();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function del(ctx: IRouterContext, next: INext) {
-      let query             = ctx.overrides && ctx.overrides.query || {};
-      query._id             = ctx.params[options.field];
-      let queryOption: any  = {};
+      const query             = ctx.overrides && ctx.overrides.query || {};
+      query._id               = ctx.params[options.field];
+      const queryOption: any  = {};
 
-      let queryPromise  = self.findOne(query, undefined, queryOption);
+      const queryPromise      = self.findOne(query, undefined, queryOption);
 
       let object = await queryPromise;
 
@@ -290,7 +288,7 @@ export class KoaMiddlewares extends model.Model {
 
       if (!options.nullable && object == null) {
         throw new NodesworkError('not found', {
-          responseCode: 404
+          responseCode: 404,
         });
       }
 
@@ -312,25 +310,25 @@ export class KoaMiddlewares extends model.Model {
 
 export interface CommonOptions {
 
-  noBody?:      boolean          // if to write the result to body
-  triggerNext?: boolean          // if to trigger next middleware
+  noBody?:      boolean;          // if to write the result to body
+  triggerNext?: boolean;          // if to trigger next middleware
 
   // the target field name write to ctx, default: object
-  target?:      string
+  target?:      string;
 
   // transform the result before write to body
-  transform?:   (a: any) => Promise<any>
+  transform?:   (a: any) => Promise<any>;
 }
 
 const DEFAULT_COMMON_OPTIONS = {
   target:       'object',
   transform:    _.identity,
-}
+};
 
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size:         20,
   sizeChoices:  [20, 50, 100, 200],
-}
+};
 
 const VALIDATE_QUERY_PAGINATION = validator2.compile({
   page: [],
@@ -338,86 +336,77 @@ const VALIDATE_QUERY_PAGINATION = validator2.compile({
 });
 
 export interface CommonResponseOptions {
-  level?:       string    // the data level for projection
-  project?:     string[]  // the data fields for projection
+  level?:       string;    // the data level for projection
+  project?:     string[];  // the data fields for projection
 
   // populate specific fields only
-  populate?:    ModelPopulateOptions | ModelPopulateOptions[]
+  populate?:    ModelPopulateOptions | ModelPopulateOptions[];
 }
 
 export interface CommonReadOptions {
 }
 
 export interface CommonWriteOptions {
-  omits?:       string[]  // omits fields to be modified
+  omits?:       string[];  // omits fields to be modified
 }
 
 export interface CreateOptions extends CommonOptions, CommonResponseOptions,
   CommonWriteOptions {
 
   // if allows to create from parent model when there's discriminator config
-  allowCreateFromParentModel?: boolean
+  allowCreateFromParentModel?: boolean;
 }
 
 export interface GetOptions extends CommonOptions, CommonResponseOptions,
   CommonReadOptions {
 
-  field:        string
-  nullable?:    boolean
+  field:        string;
+  nullable?:    boolean;
 }
 
 export interface FindOptions extends CommonOptions, CommonResponseOptions,
   CommonReadOptions {
 
   pagination?:  {
-    size?:         number
-    sizeChoices?:  number[]
-  }
+    size?:         number;
+    sizeChoices?:  number[];
+  };
 }
 
 export interface UpdateOptions extends CommonOptions, CommonResponseOptions,
   CommonWriteOptions {
 
-  field:        string
-  nullable?:    boolean
+  field:        string;
+  nullable?:    boolean;
 }
 
 export interface DeleteOptions extends CommonOptions {
-  field:        string
-  nullable?:    boolean
-}
-
-export interface IOverwrites {
-  query?:       { [name: string]: any }
-  pagination?:  {
-    page:       number
-    size:       number
-  }
-  doc?:         any
+  field:        string;
+  nullable?:    boolean;
 }
 
 KoaMiddlewares.Plugin({
   fn: apiLevel,
 });
 
-function apiLevel(schema: Schema, options: Object) {
+function apiLevel(schema: Schema, options: object) {
   if (schema.api == null) {
     schema.api = {
       READONLY:  [],
-      AUTOGEN:   []
-    }
+      AUTOGEN:   [],
+    };
   }
 
-  schema.eachPath(function (pathname: string, schemaType: SchemaType) {
+  schema.eachPath((pathname: string, schemaType: SchemaType) => {
     if ([ READONLY, AUTOGEN ].indexOf(schemaType.options.api) < 0) {
       return;
     }
     for (let s = schema; s != null; s = s.parentSchema) {
       s.api[schemaType.options.api] = _.union(
-        s.api[schemaType.options.api], [ pathname ]
+        s.api[schemaType.options.api], [ pathname ],
       );
     }
   });
 }
 
-export type INext = () => Promise<any>
+export type INext = () => Promise<any>;

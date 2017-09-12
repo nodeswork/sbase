@@ -15,7 +15,7 @@ function method(m: string) {
 export type UserModelType = typeof UserModel & sbase.mongoose.NModelType
 export class UserModel extends sbase.mongoose.NModel {
 
-  static $CONFIG: sbase.mongoose.ModelConfig = {
+  static $CONFIG: mongoose.SchemaOptions = {
     dataLevel: {
       levels: []
     }
