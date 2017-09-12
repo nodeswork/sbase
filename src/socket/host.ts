@@ -9,11 +9,11 @@ export function socketRpcHost(
 ) {
   socket.on(
     `${eventNamePrefix}.request`,
-    async (request: SBase.SocketRpcRequest) => {
+    async (request: sbase.socket.SocketRpcRequest) => {
       const fn: Function = target[request.name];
       let result;
       let error;
-      let resp: SBase.SocketRpcResponse;
+      let resp: sbase.socket.SocketRpcResponse;
       if (fn == null) {
         error = UNKOWN_METHOD_ERROR;
       } else {
@@ -23,7 +23,7 @@ export function socketRpcHost(
           error = NodesworkError.cast(e).toJSON({ cause: true });
         }
       }
-      const response: SBase.SocketRpcResponse = {
+      const response: sbase.socket.SocketRpcResponse = {
         requestId: request.requestId,
         result,
         error,

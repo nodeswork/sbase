@@ -13,7 +13,7 @@ export class SocketRpcClient {
   constructor(public socket: SocketIO.Socket) {}
 
   async call(name: string, args: any[], timeoutMillis: number) {
-    const request: SBase.SocketRpcRequest = {
+    const request: sbase.socket.SocketRpcRequest = {
       requestId: ++this._requsetId,
       responseEventName: this.responseEventName,
       timeoutMillis,
@@ -66,7 +66,7 @@ export function socketRpcClient(options: {
       _cache = new LRU<number, Function[]>();
       ___ = this.socket.on(
         this.responseEventName,
-        (resp: SBase.SocketRpcResponse) => {
+        (resp: sbase.socket.SocketRpcResponse) => {
           const cached = this._cache.get(resp.requestId);
           if (cached == null) {
             console.error('timedout', resp);

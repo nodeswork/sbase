@@ -12,8 +12,8 @@ function method(m: string) {
   };
 }
 
-type UserModelType = typeof UserModel & sbase.mongoose.NModelType
-class UserModel extends sbase.mongoose.NModel {
+export type UserModelType = typeof UserModel & sbase.mongoose.NModelType
+export class UserModel extends sbase.mongoose.NModel {
 
   static $CONFIG: sbase.mongoose.ModelConfig = {
     dataLevel: {
@@ -37,8 +37,8 @@ class UserModel extends sbase.mongoose.NModel {
   }
 }
 
-type EmailUserModelType = typeof EmailUserModel & sbase.mongoose.NModelType
-class EmailUserModel extends UserModel {
+export type EmailUserModelType = typeof EmailUserModel & sbase.mongoose.NModelType
+export class EmailUserModel extends UserModel {
 
   foo1() {}
 
@@ -46,60 +46,3 @@ class EmailUserModel extends UserModel {
     this.cast<EmailUserModel>();
   }
 }
-
-var User = UserModel.$register<UserModel, UserModelType>(mongoose);
-
-var Email = EmailUserModel.$register<EmailUserModel, EmailUserModelType>(
-  mongoose
-);
-
-async function E() {
-  var user = await User.findOne();
-  user.foo();
-  User.bar();
-
-  user.createdAt;
-  user.lastUpdateTime;
-  user.deleted;
-
-  user = await user.save();
-
-  var eUser = await Email.findOne();
-  eUser.foo();
-  eUser.foo1();
-  Email.bar();
-  Email.bar1();
-
-  User.createMiddleware({})
-}
-
-
-let router = new sbase.koa.NRouter()
-
-router
-
-  .nModel(User, {
-
-    field: 'userId',
-
-    use:   [],
-
-    cruds: {
-      create: true,
-      get:    {
-      },
-      // find:   true,
-      // update: true,
-      // delete: true,
-    },
-
-    methods: {
-      verifyEmail: true,
-    },
-
-    statics: {
-
-      forgotPassword: {
-      }
-    },
-  })

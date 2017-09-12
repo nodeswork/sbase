@@ -7,7 +7,7 @@ import {
 describe('SocketRpcClient', () => {
 
   var socket: SocketIO.Socket = {
-    emit: (eventName: string, data: SBase.SocketRpcRequest) => {
+    emit: (eventName: string, data: sbase.socket.SocketRpcRequest) => {
       eventName.should.be.equal('socket-rpc.request');
       data.should.have.properties({
         responseEventName: 'socket-rpc.response',
@@ -15,7 +15,7 @@ describe('SocketRpcClient', () => {
         name: 'foo',
       });
 
-      const response: SBase.SocketRpcResponse = {
+      const response: sbase.socket.SocketRpcResponse = {
         requestId:  data.requestId,
         result:     'bar',
         error:      null,

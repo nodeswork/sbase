@@ -1,4 +1,4 @@
-namespace SBase {
+namespace sbase.socket {
 
   export interface SocketRpcRequest {
     requestId:          number;
