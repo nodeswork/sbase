@@ -284,6 +284,10 @@ export class Model {
     for (const name of Object.getOwnPropertyNames(this)) {
       const descriptor = Object.getOwnPropertyDescriptor(this, name);
 
+      if (STATIC_FILTER_NAMES.indexOf(name) >= 0) {
+        continue;
+      }
+
       if (descriptor.value) {
         this._mongooseOptions.statics.push({
           name,
@@ -455,6 +459,11 @@ const PointSchema = new Schema({
     default:    [0, 0],
   },
 });
+
+const STATIC_FILTER_NAMES = [
+  'name', 'prototype', '_mongooseOptions', '$PLUGINS', '$PRES', '$SCHEMA',
+  '$MIXINS', '$CONFIG', '$INDEXES',
+];
 
 // Patch MModel.prototype.init
 const _init = MModel.prototype.init;
