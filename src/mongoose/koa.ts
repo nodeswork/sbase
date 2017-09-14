@@ -75,7 +75,7 @@ export class KoaMiddlewares extends model.Model {
       }
 
       if (!options.noBody) {
-        ctx.body = options.transform(object);
+        ctx.body = await options.transform(object);
       }
     }
 
@@ -122,7 +122,7 @@ export class KoaMiddlewares extends model.Model {
       }
 
       if (!options.noBody) {
-        ctx.body = options.transform((ctx as any)[options.target]);
+        ctx.body = await options.transform((ctx as any)[options.target]);
       }
     }
 
@@ -190,7 +190,7 @@ export class KoaMiddlewares extends model.Model {
       if (!options.noBody) {
         const body = (ctx as any)[options.target];
         for (let i = 0; i < body.length; i++) {
-          body[i] = options.transform(body[i]);
+          body[i] = await options.transform(body[i]);
         }
         ctx.body = body;
       }
@@ -250,7 +250,7 @@ export class KoaMiddlewares extends model.Model {
       if (!options.noBody) {
         const body = (ctx as any)[options.target];
         for (let i = 0; i < body.length; i++) {
-          body[i] = options.transform(body[i]);
+          body[i] = await options.transform(body[i]);
         }
         ctx.body = body;
       }
