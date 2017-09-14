@@ -239,7 +239,12 @@ export class KoaMiddlewares extends model.Model {
         }
       }
 
-      const object = await rModel.findOneAndUpdate(query, upDoc, queryOption);
+      let updatePromise = rModel.findOneAndUpdate(query, upDoc, queryOption);
+
+      if (options.populate) {
+        updatePromise = updatePromise.populate(options.populate);
+      }
+      const object = await updatePromise;
 
       (ctx as any)[options.target] = object;
 
@@ -248,11 +253,7 @@ export class KoaMiddlewares extends model.Model {
       }
 
       if (!options.noBody) {
-        const body = (ctx as any)[options.target];
-        for (let i = 0; i < body.length; i++) {
-          body[i] = await options.transform(body[i]);
-        }
-        ctx.body = body;
+        ctx.body = await options.transform((ctx as any)[options.target]);
       }
     }
 
