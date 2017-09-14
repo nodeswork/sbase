@@ -284,7 +284,7 @@ export class Model {
     for (const name of Object.getOwnPropertyNames(this)) {
       const descriptor = Object.getOwnPropertyDescriptor(this, name);
 
-      if (descriptor.value && _.isFunction(descriptor.value)) {
+      if (descriptor.value) {
         this._mongooseOptions.statics.push({
           name,
           fn: descriptor.value,
