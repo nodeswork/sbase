@@ -93,10 +93,24 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function get(ctx: IRouterContext, next: INext) {
-      const query             = ctx.overrides && ctx.overrides.query || {};
-      query._id               = ctx.params[options.field];
-      const queryOption: any  = {};
+      const query = ctx.overrides && ctx.overrides.query || {};
+      if (options.field !== '*') {
+        query._id = ctx.params[options.field];
+        if (query._id == null) {
+          throw new NodesworkError('invalid value', {
+            responseCode: 422,
+            path: options.field,
+          });
+        }
+      }
+      if (Object.keys(query).length === 0) {
+        throw new NodesworkError('no query parameters', {
+          responseCode: 422,
+          path: options.field,
+        });
+      }
 
+      const queryOption: any  = {};
       if (options.level) {
         queryOption.level = options.level;
       }
@@ -210,8 +224,23 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function update(ctx: IRouterContext, next: INext) {
-      const query             = ctx.overrides && ctx.overrides.query || {};
-      query._id               = ctx.params[options.field];
+      const query = ctx.overrides && ctx.overrides.query || {};
+      if (options.field !== '*') {
+        query._id = ctx.params[options.field];
+        if (query._id == null) {
+          throw new NodesworkError('invalid value', {
+            responseCode: 422,
+            path: options.field,
+          });
+        }
+      }
+      if (Object.keys(query).length === 0) {
+        throw new NodesworkError('no query parameters', {
+          responseCode: 422,
+          path: options.field,
+        });
+      }
+
       const queryOption: any  = {
         new:     true,
         fields:  options.project,
