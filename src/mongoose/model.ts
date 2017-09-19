@@ -207,27 +207,33 @@ export class Model {
     const mixinOptions = _.map(mixinModels, (model) => model.$mongooseOptions());
 
     const mixinSchemas   = _.map(mixinOptions, (opt) => opt.schema);
+    const decoSchema     = Reflect.getOwnMetadata(schemaKey, this.prototype) || {};
     const flattenSchemas = _.flatten(
-      [{}, mixinSchemas, superOptions.schema, this.$SCHEMA],
+      [{}, mixinSchemas, superOptions.schema, this.$SCHEMA, decoSchema],
     );
     this._mongooseOptions.schema = _.extend.apply(null, flattenSchemas);
 
     const mixinConfigs   = _.map(mixinOptions, (opt) => opt.config);
+    const decoConfigs = Reflect.getOwnMetadata(configKey, this.prototype) || {};
     const flattenConfigs = _.flatten(
-      [{}, mixinConfigs, superOptions.config, this.$CONFIG],
+      [{}, mixinConfigs, superOptions.config, this.$CONFIG, decoConfigs],
     );
     this._mongooseOptions.config = _.extend.apply(null, flattenConfigs);
 
     const mixinPres = _.map(mixinOptions, (opt) => opt.pres);
+    const decoPres  = Reflect.getOwnMetadata(preKey, this.prototype) || [];
     this._mongooseOptions.pres = _.union(_.flatten([
       mixinPres, superOptions.pres || [],
       this.hasOwnProperty('$PRES') ?  this.$PRES : [],
+      decoPres,
     ]));
 
     const mixinPosts = _.map(mixinOptions, (opt) => opt.posts);
+    const decoPosts  = Reflect.getOwnMetadata(postKey, this.prototype) || [];
     this._mongooseOptions.posts = _.union(_.flatten([
       mixinPosts, superOptions.posts || [],
       this.hasOwnProperty('$POSTS') ? this.$POSTS : [],
+      decoPosts,
     ]));
 
     const mixinVirtuals = _.map(mixinOptions, (opt) => opt.virtuals);
@@ -237,15 +243,19 @@ export class Model {
     ]));
 
     const mixinValidates = _.map(mixinOptions, (opt) => opt.validates);
+    const decoValidates  = Reflect.getOwnMetadata(validateKey, this.prototype);
     this._mongooseOptions.validates = _.union(_.flatten([
       mixinValidates, superOptions.validates || [],
       this.hasOwnProperty('$VALIDATES') ? this.$VALIDATES : [],
+      decoValidates || [],
     ]));
 
     const mixinPlugins = _.map(mixinOptions, (opt) => opt.plugins);
+    const decoPlugins = Reflect.getOwnMetadata(pluginKey, this.prototype) || [];
     this._mongooseOptions.plugins = _.union(_.flatten([
       mixinPlugins, superOptions.plugins || [],
       this.hasOwnProperty('$PLUGINS') ? this.$PLUGINS : [],
+      decoPlugins,
     ]));
     this._mongooseOptions.plugins = _.sortBy(
       this._mongooseOptions.plugins,
@@ -253,9 +263,11 @@ export class Model {
     );
 
     const mixinIndexes = _.map(mixinOptions, (opt) => opt.indexes);
+    const decoIndexes  = Reflect.getOwnMetadata(indexKey, this.prototype) || [];
     this._mongooseOptions.indexes = _.union(_.flatten([
       mixinIndexes, superOptions.indexes || [],
       this.hasOwnProperty('$INDEXES') ? this.$INDEXES : [],
+      decoIndexes,
     ]));
 
     const mixinMethods = _.map(mixinOptions, (opt) => opt.methods);
@@ -387,11 +399,107 @@ export class Model {
   }
 }
 
+const schemaKey      = Symbol('sbase:schema');
+const configKey      = Symbol('sbase:config');
+const pluginKey      = Symbol('sbase:plugin');
+const preKey         = Symbol('sbase:pre');
+const postKey        = Symbol('sbase:post');
+const indexKey       = Symbol('sbase:index');
+const validateKey    = Symbol('sbase:validate');
+
 export function Field(schema: any) {
   return (target: any, propertyName: string) => {
-    const s: any = {};
-    s[propertyName] = schema;
-    target.Schema(s);
+    const schemas = Reflect.getOwnMetadata(schemaKey, target) || {};
+    schemas[propertyName] = schema;
+    Reflect.defineMetadata(schemaKey, schemas, target);
+  };
+}
+
+export function Config(config: SchemaOptions) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const configs: SchemaOptions = Reflect.getOwnMetadata(
+      configKey, constructor.prototype,
+    ) || {};
+
+    _.extend(configs, config);
+    Reflect.defineMetadata(configKey, configs, constructor.prototype);
+  };
+}
+
+export function Plugin(plugin: Plugin) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const plugins: Plugin[] = Reflect.getOwnMetadata(
+      pluginKey, constructor.prototype,
+    ) || [];
+
+    plugins.push(plugin);
+    Reflect.defineMetadata(pluginKey, plugins, constructor.prototype);
+  };
+}
+
+export function Pre(pre: Pre) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const pres: Pre[] = Reflect.getOwnMetadata(
+      preKey, constructor.prototype,
+    ) || [];
+
+    pres.push(pre);
+    Reflect.defineMetadata(preKey, pres, constructor.prototype);
+  };
+}
+
+export function Pres(names: string[], pre: PPre) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const pres: Pre[] = Reflect.getOwnMetadata(
+      preKey, constructor.prototype,
+    ) || [];
+
+    for (const name of names) {
+      pres.push(_.extend({name}, pre));
+    }
+    Reflect.defineMetadata(preKey, pres, constructor.prototype);
+  };
+}
+
+export function Post(post: Post) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const posts: Post[] = Reflect.getOwnMetadata(
+      postKey, constructor.prototype,
+    ) || [];
+    posts.push(post);
+    Reflect.defineMetadata(postKey, posts, constructor.prototype);
+  };
+}
+
+export function Posts(names: string[], post: PPost) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const posts: Post[] = Reflect.getOwnMetadata(
+      postKey, constructor.prototype,
+    ) || [];
+    for (const name of names) {
+      posts.push(_.extend({name}, post));
+    }
+    Reflect.defineMetadata(postKey, posts, constructor.prototype);
+  };
+}
+
+export function Index(index: Index) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const indexes: Index[] = Reflect.getOwnMetadata(
+      indexKey, constructor.prototype,
+    ) || [];
+    indexes.push(index);
+    Reflect.defineMetadata(indexKey, indexes, constructor.prototype);
+  };
+}
+
+export function Validate(validate: Validate) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const validates: Validate[] = Reflect.getOwnMetadata(
+      validateKey, constructor.prototype,
+    ) || [];
+    validates.push(validate);
+    Reflect.defineMetadata(validateKey, validates, constructor.prototype);
   };
 }
 
@@ -420,8 +528,18 @@ export interface Pre {
   errorCb?:  (err: Error) => void;
 }
 
+export interface PPre {
+  fn:        (next: (err?: NativeError) => void) => void;
+  parallel?: boolean;
+  errorCb?:  (err: Error) => void;
+}
+
 export interface Post {
   name:      string;
+  fn:        PostFn1 | PostFn2;
+}
+
+export interface PPost {
   fn:        PostFn1 | PostFn2;
 }
 
