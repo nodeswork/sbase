@@ -15,7 +15,9 @@
       "ordered-imports": false,
       "import-spacing": false,
       "max-classes-per-file": false,
-      "no-namespace": false
+      "no-namespace": false,
+      "variable-name": false,
+      "forin": false
     },
     "rulesDirectory": []
 }

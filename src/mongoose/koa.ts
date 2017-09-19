@@ -242,9 +242,10 @@ export class KoaMiddlewares extends model.Model {
       }
 
       const queryOption: any  = {
-        new:     true,
-        fields:  options.project,
-        level:   options.level,
+        new:            true,
+        fields:         options.project,
+        level:          options.level,
+        runValidators:  true,
       };
       const omits             = _.union(
         [ '_id' ], options.omits,

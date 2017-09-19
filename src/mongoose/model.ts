@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 import * as _         from 'underscore';
 import {
   Document,
@@ -43,12 +45,20 @@ export class Model {
   private static _mongooseOptions:   MongooseOptions;
 
   public static Config(config: SchemaOptions): ModelType {
-    this.$CONFIG = config;
+    if (this.hasOwnProperty('$CONFIG')) {
+      _.extend(this.$CONFIG, config);
+    } else {
+      this.$CONFIG = config;
+    }
     return this;
   }
 
   public static Schema(schema: {}): ModelType {
-    this.$SCHEMA = schema;
+    if (this.hasOwnProperty('$SCHEMA')) {
+      _.extend(this.$SCHEMA, schema);
+    } else {
+      this.$SCHEMA = schema;
+    }
     return this;
   }
 
@@ -375,6 +385,14 @@ export class Model {
   public static cast<D extends Model>(): IModel<D> {
     return this as any as IModel<D>;
   }
+}
+
+export function Field(schema: any) {
+  return (target: any, propertyName: string) => {
+    const s: any = {};
+    s[propertyName] = schema;
+    target.Schema(s);
+  };
 }
 
 /**
