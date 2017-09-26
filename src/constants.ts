@@ -12,7 +12,10 @@ export namespace constants {
     export const X_FORWARDED_PORT = 'X-Forwarded-Port';
 
     // specifies the original timeout from client side
-    export const X_FORWARDED_NODESWORK_CLIENT_TIMEOUT = 'X-Forwarded-Client-Timeout';
+    export const NODESWORK_FORWARDED_CLIENT_TIMEOUT = 'Nodeswork-Forwarded-Client-Timeout';
+
+    // specifies the target for routing layer
+    export const NODESWORK_FORWARDED_TO = 'Nodeswork-Forwarded-To';
   }
 
   export namespace headers.response {
