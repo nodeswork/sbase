@@ -10,17 +10,19 @@ export function socketRpcHost(
   socket.on(
     `${eventNamePrefix}.request`,
     async (request: sbase.socket.SocketRpcRequest) => {
-      const fn: Function = target[request.name];
+      const fn: () => any = target[request.name];
       let result;
       let error;
-      let resp: sbase.socket.SocketRpcResponse;
       if (fn == null) {
         error = UNKOWN_METHOD_ERROR;
       } else {
         try {
           result = await fn.apply(target, request.args);
         } catch (e) {
-          error = NodesworkError.cast(e).toJSON({ cause: true });
+          error = NodesworkError.cast(e).toJSON({
+            cause: true,
+            stack: true,
+          });
         }
       }
       const response: sbase.socket.SocketRpcResponse = {

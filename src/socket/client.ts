@@ -12,7 +12,7 @@ export class SocketRpcClient {
 
   constructor(public socket: SocketIO.Socket) {}
 
-  async call(name: string, args: any[], timeoutMillis: number) {
+  public async call(name: string, args: any[], timeoutMillis: number) {
     const request: sbase.socket.SocketRpcRequest = {
       requestId: ++this._requsetId,
       responseEventName: this.responseEventName,
