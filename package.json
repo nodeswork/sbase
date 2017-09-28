@@ -41,7 +41,7 @@
     "typescript": "^2.4.1"
   },
   "dependencies": {
-    "@nodeswork/logger": "^0.1.1",
+    "@nodeswork/logger": "^0.1.2",
     "@nodeswork/utils": "0.0.8",
     "@types/koa-router": "^7.0.22",
     "@types/lru-cache": "^4.1.0",
