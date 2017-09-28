@@ -1,30 +1,38 @@
-import * as LRU from 'lru-cache';
+import * as LRU    from 'lru-cache';
+
+import * as logger from '@nodeswork/logger';
 
 import '@nodeswork/utils/dist/promise';
+
+const LOG = logger.getLogger();
+
+type promiseFunc = (res?: any) => void;
 
 export class SocketRpcClient {
 
   public timeoutMillis:      number;
   public requestEventName:   string;
   public responseEventName:  string;
-  private _cache:            LRU.Cache<number, Function[]>;
-  private _requsetId:        number = 0;
+  private $cache:            LRU.Cache<number, promiseFunc[]>;
+  private $requsetId:        number = 0;
 
   constructor(public socket: SocketIO.Socket) {}
 
   public async call(name: string, args: any[], timeoutMillis: number) {
     const request: sbase.socket.SocketRpcRequest = {
-      requestId: ++this._requsetId,
+      requestId: ++this.$requsetId,
       responseEventName: this.responseEventName,
       timeoutMillis,
       name,
       args,
     };
+
+    LOG.debug('Send rpc request', request);
     this.socket.emit(this.requestEventName, request);
 
     const promise = new Promise((resolve, reject) => {
-      this._cache.set(
-        this._requsetId,
+      this.$cache.set(
+        this.$requsetId,
         [resolve, reject],
         timeoutMillis,
       );
@@ -52,24 +60,25 @@ export function socketRpcClient(options: {
   eventNamePrefix?:  string;
 } = {}) {
 
-  return <T extends {new(...args:any[]): {}}>(constructor: T) => {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     if (!(constructor.prototype instanceof SocketRpcClient)) {
       throw new Error(
         `${constructor.name} is not a subclass of SocketRpcClient`,
       );
     }
     return class extends constructor {
-      timeoutMillis = options.timeoutMillis || 1000;
-      requestEventName = `${options.eventNamePrefix || 'socket-rpc'}.request`;
-      responseEventName = `${options.eventNamePrefix || 'socket-rpc'}.response`;
-      socket: SocketIO.Socket;
-      _cache = new LRU<number, Function[]>();
-      ___ = this.socket.on(
+      public timeoutMillis = options.timeoutMillis || 1000;
+      public requestEventName = `${options.eventNamePrefix || 'socket-rpc'}.request`;
+      public responseEventName = `${options.eventNamePrefix || 'socket-rpc'}.response`;
+      public socket: SocketIO.Socket;
+      public $cache = new LRU<number, promiseFunc[]>();
+      public ___ = this.socket.on(
         this.responseEventName,
         (resp: sbase.socket.SocketRpcResponse) => {
-          const cached = this._cache.get(resp.requestId);
+          LOG.debug('Receive rpc response', resp);
+          const cached = this.$cache.get(resp.requestId);
           if (cached == null) {
-            console.error('timedout', resp);
+            LOG.error('Request is already timedout', resp);
             return;
           }
           const [resolve, reject] = cached;
@@ -78,7 +87,7 @@ export function socketRpcClient(options: {
           } else {
             resolve(resp.result);
           }
-        }
+        },
       );
     };
   };

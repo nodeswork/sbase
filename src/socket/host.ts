@@ -1,6 +1,9 @@
 import { NodesworkError } from '@nodeswork/utils';
 
-const UNKOWN_METHOD_ERROR = new NodesworkError('unkown method').toJSON();
+import * as logger        from '@nodeswork/logger';
+
+const LOG                  = logger.getLogger();
+const UNKOWN_METHOD_ERROR  = new NodesworkError('unkown method').toJSON();
 
 export function socketRpcHost(
   socket: SocketIOClient.Socket,
@@ -10,6 +13,7 @@ export function socketRpcHost(
   socket.on(
     `${eventNamePrefix}.request`,
     async (request: sbase.socket.SocketRpcRequest) => {
+      LOG.debug('Receive request', request);
       const fn: () => any = target[request.name];
       let result;
       let error;
@@ -30,6 +34,7 @@ export function socketRpcHost(
         result,
         error,
       };
+      LOG.debug('Send response', response);
       socket.emit(request.responseEventName, response);
     },
   );
