@@ -13,7 +13,7 @@ export function socketRpcHost(
   socket.on(
     `${eventNamePrefix}.request`,
     async (request: sbase.socket.SocketRpcRequest) => {
-      LOG.debug('Receive request', request);
+      LOG.debug('Receive request', JSON.parse(JSON.stringify(request)));
       const fn: () => any = target[request.name];
       let result;
       let error;
@@ -34,7 +34,7 @@ export function socketRpcHost(
         result,
         error,
       };
-      LOG.debug('Send response', response);
+      LOG.debug('Send response', JSON.parse(JSON.stringify(response)));
       socket.emit(request.responseEventName, response);
     },
   );

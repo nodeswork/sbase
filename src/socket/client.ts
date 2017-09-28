@@ -27,7 +27,7 @@ export class SocketRpcClient {
       args,
     };
 
-    LOG.debug('Send rpc request', request);
+    LOG.debug('Send rpc request', JSON.parse(JSON.stringify(request)));
     this.socket.emit(this.requestEventName, request);
 
     const promise = new Promise((resolve, reject) => {
@@ -75,7 +75,7 @@ export function socketRpcClient(options: {
       public ___ = this.socket.on(
         this.responseEventName,
         (resp: sbase.socket.SocketRpcResponse) => {
-          LOG.debug('Receive rpc response', resp);
+          LOG.debug('Receive rpc response', JSON.parse(JSON.stringify(resp)));
           const cached = this.$cache.get(resp.requestId);
           if (cached == null) {
             LOG.error('Request is already timedout', resp);
