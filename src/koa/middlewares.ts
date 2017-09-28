@@ -21,3 +21,10 @@ export function overrides(...rules: string[]): Router.IMiddleware {
     await next();
   };
 }
+
+export function clearOverrides(): Router.IMiddleware {
+  return async (ctx: Router.IRouterContext, next: () => void) => {
+    ctx.overrides = {};
+    await next();
+  };
+}

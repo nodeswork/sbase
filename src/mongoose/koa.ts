@@ -125,14 +125,14 @@ export class KoaMiddlewares extends model.Model {
 
       (ctx as any)[options.target] = object;
 
-      if (options.triggerNext) {
-        await next();
-      }
-
       if (!options.nullable && object == null) {
         throw new NodesworkError('not found', {
           responseCode: 404,
         });
+      }
+
+      if (options.triggerNext) {
+        await next();
       }
 
       if (!options.noBody) {
