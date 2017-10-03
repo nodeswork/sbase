@@ -309,10 +309,6 @@ export class KoaMiddlewares extends model.Model {
 
       (ctx as any)[options.target] = object;
 
-      if (options.triggerNext) {
-        await next();
-      }
-
       object = (ctx as any)[options.target];
 
       if (!options.nullable && object == null) {
@@ -323,6 +319,10 @@ export class KoaMiddlewares extends model.Model {
 
       if (object) {
         await (object as any).delete();
+      }
+
+      if (options.triggerNext) {
+        await next();
       }
 
       ctx.status = 204;
