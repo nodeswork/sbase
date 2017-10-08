@@ -21,7 +21,6 @@ async function E() {
 
   user.createdAt;
   user.lastUpdateTime;
-  user.deleted;
 
   user = await user.save();
 
