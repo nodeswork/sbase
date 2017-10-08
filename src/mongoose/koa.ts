@@ -318,7 +318,7 @@ export class KoaMiddlewares extends model.Model {
       }
 
       if (object) {
-        await (object as any).delete();
+        await object.remove();
       }
 
       if (options.triggerNext) {

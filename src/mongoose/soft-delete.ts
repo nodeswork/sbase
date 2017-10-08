@@ -1,20 +1,16 @@
-import * as model from './model'
+import * as model from './model';
 
-export type SoftDeleteModelType = typeof SoftDeleteModel
+export type SoftDeleteModelType = typeof SoftDeleteModel;
 
 export class SoftDeleteModel extends model.Model {
 
-  static $SCHEMA = {
+  @model.Field({
+    type:          Boolean,
+    default:       false,
+  })
+  public deleted:  boolean;
 
-    deleted:         {
-      type:          Boolean,
-      default:       false,
-    },
-  }
-
-  deleted:         boolean
-
-  async delete(): Promise<this> {
+  public async delete(): Promise<this> {
     if (this.deleted) {
       return this;
     }
@@ -26,9 +22,9 @@ export class SoftDeleteModel extends model.Model {
 SoftDeleteModel.Pre({
   name:  'remove',
   fn:    blockRemove,
-})
+});
 
-for (let name of model.preQueries) {
+for (const name of model.preQueries) {
   SoftDeleteModel.Pre({ name, fn: patchDelete });
 }
 
@@ -42,6 +38,6 @@ function patchDelete() {
   }
 }
 
-function blockRemove(next: Function) {
+function blockRemove(next: (err?: any) => void) {
   next(new Error('remove is not supported, use delete instead'));
 }
