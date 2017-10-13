@@ -117,7 +117,10 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
     const result = await self.find(query, project, options.queryOptions);
 
     for (const v of result) {
-      const nd = m.operator.projectMetricsData(v, metricsNames);
+      const nd = m.operator.projectMetricsData(v, {
+        dimensions,
+        metrics: metricsNames,
+      });
       _.extend(v, nd);
     }
 
