@@ -203,7 +203,10 @@ export class Model {
       this._$modifySchema(superOptions.config.discriminatorKey);
     }
 
-    const mixinModels = this.hasOwnProperty('$MIXINS') ? this.$MIXINS : [];
+    const mixinModels  = _.union(_.flatten([
+      Reflect.getOwnMetadata(mixinKey, this.prototype) || [],
+      this.hasOwnProperty('$MIXINS') ? this.$MIXINS : [],
+    ]));
     const mixinOptions = _.map(mixinModels, (model) => model.$mongooseOptions());
 
     const mixinSchemas   = _.map(mixinOptions, (opt) => opt.schema);
@@ -406,12 +409,24 @@ const preKey         = Symbol('sbase:pre');
 const postKey        = Symbol('sbase:post');
 const indexKey       = Symbol('sbase:index');
 const validateKey    = Symbol('sbase:validate');
+const mixinKey       = Symbol('sbase:mixin');
 
 export function Field(schema: any) {
   return (target: any, propertyName: string) => {
     const schemas = Reflect.getOwnMetadata(schemaKey, target) || {};
     schemas[propertyName] = schema;
     Reflect.defineMetadata(schemaKey, schemas, target);
+  };
+}
+
+export function Mixin(model: ModelType) {
+  return <T extends { new(...args: any[]): {} }>(constructor: T) => {
+    const models: ModelType[] = Reflect.getOwnMetadata(
+      mixinKey, constructor.prototype,
+    ) || [];
+
+    models.push(model);
+    Reflect.defineMetadata(mixinKey, models, constructor.prototype);
   };
 }
 

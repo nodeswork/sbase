@@ -14,9 +14,8 @@ export interface NModel extends koa.KoaMiddlewares,
   timestamp.TimestampModel {
 }
 
+@model.Mixin(koa.KoaMiddlewares)
+@model.Mixin(timestamp.TimestampModel)
+@model.Mixin(dataLevel.DataLevelModel)
 export class NModel extends model.Model {
 }
-
-NModel.Mixin(koa.KoaMiddlewares);
-NModel.Mixin(timestamp.TimestampModel);
-NModel.Mixin(dataLevel.DataLevelModel);
