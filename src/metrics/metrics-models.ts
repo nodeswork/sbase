@@ -58,6 +58,8 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
     m.operator.updateMetricsData(
       options.dimensions, options.name, options.value, this,
     );
+    this.markModified('dimensions');
+    this.markModified('metrics');
   }
 
   public static async appendMetrics(
