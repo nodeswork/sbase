@@ -146,7 +146,6 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
 
     return _
       .chain(metricsModels)
-      .filter((model) => model.dimensions == null || model.metrics == null)
       .groupBy((model) => {
         return Math.floor(
           model.ts.getTime() / options.granularityInSecond / 1000,
