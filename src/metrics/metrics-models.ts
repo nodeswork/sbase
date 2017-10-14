@@ -115,6 +115,7 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
       $lt:  options.timerange.end,
     };
 
+    project.ts = 1;
     project.dimensions = 1;
     if (metricsNames.length > 0) {
       for (const mName of metricsNames) {
@@ -147,15 +148,18 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
       .chain(metricsModels)
       .filter((model) => model.dimensions == null || model.metrics == null)
       .groupBy((model) => {
-        return Math.floor(model.ts.getTime() / options.granularityInSecond);
+        return Math.floor(
+          model.ts.getTime() / options.granularityInSecond / 1000,
+        );
       })
-      .map((ms: MetricsModel[], startTime: number) => {
+      .map((ms: MetricsModel[], startTime: string) => {
         const merged = m.operator.mergeMetricsData(ms);
+        const startTs = Number.parseInt(startTime);
 
         return {
           timerange: {
-            start: new Date(startTime),
-            end:   new Date(startTime + options.granularityInSecond),
+            start: new Date(startTs * 1000 * options.granularityInSecond),
+            end:   new Date((startTs + 1) * 1000 * options.granularityInSecond),
           },
           dimensions: merged.dimensions,
           metrics:    merged.metrics,
