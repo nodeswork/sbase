@@ -174,6 +174,14 @@ export class KoaMiddlewares extends model.Model {
         queryOption.limit   = pagination.size;
       }
 
+      if (options.sort) {
+        queryOption.sort = options.sort;
+      }
+
+      if (ctx.overrides && ctx.overrides.sort) {
+        queryOption.sort = ctx.overrides.sort;
+      }
+
       if (options.level) {
         queryOption.level = options.level;
       }
@@ -400,6 +408,8 @@ export interface FindOptions extends CommonOptions, CommonResponseOptions,
     size?:         number;
     sizeChoices?:  number[];
   };
+
+  sort?: object;
 }
 
 export interface UpdateOptions extends CommonOptions, CommonResponseOptions,

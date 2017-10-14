@@ -47,6 +47,7 @@ export interface IOverwrites {
     size:       number;
   };
   doc?:         any;
+  sort?:        any;
 }
 
 export interface SchemaTypeOptions {
