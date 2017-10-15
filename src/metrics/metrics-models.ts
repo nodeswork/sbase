@@ -163,8 +163,8 @@ export interface CreateMetricsOptions {
 
 export interface MetricsSearchOptions {
   timerange:      {
-    start:        Date;
-    end:          Date;
+    start:        number;
+    end:          number;
   };
 
   query?:         object;
