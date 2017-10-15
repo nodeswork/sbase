@@ -5,15 +5,26 @@ import { metrics as m, NodesworkError } from '@nodeswork/utils';
 
 import * as sMongoose                   from '../mongoose';
 
+const TimerangeSchema = new mongoose.Schema({
+  start: {
+    type:     Number,
+    default:  Date.now,
+  },
+  end: {
+    type:     Number,
+    default:  Date.now,
+  },
+}, { _id: false, id: false });
+
 export type MetricsModelType = typeof MetricsModel & sMongoose.ModelType;
 
 export class MetricsModel extends sMongoose.Model implements m.MetricsData {
 
   @sMongoose.Field({
-    type:     mongoose.Schema.Types.Date,
-    default:  Date.now,
+    type:     TimerangeSchema,
+    default:  TimerangeSchema,
   })
-  public ts: Date;
+  public timerange: { start: number; end: number; };
 
   @sMongoose.Field({
     type:     mongoose.Schema.Types.Mixed,
@@ -27,37 +38,35 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
   })
   public metrics: m.Metrics;
 
-  public static async upsertMetrics(
-    options: SetMetricsOptions,
-  ) : Promise<MetricsModel> {
-    const data = m.operator.updateMetricsData(
-      options.dimensions, options.name, options.value,
-    );
+  // public static async upsertMetrics(
+    // options: SetMetricsOptions,
+  // ) : Promise<MetricsModel> {
+    // const data = m.operator.updateMetricsData(
+      // options.dimensions, options.name, options.value,
+    // );
 
-    const updateDoc: { [name: string]: any; } = {};
+    // const updateDoc: { [name: string]: any; } = {};
 
-    for (const dhash of Object.keys(data.dimensions)) {
-      updateDoc[`dimensions.${dhash}`] = data.dimensions[dhash];
-    }
+    // for (const dhash of Object.keys(data.dimensions)) {
+      // updateDoc[`dimensions.${dhash}`] = data.dimensions[dhash];
+    // }
 
-    for (const mName of Object.keys(data.metrics)) {
-      const mValues = data.metrics[mName];
-      for (const dhash of Object.keys(mValues)) {
-        updateDoc[`metrics.${mName}.${dhash}`] = mValues[dhash];
-      }
-    }
+    // for (const mName of Object.keys(data.metrics)) {
+      // const mValues = data.metrics[mName];
+      // for (const dhash of Object.keys(mValues)) {
+        // updateDoc[`metrics.${mName}.${dhash}`] = mValues[dhash];
+      // }
+    // }
 
-    const self = this.cast<MetricsModel>();
-    return await self.findByIdAndUpdate(options.id, { $set: updateDoc }, {
-      new:     true,
-      upsert:  true,
-    });
-  }
+    // const self = this.cast<MetricsModel>();
+    // return await self.findByIdAndUpdate(options.id, { $set: updateDoc }, {
+      // new:     true,
+      // upsert:  true,
+    // });
+  // }
 
-  public appendMetrics(options: MetricsOptions) {
-    m.operator.updateMetricsData(
-      options.dimensions, options.name, options.value, this,
-    );
+  public appendMetrics(options: m.UpdateMetricsDataOptions<any>) {
+    m.operator.updateMetricsData(options, this);
     this.markModified('dimensions');
     this.markModified('metrics');
   }
@@ -72,9 +81,7 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
     if (metrics == null) {
       return await this.createMetrics({ metrics: [options] });
     } else {
-      m.operator.updateMetricsData(
-        options.dimensions, options.name, options.value, metrics,
-      );
+      m.operator.updateMetricsData(options);
       return await metrics.save();
     }
   }
@@ -83,17 +90,18 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
     options: CreateMetricsOptions,
   ): Promise<T> {
     const self      = this.cast<MetricsModel>();
-    const doc: any  = _.extend({}, options.doc, {
+    const doc: m.MetricsData = _.extend({}, options.doc, {
       dimensions: {},
       metrics: {},
     });
-    if (options.ts) { doc.ts = options.ts; }
+
+    if (options.ts) {
+      doc.timerange = { start: options.ts, end: options.ts };
+    }
 
     if (options.metrics && options.metrics.length) {
       for (const mo of options.metrics) {
-        m.operator.updateMetricsData(
-          mo.dimensions, mo.name, mo.value, doc,
-        );
+        m.operator.updateMetricsData(mo, doc);
       }
     }
 
@@ -110,12 +118,12 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
     const dimensions: string[]    = _.flatten([options.dimensions || []]);
     const metricsNames: string[]  = _.flatten([options.metrics || []]);
 
-    query.ts = {
+    query['timerange.start'] = {
       $gte: options.timerange.start,
       $lt:  options.timerange.end,
     };
 
-    project.ts = 1;
+    project.timerange  = 1;
     project.dimensions = 1;
     if (metricsNames.length > 0) {
       for (const mName of metricsNames) {
@@ -139,52 +147,18 @@ export class MetricsModel extends sMongoose.Model implements m.MetricsData {
 
   public static async aggregateMetrics(
     options: AggregateMetricsOptions,
-  ): Promise<AggregatedMetrics[]> {
+  ): Promise<m.MetricsData[]> {
     const metricsModels = await this.searchMetrics(options);
-
-    const result: AggregatedMetrics[] = [];
-
-    return _
-      .chain(metricsModels)
-      .groupBy((model) => {
-        return Math.floor(
-          model.ts.getTime() / options.granularityInSecond / 1000,
-        );
-      })
-      .map((ms: MetricsModel[], startTime: string) => {
-        const merged = m.operator.mergeMetricsData(ms);
-        const startTs = Number.parseInt(startTime);
-
-        return {
-          timerange: {
-            start: new Date(startTs * 1000 * options.granularityInSecond),
-            end:   new Date((startTs + 1) * 1000 * options.granularityInSecond),
-          },
-          dimensions: merged.dimensions,
-          metrics:    merged.metrics,
-        };
-      })
-      .value();
+    return m.operator.mergeMetricsDataByTimeGranularity(
+      metricsModels, options.granularityInSecond,
+    );
   }
 }
 
-export interface AggregatedMetrics extends m.MetricsData {
-  timerange:  {
-    start:    Date;
-    end:      Date;
-  };
-}
-
 export interface CreateMetricsOptions {
-  ts?:       Date;
-  metrics?:  MetricsOptions[];
+  ts?:       number;
+  metrics?:  Array<m.UpdateMetricsDataOptions<any>>;
   doc?:      object;
-}
-
-export interface MetricsOptions {
-  dimensions?: m.MetricsDimensions;
-  name:        string;
-  value:       m.MetricsValue<any>;
 }
 
 export interface MetricsSearchOptions {
@@ -206,6 +180,6 @@ export interface AggregateMetricsOptions extends MetricsSearchOptions {
   granularityInSecond:  number;
 }
 
-export interface SetMetricsOptions extends MetricsOptions {
+export interface SetMetricsOptions extends m.UpdateMetricsDataOptions<any> {
   id:           string;
 }
