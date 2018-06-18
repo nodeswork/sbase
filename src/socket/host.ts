@@ -23,7 +23,7 @@ export function socketRpcHost(
         try {
           result = await fn.apply(target, request.args);
         } catch (e) {
-          error = NodesworkError.cast(e).toJSON({
+          error = NodesworkError.cast(e, {}, null).toJSON({
             cause: true,
             stack: true,
           });
