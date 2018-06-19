@@ -18,7 +18,9 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function create(ctx: IRouterContext, next: INext) {
-      const opts   = _.extend({}, options, ctx.overrides.options);
+      const opts   = _.extend(
+        {}, options, ctx.overrides && ctx.overrides.options,
+      );
       let rModel   = self;
       const omits  = _.union([ '_id' ], opts.omits, self.schema.api.AUTOGEN);
       let doc      = _.omit(ctx.request.body, omits);
@@ -94,7 +96,9 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function get(ctx: IRouterContext, next: INext) {
-      const opts  = _.extend({}, options, ctx.overrides.options);
+      const opts  = _.extend(
+        {}, options, ctx.overrides && ctx.overrides.options,
+      );
       const query = ctx.overrides && ctx.overrides.query || {};
       if (opts.field !== '*') {
         query._id = ctx.params[opts.field];
@@ -163,7 +167,9 @@ export class KoaMiddlewares extends model.Model {
     };
 
     async function find(ctx: IRouterContext, next: INext) {
-      const opts              = _.extend({}, options, ctx.overrides.options);
+      const opts              = _.extend(
+        {}, options, ctx.overrides && ctx.overrides.options,
+      );
       const query             = ctx.overrides && ctx.overrides.query || {};
       const queryOption: any  = {};
       let pagination          = null;
@@ -233,7 +239,9 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function update(ctx: IRouterContext, next: INext) {
-      const opts  = _.extend({}, options, ctx.overrides.options);
+      const opts  = _.extend(
+        {}, options, ctx.overrides && ctx.overrides.options,
+      );
       const query = ctx.overrides && ctx.overrides.query || {};
       if (opts.field !== '*') {
         query._id = ctx.params[opts.field];
@@ -311,7 +319,9 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function del(ctx: IRouterContext, next: INext) {
-      const opts              = _.extend({}, options, ctx.overrides.options);
+      const opts              = _.extend(
+        {}, options, ctx.overrides && ctx.overrides.options,
+      );
       const query             = ctx.overrides && ctx.overrides.query || {};
       query._id               = ctx.params[opts.field];
       const queryOption: any  = {};
