@@ -360,7 +360,7 @@ export class Model {
     }
 
     for (const index of this._mongooseOptions.indexes) {
-      mongooseSchema.index(index);
+      mongooseSchema.index(index.fields, index.options);
     }
 
     for (const validate of this._mongooseOptions.validates) {
