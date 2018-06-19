@@ -18,8 +18,9 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function create(ctx: IRouterContext, next: INext) {
+      const opts   = _.extend({}, options, ctx.overrides.options);
       let rModel   = self;
-      const omits  = _.union([ '_id' ], options.omits, self.schema.api.AUTOGEN);
+      const omits  = _.union([ '_id' ], opts.omits, self.schema.api.AUTOGEN);
       let doc      = _.omit(ctx.request.body, omits);
       doc          = _.extend(doc, ctx.overrides && ctx.overrides.doc);
 
@@ -37,7 +38,7 @@ export class KoaMiddlewares extends model.Model {
           }
         }
 
-        if (!options.allowCreateFromParentModel && !modelName) {
+        if (!opts.allowCreateFromParentModel && !modelName) {
           throw new NodesworkError('required field is missing', {
             responseCode: 422,
             path: discriminatorKey,
@@ -52,30 +53,30 @@ export class KoaMiddlewares extends model.Model {
         }
       }
 
-      (ctx as any)[options.target] = doc;
+      (ctx as any)[opts.target] = doc;
 
-      if (options.triggerNext) {
+      if (opts.triggerNext) {
         await next();
       }
 
-      doc = (ctx as any)[options.target];
+      doc = (ctx as any)[opts.target];
       let object: KoaMiddlewares = (
         await rModel.create(doc)
       ) as any as KoaMiddlewares;
 
-      if (options.project || options.level) {
-        object = await self.findById(object._id, options.project, {
-          level: options.level,
+      if (opts.project || opts.level) {
+        object = await self.findById(object._id, opts.project, {
+          level: opts.level,
         });
       }
 
-      (ctx as any)[options.target] = object;
-      if (options.populate) {
-        await rModel.populate(object, options.populate);
+      (ctx as any)[opts.target] = object;
+      if (opts.populate) {
+        await rModel.populate(object, opts.populate);
       }
 
-      if (!options.noBody) {
-        ctx.body = await options.transform(object, ctx);
+      if (!opts.noBody) {
+        ctx.body = await opts.transform(object, ctx);
       }
     }
 
@@ -93,48 +94,49 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function get(ctx: IRouterContext, next: INext) {
+      const opts  = _.extend({}, options, ctx.overrides.options);
       const query = ctx.overrides && ctx.overrides.query || {};
-      if (options.field !== '*') {
-        query._id = ctx.params[options.field];
+      if (opts.field !== '*') {
+        query._id = ctx.params[opts.field];
         if (query._id == null) {
           throw new NodesworkError('invalid value', {
             responseCode: 422,
-            path: options.field,
+            path: opts.field,
           });
         }
       }
       if (Object.keys(query).length === 0) {
         throw new NodesworkError('no query parameters', {
           responseCode: 422,
-          path: options.field,
+          path: opts.field,
         });
       }
 
       const queryOption: any  = {};
-      if (options.level) {
-        queryOption.level = options.level;
+      if (opts.level) {
+        queryOption.level = opts.level;
       }
 
-      let queryPromise  = self.findOne(query, options.project, queryOption);
+      let queryPromise  = self.findOne(query, opts.project, queryOption);
 
-      if (options.populate) {
-        queryPromise    = queryPromise.populate(options.populate);
+      if (opts.populate) {
+        queryPromise    = queryPromise.populate(opts.populate);
       }
 
       const object = await queryPromise;
 
-      (ctx as any)[options.target] = object;
+      (ctx as any)[opts.target] = object;
 
-      if (!options.nullable && object == null) {
+      if (!opts.nullable && object == null) {
         throw NodesworkError.notFound();
       }
 
-      if (options.triggerNext) {
+      if (opts.triggerNext) {
         await next();
       }
 
-      if (!options.noBody) {
-        ctx.body = await options.transform((ctx as any)[options.target], ctx);
+      if (!opts.noBody) {
+        ctx.body = await opts.transform((ctx as any)[opts.target], ctx);
       }
     }
 
@@ -161,11 +163,12 @@ export class KoaMiddlewares extends model.Model {
     };
 
     async function find(ctx: IRouterContext, next: INext) {
+      const opts              = _.extend({}, options, ctx.overrides.options);
       const query             = ctx.overrides && ctx.overrides.query || {};
       const queryOption: any  = {};
       let pagination          = null;
 
-      if (options.pagination) {
+      if (opts.pagination) {
         // pagination       = VALIDATE_QUERY_PAGINATION(ctx.request.query);
         pagination          = ctx.request.query;
         _.defaults(pagination, defaultPagination);
@@ -174,29 +177,29 @@ export class KoaMiddlewares extends model.Model {
         queryOption.limit   = pagination.size;
       }
 
-      if (options.sort) {
-        queryOption.sort = options.sort;
+      if (opts.sort) {
+        queryOption.sort = opts.sort;
       }
 
       if (ctx.overrides && ctx.overrides.sort) {
         queryOption.sort = ctx.overrides.sort;
       }
 
-      if (options.level) {
-        queryOption.level = options.level;
+      if (opts.level) {
+        queryOption.level = opts.level;
       }
 
-      let queryPromise  = self.find(query, options.project, queryOption);
+      let queryPromise  = self.find(query, opts.project, queryOption);
 
-      if (options.populate) {
-        queryPromise    = queryPromise.populate(options.populate);
+      if (opts.populate) {
+        queryPromise    = queryPromise.populate(opts.populate);
       }
 
       const object = await queryPromise;
 
-      (ctx as any)[options.target] = object;
+      (ctx as any)[opts.target] = object;
 
-      if (options.triggerNext) {
+      if (opts.triggerNext) {
         await next();
       }
 
@@ -207,10 +210,10 @@ export class KoaMiddlewares extends model.Model {
         ctx.response.set('total_page', totalPage.toString());
       }
 
-      if (!options.noBody) {
-        const body = (ctx as any)[options.target];
+      if (!opts.noBody) {
+        const body = (ctx as any)[opts.target];
         for (let i = 0; i < body.length; i++) {
-          body[i] = await options.transform(body[i], ctx);
+          body[i] = await opts.transform(body[i], ctx);
         }
         ctx.body = body;
       }
@@ -230,31 +233,32 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function update(ctx: IRouterContext, next: INext) {
+      const opts  = _.extend({}, options, ctx.overrides.options);
       const query = ctx.overrides && ctx.overrides.query || {};
-      if (options.field !== '*') {
-        query._id = ctx.params[options.field];
+      if (opts.field !== '*') {
+        query._id = ctx.params[opts.field];
         if (query._id == null) {
           throw new NodesworkError('invalid value', {
             responseCode: 422,
-            path: options.field,
+            path: opts.field,
           });
         }
       }
       if (Object.keys(query).length === 0) {
         throw new NodesworkError('no query parameters', {
           responseCode: 422,
-          path: options.field,
+          path: opts.field,
         });
       }
 
       const queryOption: any  = {
         new:            true,
-        fields:         options.project,
-        level:          options.level,
+        fields:         opts.project,
+        level:          opts.level,
         runValidators:  true,
       };
       const omits             = _.union(
-        [ '_id' ], options.omits,
+        [ '_id' ], opts.omits,
         self.schema.api.READONLY, self.schema.api.AUTOGEN,
       );
       let doc       = _.omit(ctx.request.body, omits);
@@ -277,19 +281,19 @@ export class KoaMiddlewares extends model.Model {
 
       let updatePromise = rModel.findOneAndUpdate(query, upDoc, queryOption);
 
-      if (options.populate) {
-        updatePromise = updatePromise.populate(options.populate);
+      if (opts.populate) {
+        updatePromise = updatePromise.populate(opts.populate);
       }
       const object = await updatePromise;
 
-      (ctx as any)[options.target] = object;
+      (ctx as any)[opts.target] = object;
 
-      if (options.triggerNext) {
+      if (opts.triggerNext) {
         await next();
       }
 
-      if (!options.noBody) {
-        ctx.body = await options.transform((ctx as any)[options.target], ctx);
+      if (!opts.noBody) {
+        ctx.body = await opts.transform((ctx as any)[opts.target], ctx);
       }
     }
 
@@ -307,19 +311,20 @@ export class KoaMiddlewares extends model.Model {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function del(ctx: IRouterContext, next: INext) {
+      const opts              = _.extend({}, options, ctx.overrides.options);
       const query             = ctx.overrides && ctx.overrides.query || {};
-      query._id               = ctx.params[options.field];
+      query._id               = ctx.params[opts.field];
       const queryOption: any  = {};
 
       const queryPromise      = self.findOne(query, undefined, queryOption);
 
       let object = await queryPromise;
 
-      (ctx as any)[options.target] = object;
+      (ctx as any)[opts.target] = object;
 
-      object = (ctx as any)[options.target];
+      object = (ctx as any)[opts.target];
 
-      if (!options.nullable && object == null) {
+      if (!opts.nullable && object == null) {
         throw new NodesworkError('not found', {
           responseCode: 404,
         });
@@ -329,7 +334,7 @@ export class KoaMiddlewares extends model.Model {
         await object.remove();
       }
 
-      if (options.triggerNext) {
+      if (opts.triggerNext) {
         await next();
       }
 

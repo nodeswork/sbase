@@ -1,6 +1,7 @@
-import * as LRU    from 'lru-cache';
+import * as LRU      from 'lru-cache';
+import * as SocketIO from 'socket.io';
 
-import * as logger from '@nodeswork/logger';
+import * as logger   from '@nodeswork/logger';
 
 import '@nodeswork/utils/dist/promise';
 
