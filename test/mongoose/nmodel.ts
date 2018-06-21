@@ -24,14 +24,14 @@ class Name extends sbase.mongoose.Model {
   collection:        'sbase.tests.users',
   discriminatorKey:  'kind',
   dataLevel:         {
-    levels:          Object.values(UserDataLevel),
+    levels:          UserDataLevel,
   },
 })
 class UserModel extends sbase.mongoose.NModel {
 
   @sbase.mongoose.Field({
     level:    UserDataLevel.BASIC,
-    default:  Name.$schema,
+    default:  Name,
   })
   name: Name;
 

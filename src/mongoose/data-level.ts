@@ -69,8 +69,8 @@ function addToLevelMap(schema: Schema, lps: LevelPath[]) {
     addToLevelMap(schema.parentSchema, lps);
   }
 
-  const dataLevelOptionsLevels = (
-    schema.options.dataLevel && schema.options.dataLevel.levels || []
+  const dataLevelOptionsLevels = _.values(
+    schema.options.dataLevel && schema.options.dataLevel.levels || [],
   );
   const levelMap = schema.dataLevel.levelMap;
 

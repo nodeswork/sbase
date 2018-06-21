@@ -412,7 +412,7 @@ const indexKey       = Symbol('sbase:index');
 const validateKey    = Symbol('sbase:validate');
 const mixinKey       = Symbol('sbase:mixin');
 
-export function Field(schema: any) {
+export function Field(schema: any = {}) {
   return (target: any, propertyName: string) => {
     const schemas = Reflect.getOwnMetadata(schemaKey, target) || {};
     if (schema.type == null) {
@@ -421,6 +421,11 @@ export function Field(schema: any) {
         type = type.__proto__.$mongooseOptions.call(type).mongooseSchema;
       }
       schema.type = type;
+    }
+    if (schema.default && schema.default.prototype instanceof Model) {
+      schema.default = schema.default.__proto__.$mongooseOptions.call(
+        schema.default,
+      ).mongooseSchema;
     }
     schemas[propertyName] = schema;
     Reflect.defineMetadata(schemaKey, schemas, target);

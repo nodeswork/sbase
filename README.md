@@ -26,19 +26,14 @@ export type UserType = typeof User & sbase.mongoose.NModelType
 export class User extends sbase.mongoose.NModel {
 
   @sbase.mongoose.Field({
-    type:      String,
     index:     true,
   })
   email:      string;
 
-  @sbase.mongoose.Field({
-    type:      String,
-  })
+  @sbase.mongoose.Field()
   firstName:  string;
 
-  @sbase.mongoose.Field({
-    type:      String,
-  })
+  @sbase.mongoose.Field()
   lastName:   string
 
   // get property maps to virtual get function
@@ -84,7 +79,6 @@ export type  User = defs.User;
 export class User extends sbase.mongoose.NModel {
 
   @sbase.mongoose.Field({
-    type:      String,
     required:  true,
     level:     'CREDENTIAL',
   })

@@ -59,7 +59,7 @@ export interface SchemaTypeOptions {
  * Configuration for dataLevel.
  */
 export interface DataLevelConfig {
-  levels:     string[];
+  levels:     string[] | object;
   default?:   string;
 }
 
