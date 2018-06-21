@@ -20,25 +20,25 @@ $ npm install @nodeswork/sbase
 
 export type UserType = typeof User & sbase.mongoose.NModelType
 
+@sbase.mongoose.Config({
+  collections: 'users',
+})
 export class User extends sbase.mongoose.NModel {
 
-  // Configuration when creating mongoose schema
-  static $CONFIG = {
-    collections: 'users'
-  }
+  @sbase.mongoose.Field({
+    type:      String,
+    index:     true,
+  })
+  email:      string;
 
-  // Mongoose schema
-  static $SCHEMA = {
-    email:       {
-      type:      String,
-      index:     true,
-    },
-    firstName:   string,
-    lastName:    string,
-  }
+  @sbase.mongoose.Field({
+    type:      String,
+  })
+  firstName:  string;
 
-  email:      string
-  firstName:  string
+  @sbase.mongoose.Field({
+    type:      String,
+  })
   lastName:   string
 
   // get property maps to virtual get function
@@ -68,7 +68,8 @@ export class User extends sbase.mongoose.NModel {
 // models/index.ts
 import * as defs from './def'
 
-export let User = defs.User.$register<User, UserType>(mongoose);
+export const User = defs.User.$register<User, UserType>(mongoose);
+export type  User = defs.User;
 
 ```
 
