@@ -185,6 +185,10 @@ export class Model {
     }
   }
 
+  public static get $schema(): Schema {
+    return this.$mongooseOptions().mongooseSchema;
+  }
+
   public static $mongooseOptions(): MongooseOptions {
     this._$initialize();
     if (this._mongooseOptions.initialized || this === Model) {
