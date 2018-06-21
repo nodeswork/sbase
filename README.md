@@ -77,26 +77,19 @@ export type  User = defs.User;
 
 ```Typescript
 
+@sbase.mongoose.Config({
+  collections: 'users',
+  levels: [ 'CREDENTIAL' ],  // specifies the data level
+})
 export class User extends sbase.mongoose.NModel {
 
-  // Configuration when creating mongoose schema
-  static $CONFIG = {
-    // specifies the data level
-    levels: [ 'CREDENTIAL' ]
-  }
-
-  // Mongoose schema
-  static $SCHEMA = {
-    password:    {
-      type:      String,
-      required:  true,
-      level:     'CREDENTIAL',
-    },
-  }
-
+  @sbase.mongoose.Field({
+    type:      String,
+    required:  true,
+    level:     'CREDENTIAL',
+  })
   password:   string
 }
-
 
 ```
 
