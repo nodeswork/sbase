@@ -1,25 +1,19 @@
-import * as model from './model'
+import * as model from './model';
 
-export type TimestampModelType = typeof TimestampModel
+export type TimestampModelType = typeof TimestampModel;
 
 export class TimestampModel extends model.Model {
 
-  static $SCHEMA = {
+  @model.Field({
+    default:       Date.now,
+    index:         true,
+  })
+  createdAt:       Date;
 
-    createdAt: {
-      type:          Date,
-      default:       Date.now,
-      index:         true,
-    },
-
-    lastUpdateTime: {
-      type:          Date,
-      index:         true,
-    },
-  }
-
-  createdAt:       Date
-  lastUpdateTime:  Date
+  @model.Field({
+    index:         true,
+  })
+  lastUpdateTime:  Date;
 }
 
 TimestampModel.Pre({
@@ -32,19 +26,19 @@ TimestampModel.Pre({
   fn:    setLastUpdateTimeOnUpdate,
 });
 
-function setLastUpdateTimeOnSave(next: Function) {
+function setLastUpdateTimeOnSave(next: () => void) {
   this.lastUpdateTime = Date.now();
   next();
 }
 
-function setLastUpdateTimeOnUpdate(next: Function) {
+function setLastUpdateTimeOnUpdate(next: () => void) {
   this.update({}, {
-    '$set': {
+    $set: {
       lastUpdateTime: Date.now(),
     },
-    '$setOnInsert': {
+    $setOnInsert: {
       createdAt: Date.now(),
-    }
+    },
   });
   next();
 }

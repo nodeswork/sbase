@@ -385,10 +385,7 @@ export class Model {
       mongooseInstance = require('mongoose');
     }
 
-    const model: (MModel<D> & M) = mongooseInstance.model(
-      this.name, this.$mongooseOptions().mongooseSchema,
-    ) as (MModel<D> & M);
-    return model;
+    return mongooseInstance.model(this.name, this.$schema) as (MModel<D> & M);
   }
 
   public static _$initialize() {
@@ -418,6 +415,13 @@ const mixinKey       = Symbol('sbase:mixin');
 export function Field(schema: any) {
   return (target: any, propertyName: string) => {
     const schemas = Reflect.getOwnMetadata(schemaKey, target) || {};
+    if (schema.type == null) {
+      let type = Reflect.getMetadata("design:type", target, propertyName);
+      if (type.prototype instanceof Model) {
+        type = type.__proto__.$mongooseOptions.call(type).mongooseSchema;
+      }
+      schema.type = type;
+    }
     schemas[propertyName] = schema;
     Reflect.defineMetadata(schemaKey, schemas, target);
   };

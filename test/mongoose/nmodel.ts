@@ -10,13 +10,11 @@ enum UserDataLevel {
 class Name extends sbase.mongoose.Model {
 
   @sbase.mongoose.Field({
-    type:     String,
     default:  'A_FIRSTNAME',
   })
   first:      string;
 
   @sbase.mongoose.Field({
-    type:     String,
     default:  'A_LASTNAME',
   })
   last:       string;
@@ -32,14 +30,12 @@ class Name extends sbase.mongoose.Model {
 class UserModel extends sbase.mongoose.NModel {
 
   @sbase.mongoose.Field({
-    type:     Name.$schema,
     level:    UserDataLevel.BASIC,
     default:  Name.$schema,
   })
   name: Name;
 
   @sbase.mongoose.Field({
-    type:   String,
     level:  UserDataLevel.DETAILS,
   })
   bio: string;
