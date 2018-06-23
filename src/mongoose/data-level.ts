@@ -16,7 +16,7 @@ export type DataLevelModelType = typeof DataLevelModel;
 export class DataLevelModel extends model.Model {
 
   public toJSON(options?: DocumentToObjectOptions): object {
-    let obj = this.toObject();
+    let obj = this.toObject(options);
     if (options && options.level) {
       const fields = (
         this.schema.dataLevel && this.schema.dataLevel.levelMap[options.level]
