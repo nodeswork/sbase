@@ -444,11 +444,13 @@ KoaMiddlewares.Plugin({
 });
 
 function apiLevel(schema: Schema, options: object) {
-  if (schema.api == null) {
-    schema.api = {
-      READONLY:  [],
-      AUTOGEN:   [],
-    };
+  for (let s = schema; s; s = s.parentSchema) {
+    if (s.api == null) {
+      s.api = {
+        READONLY:  [],
+        AUTOGEN:   [],
+      };
+    }
   }
 
   schema.eachPath((pathname: string, schemaType: SchemaType) => {

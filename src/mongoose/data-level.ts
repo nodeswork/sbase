@@ -29,10 +29,12 @@ export class DataLevelModel extends model.DocumentModel {
 }
 
 function dataLevelPlugin(schema: Schema, options: SchemaOptions) {
-  if (schema.dataLevel == null) {
-    schema.dataLevel = {
-      levelMap: {},
-    };
+  for (let s = schema; s; s = s.parentSchema) {
+    if (s.dataLevel == null) {
+      s.dataLevel = {
+        levelMap: {},
+      };
+    }
   }
 
   // schema.levels = [ MINIMAL ].concat(options.levels || []);
