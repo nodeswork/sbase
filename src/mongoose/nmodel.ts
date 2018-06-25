@@ -12,8 +12,6 @@ export type NModelType = (
   timestamp.TimestampModelType
 );
 
-export interface NModel extends Document {}
-
 export interface NModel extends koa.KoaMiddlewares,
   timestamp.TimestampModel {
 }
@@ -21,5 +19,5 @@ export interface NModel extends koa.KoaMiddlewares,
 @model.Mixin(koa.KoaMiddlewares)
 @model.Mixin(timestamp.TimestampModel)
 @model.Mixin(dataLevel.DataLevelModel)
-export class NModel extends model.Model {
+export class NModel extends model.DocumentModel {
 }

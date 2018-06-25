@@ -18,7 +18,7 @@ const TimerangeSchema = new mongoose.Schema({
 
 export type MetricsModelType = typeof MetricsModel & sMongoose.ModelType;
 
-export class MetricsModel extends sMongoose.Model implements m.MetricsData {
+export class MetricsModel extends sMongoose.DocumentModel implements m.MetricsData {
 
   @sMongoose.Field({
     type:     TimerangeSchema,

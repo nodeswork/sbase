@@ -13,7 +13,7 @@ export type DataLevelModelType = typeof DataLevelModel;
   fn:        dataLevelPlugin,
   priority:  100,
 })
-export class DataLevelModel extends model.Model {
+export class DataLevelModel extends model.DocumentModel {
 
   public toJSON(options?: DocumentToObjectOptions): object {
     let obj = this.toObject(options);

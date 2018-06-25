@@ -2,7 +2,7 @@ import * as model from './model';
 
 export type SoftDeleteModelType = typeof SoftDeleteModel;
 
-export class SoftDeleteModel extends model.Model {
+export class SoftDeleteModel extends model.DocumentModel {
 
   @model.Field({
     type:          Boolean,

@@ -10,7 +10,7 @@ export const READONLY = 'READONLY';
 export const AUTOGEN  = 'AUTOGEN';
 
 export type KoaMiddlewaresType = typeof KoaMiddlewares;
-export class KoaMiddlewares extends model.Model {
+export class KoaMiddlewares extends model.DocumentModel {
 
   public static createMiddleware(options: CreateOptions): IMiddleware {
     const self = this.cast<KoaMiddlewares>();

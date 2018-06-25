@@ -12,7 +12,7 @@ import { MongoError } from 'mongodb';
 
 // export var ModelType: new(...args: any[]) => ModelType
 export type ModelType = typeof Model;
-export type IModel<E extends Model & Document> = MModel<E>;
+export type IModel<E extends DocumentModel> = MModel<E>;
 
 /**
  * Wrapped Model from mongoose.Model.
@@ -396,9 +396,15 @@ export class Model {
     };
   }
 
-  public static cast<D extends Model & Document>(): IModel<D> {
+  public static cast<D extends DocumentModel>(): IModel<D> {
     return this as any as IModel<D>;
   }
+}
+
+export interface DocumentModel extends Document {
+}
+
+export class DocumentModel extends Model {
 }
 
 const schemaKey      = Symbol('sbase:schema');
