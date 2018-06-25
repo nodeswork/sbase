@@ -10,11 +10,9 @@ import {
 }                     from 'mongoose';
 import { MongoError } from 'mongodb';
 
-export interface Model extends Document {}
-
 // export var ModelType: new(...args: any[]) => ModelType
 export type ModelType = typeof Model;
-export type IModel<E extends Model> = MModel<E>;
+export type IModel<E extends Model & Document> = MModel<E>;
 
 /**
  * Wrapped Model from mongoose.Model.
@@ -398,7 +396,7 @@ export class Model {
     };
   }
 
-  public static cast<D extends Model>(): IModel<D> {
+  public static cast<D extends Model & Document>(): IModel<D> {
     return this as any as IModel<D>;
   }
 }

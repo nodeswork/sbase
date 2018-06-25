@@ -1,3 +1,5 @@
+import { Document }    from 'mongoose';
+
 import * as model      from './model';
 import * as koa        from './koa';
 import * as timestamp  from './timestamp';
@@ -9,6 +11,8 @@ export type NModelType = (
   koa.KoaMiddlewaresType &
   timestamp.TimestampModelType
 );
+
+export interface NModel extends Document {}
 
 export interface NModel extends koa.KoaMiddlewares,
   timestamp.TimestampModel {
