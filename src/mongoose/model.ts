@@ -522,7 +522,8 @@ export function Field(schema: any = {}) {
       schema.type = type;
     }
     if (schema.default == null && schema.type && (
-      _.isArray(schema.type) || schema.type.prototype instanceof Model
+      _.isArray(schema.type) && schema.type[0].prototype instanceof Model
+      || schema.type.prototype instanceof Model
     )) {
       schema.default = schema.type;
     }
