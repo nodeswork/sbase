@@ -9,6 +9,7 @@ import {
   SchemaOptions,
 }                     from 'mongoose';
 import { MongoError } from 'mongodb';
+import { NModelType } from './';
 
 // export var ModelType: new(...args: any[]) => ModelType
 export type ModelType = typeof Model;
@@ -384,6 +385,18 @@ export class Model {
     }
 
     return mongooseInstance.model(this.name, this.$schema) as (MModel<D> & M);
+  }
+
+  public static $registerNModel<D extends Document, M>(
+    mongooseInstance?: Mongoose,
+  ): MModel<D> & M & NModelType {
+    if (!mongooseInstance) {
+      mongooseInstance = require('mongoose');
+    }
+
+    return mongooseInstance.model(this.name, this.$schema) as (
+      MModel<D> & M & NModelType
+    );
   }
 
   public static _$initialize() {
