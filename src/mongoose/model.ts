@@ -431,21 +431,21 @@ const indexKey       = Symbol('sbase:index');
 const validateKey    = Symbol('sbase:validate');
 const mixinKey       = Symbol('sbase:mixin');
 
-export function EnumField(e: any, schema: any = {}) {
+export function Enum(e: any, schema: any = {}) {
   return Field(_.extend({}, schema, {
     type: String,
     enum: Object.values(e),
   }));
 }
 
-export function DBRefField(ref: string, schema: any = {}) {
+export function DBRef(ref: string, schema: any = {}) {
   return Field(_.extend({}, schema, {
     type: SchemaTypes.ObjectId,
     ref,
   }));
 }
 
-export function DBRefArrayField(ref: string, schema: any = {}) {
+export function DBRefArray(ref: string, schema: any = {}) {
   return Field(_.extend({}, schema, {
     type: [
       {
@@ -463,7 +463,7 @@ export function ArrayField(type: any, schema: any = {}) {
   }));
 }
 
-export function RequiredField(schema: any = {}) {
+export function Required(schema: any = {}) {
   return Field(_.extend({}, schema, {
     required: true,
   }));
@@ -475,7 +475,7 @@ export function IndexField(schema: any = {}) {
   }));
 }
 
-export function UniqueField(schema: any = {}) {
+export function Unique(schema: any = {}) {
   return Field(_.extend({}, schema, {
     index:     true,
     required:  true,
@@ -483,7 +483,7 @@ export function UniqueField(schema: any = {}) {
   }));
 }
 
-export function DefaultField(defaultValue: any, schema: any = {}) {
+export function Default(defaultValue: any, schema: any = {}) {
   return Field(_.extend({}, schema, {
     default: defaultValue,
   }));

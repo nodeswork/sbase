@@ -1,3 +1,5 @@
+export * from './mongoose';
+
 import * as koa      from './koa';
 import * as metrics  from './metrics';
 import * as mongoose from './mongoose';

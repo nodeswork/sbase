@@ -53,7 +53,7 @@ class UserModel extends sbase.mongoose.NModel {
   })
   children: Name[];
 
-  @sbase.mongoose.EnumField(UserType)
+  @sbase.mongoose.Enum(UserType)
   type: UserType;
 
   @sbase.mongoose.Field()
