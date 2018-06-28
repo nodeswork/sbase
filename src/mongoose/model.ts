@@ -476,6 +476,12 @@ export function UniqueField(schema: any = {}) {
   }));
 }
 
+export function DefaultField(defaultValue: any, schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    default: defaultValue,
+  }));
+}
+
 export function Field(schema: any = {}) {
   function mapModelSchame(o: any): any {
     if (_.isArray(o)) {
