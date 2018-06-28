@@ -470,15 +470,22 @@ export function IndexField(schema: any = {}) {
 
 export function UniqueField(schema: any = {}) {
   return Field(_.extend({}, schema, {
-    index: true,
-    required: true,
-    unique: true,
+    index:     true,
+    required:  true,
+    unique:    true,
   }));
 }
 
 export function DefaultField(defaultValue: any, schema: any = {}) {
   return Field(_.extend({}, schema, {
     default: defaultValue,
+  }));
+}
+
+export function MapField(type: any, schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    type: Map,
+    of:   type,
   }));
 }
 
