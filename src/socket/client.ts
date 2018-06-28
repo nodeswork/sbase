@@ -3,6 +3,8 @@ import * as SocketIO from 'socket.io';
 
 import * as logger   from '@nodeswork/logger';
 
+import './def';
+
 import '@nodeswork/utils/dist/promise';
 
 const LOG = logger.getLogger();

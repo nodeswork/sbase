@@ -327,7 +327,7 @@ export class Model {
       this._mongooseOptions.schema, _.clone(this._mongooseOptions.config),
     );
 
-    mongooseSchema.parentSchema = superOptions.mongooseSchema;
+    (mongooseSchema as any).parentSchema = superOptions.mongooseSchema;
 
     for (const pre of this._mongooseOptions.pres) {
       pre.parallel = pre.parallel || false;
@@ -417,21 +417,40 @@ const validateKey    = Symbol('sbase:validate');
 const mixinKey       = Symbol('sbase:mixin');
 
 export function Field(schema: any = {}) {
+  function mapModelSchame(o: any): any {
+    if (_.isArray(o)) {
+      return _.map(o, x => mapModelSchame(x));
+    } else if (_.isFunction(o)) {
+      if (o.prototype instanceof Model) {
+        return o.__proto__.$mongooseOptions.call(o).mongooseSchema;
+      } else {
+        return o;
+      }
+    } else if (_.isObject(o) && o.__proto__.constructor.name === 'Object') {
+      return _.mapObject(o, x => mapModelSchame(x));
+    } else {
+      return o;
+    }
+  }
+
   return (target: any, propertyName: string) => {
     const schemas = Reflect.getOwnMetadata(schemaKey, target) || {};
     if (schema.type == null) {
       let type = Reflect.getMetadata("design:type", target, propertyName);
-      if (type.prototype instanceof Model) {
-        type = type.__proto__.$mongooseOptions.call(type).mongooseSchema;
-      }
       schema.type = type;
     }
+    if (schema.default == null && (
+      _.isArray(schema.type) || schema.type.prototype instanceof Model
+    )) {
+      schema.default = schema.type;
+    }
+
     if (schema.default && schema.default.prototype instanceof Model) {
       schema.default = schema.default.__proto__.$mongooseOptions.call(
         schema.default,
       ).mongooseSchema;
     }
-    schemas[propertyName] = schema;
+    schemas[propertyName] = mapModelSchame(schema);
     Reflect.defineMetadata(schemaKey, schemas, target);
   };
 }

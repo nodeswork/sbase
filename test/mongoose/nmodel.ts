@@ -31,7 +31,6 @@ class UserModel extends sbase.mongoose.NModel {
 
   @sbase.mongoose.Field({
     level:    UserDataLevel.BASIC,
-    default:  Name,
   })
   name: Name;
 
@@ -39,6 +38,11 @@ class UserModel extends sbase.mongoose.NModel {
     level:  UserDataLevel.DETAILS,
   })
   bio: string;
+
+  @sbase.mongoose.Field({
+    type: [Name],
+  })
+  children: Name[];
 
   get fullname() {
     return this.name.first + ' ' + this.name.last;
@@ -58,7 +62,6 @@ describe('NModel Basics', () => {
     const user = await User.create({});
     user.name.first.should.be.equal('A_FIRSTNAME');
     user.name.last.should.be.equal('A_LASTNAME');
-    user.name._id.should.be.ok();
   });
 
   it('should return only one level data', async () => {
