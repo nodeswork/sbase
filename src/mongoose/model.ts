@@ -508,22 +508,19 @@ export function Field(schema: any = {}) {
 
   return (target: any, propertyName: string) => {
     const schemas = Reflect.getOwnMetadata(schemaKey, target) || {};
-    if (schema.type == null) {
+    const existing = schemas[propertyName];
+
+    if (schema.type == null && existing == null) {
       let type = Reflect.getMetadata("design:type", target, propertyName);
       schema.type = type;
     }
-    if (schema.default == null && (
+    if (schema.default == null && schema.type && (
       _.isArray(schema.type) || schema.type.prototype instanceof Model
     )) {
       schema.default = schema.type;
     }
 
-    if (schema.default && schema.default.prototype instanceof Model) {
-      schema.default = schema.default.__proto__.$mongooseOptions.call(
-        schema.default,
-      ).mongooseSchema;
-    }
-    schemas[propertyName] = mapModelSchame(schema);
+    schemas[propertyName] = _.extend({}, existing, mapModelSchame(schema));
     Reflect.defineMetadata(schemaKey, schemas, target);
   };
 }
