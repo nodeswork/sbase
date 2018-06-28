@@ -7,6 +7,8 @@ import {
   Mongoose,
   Schema,
   SchemaOptions,
+  Types,
+  SchemaTypes,
 }                     from 'mongoose';
 import { MongoError } from 'mongodb';
 import { NModelType } from './';
@@ -428,6 +430,31 @@ const postKey        = Symbol('sbase:post');
 const indexKey       = Symbol('sbase:index');
 const validateKey    = Symbol('sbase:validate');
 const mixinKey       = Symbol('sbase:mixin');
+
+export function EnumField(e: any, schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    type: String,
+    enum: Object.values(e),
+  }));
+}
+
+export function DBRefField(ref: string, schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    type: SchemaTypes.ObjectId,
+    ref,
+  }));
+}
+
+export function DBRefArrayField(ref: string, schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    type: [
+      {
+        type: SchemaTypes.ObjectId,
+        ref,
+      }
+    ],
+  }));
+}
 
 export function Field(schema: any = {}) {
   function mapModelSchame(o: any): any {

@@ -20,6 +20,11 @@ class Name extends sbase.mongoose.Model {
   last:       string;
 }
 
+export enum UserType {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+}
+
 @sbase.mongoose.Config({
   collection:        'sbase.tests.users',
   discriminatorKey:  'kind',
@@ -43,6 +48,9 @@ class UserModel extends sbase.mongoose.NModel {
     type: [Name],
   })
   children: Name[];
+
+  @sbase.mongoose.EnumField(UserType)
+  type: UserType;
 
   get fullname() {
     return this.name.first + ' ' + this.name.last;
