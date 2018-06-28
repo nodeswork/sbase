@@ -3,6 +3,7 @@ import { DocumentToObjectOptions, Schema, SchemaOptions } from 'mongoose';
 
 import * as model                                         from './model';
 import { ToJSONOption }                                   from './model-config';
+import { Field } from './';
 
 export const MINIMAL = 'MINIMAL';
 export const MAXIMAL = 'MAXIMAL';
@@ -109,4 +110,10 @@ function levelPaths(schema: Schema): LevelPath[] {
 interface LevelPath {
   path:   string;
   level:  string;
+}
+
+export function Level(level: string, schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    level,
+  }));
 }

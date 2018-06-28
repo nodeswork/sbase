@@ -5,6 +5,7 @@ import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
 import { NodesworkError, validator2 }               from '@nodeswork/utils';
 
 import * as model                                   from './model';
+import { Field } from './';
 
 export const READONLY = 'READONLY';
 export const AUTOGEN  = 'AUTOGEN';
@@ -466,3 +467,15 @@ function apiLevel(schema: Schema, options: object) {
 }
 
 export type INext = () => Promise<any>;
+
+export function Autogen(schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    api: AUTOGEN,
+  }));
+}
+
+export function Readonly(schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    api: READONLY,
+  }));
+}
