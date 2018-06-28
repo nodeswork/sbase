@@ -25,6 +25,10 @@ export enum UserType {
   USER = 'USER',
 }
 
+export interface Address {
+  city: string;
+}
+
 @sbase.mongoose.Config({
   collection:        'sbase.tests.users',
   discriminatorKey:  'kind',
@@ -51,6 +55,9 @@ class UserModel extends sbase.mongoose.NModel {
 
   @sbase.mongoose.EnumField(UserType)
   type: UserType;
+
+  @sbase.mongoose.Field()
+  address: Address;
 
   get fullname() {
     return this.name.first + ' ' + this.name.last;

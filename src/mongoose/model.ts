@@ -456,6 +456,26 @@ export function DBRefArrayField(ref: string, schema: any = {}) {
   }));
 }
 
+export function RequiredField(schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    required: true,
+  }));
+}
+
+export function IndexField(schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    index: true,
+  }));
+}
+
+export function UniqueField(schema: any = {}) {
+  return Field(_.extend({}, schema, {
+    index: true,
+    required: true,
+    unique: true,
+  }));
+}
+
 export function Field(schema: any = {}) {
   function mapModelSchame(o: any): any {
     if (_.isArray(o)) {
