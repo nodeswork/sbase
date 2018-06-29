@@ -459,7 +459,7 @@ export function DBRefArray(ref: string, schema: any = {}) {
 export function ArrayField(type: any, schema: any = {}) {
   return Field(_.extend({}, schema, {
     type:    [type],
-    default: [type],
+    default: [],
   }));
 }
 
