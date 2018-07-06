@@ -521,7 +521,7 @@ export function Field(schema: any = {}) {
       let type = Reflect.getMetadata("design:type", target, propertyName);
       schema.type = type;
     }
-    if (schema.default == null && schema.type && (
+    if (schema.default === undefined && schema.type && (
       _.isArray(schema.type) && schema.type[0] &&
       schema.type[0].prototype instanceof Model
       || schema.type.prototype instanceof Model
