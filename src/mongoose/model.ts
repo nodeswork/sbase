@@ -9,6 +9,7 @@ import {
   SchemaOptions,
   Types,
   SchemaTypes,
+  DocumentToObjectOptions,
 }                     from 'mongoose';
 import { MongoError } from 'mongodb';
 import { NModelType } from './';
@@ -16,6 +17,11 @@ import { NModelType } from './';
 // export var ModelType: new(...args: any[]) => ModelType
 export type ModelType = typeof Model;
 export type IModel<E extends DocumentModel> = MModel<E>;
+
+export interface Model {
+  toObject(options?: DocumentToObjectOptions): any;
+  toJSON(options?: DocumentToObjectOptions): any;
+}
 
 /**
  * Wrapped Model from mongoose.Model.
