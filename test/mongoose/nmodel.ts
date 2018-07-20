@@ -59,6 +59,14 @@ class UserModel extends sbase.mongoose.NModel {
   @sbase.mongoose.Field()
   address: Address;
 
+  @sbase.mongoose.Field({
+    type: Map,
+    of: String,
+    default: {},
+    level:  UserDataLevel.DETAILS,
+  })
+  maps: Map<string, string>;
+
   get fullname() {
     return this.name.first + ' ' + this.name.last;
   }

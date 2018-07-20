@@ -78,6 +78,10 @@ function addToLevelMap(schema: Schema, lps: LevelPath[]) {
   const levelMap = schema.dataLevel.levelMap;
 
   for (const {path, level} of lps) {
+    // mongoose Map fields added extra path.
+    if (path.indexOf('$*') >= 0) {
+      continue;
+    }
     for (
       let levelIndex = (
         level === MINIMAL ? 0 : dataLevelOptionsLevels.indexOf(level)
