@@ -2,15 +2,12 @@
   "name": "@nodeswork/sbase",
   "version": "0.3.5",
   "description": "Basic REST api foundation from Nodeswork.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "types": "index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && ./node_modules/.bin/gulp",
-    "prepublish": "npm test && npm run test2 && npm run build",
-    "prestart": "npm run build",
-    "start": "node dist/index.js",
-    "test": "./node_modules/.bin/gulp && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers coffee:coffeescript/register",
-    "test2": "NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers ts:ts-node/register"
+    "build": "rm -rf index.d.ts mongoose && ./node_modules/.bin/gulp",
+    "prepublish": "npm test && npm run build",
+    "test": "NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers ts:ts-node/register",
+    "test2": "./node_modules/.bin/gulp && NODE_ENV=test node_modules/.bin/mocha --timeout=10000 --trace-warnings --compilers coffee:coffeescript/register"
   },
   "repository": {
     "type": "git",
