@@ -24,7 +24,10 @@ export function overrides(...rules: string[]): Router.IMiddleware {
 
 export function clearOverrides(): Router.IMiddleware {
   return async (ctx: Router.IRouterContext, next: () => void) => {
-    ctx.overrides = {};
+    ctx.overrides = {
+      query:  {},
+      doc:    {},
+    };
     await next();
   };
 }

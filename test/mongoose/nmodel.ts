@@ -1,4 +1,5 @@
 import * as should from 'should';
+import * as mongoose from 'mongoose';
 
 import * as sbase from '../../src';
 
@@ -59,21 +60,36 @@ class UserModel extends sbase.mongoose.NModel {
   @sbase.mongoose.Field()
   address: Address;
 
-  @sbase.mongoose.Field({
-    type: Map,
-    of: String,
-    default: {},
-    level:  UserDataLevel.DETAILS,
-  })
-  maps: Map<string, string>;
+  // @sbase.mongoose.Field({
+    // type: Map,
+    // of: String,
+    // default: {},
+    // level:  UserDataLevel.DETAILS,
+  // })
+  // maps: Map<string, string>;
 
   get fullname() {
     return this.name.first + ' ' + this.name.last;
   }
 }
 
+@sbase.mongoose.Config({
+  collection:        'sbase.tests.posts',
+})
+class PostModel extends sbase.mongoose.NModel {
+
+  @sbase.mongoose.DBRef('User')
+  user: mongoose.Types.ObjectId;
+
+  @sbase.mongoose.Required()
+  text: string;
+}
+
 const User = UserModel.$register<UserModel, typeof UserModel>();
 type  User = UserModel;
+
+const Post = PostModel.$register<PostModel, typeof PostModel>();
+type  Post = PostModel;
 
 describe('NModel Basics', () => {
 
@@ -114,5 +130,25 @@ describe('NModel Basics', () => {
       bio: 'tie',
     });
     user.fullname.should.be.equal('foo bar');
+  });
+
+  it('should save post with model instance', async () => {
+    const user = await User.create({
+      name: {
+        first: 'foo',
+        last: 'bar',
+      },
+      bio: 'tie',
+    });
+    const post = await Post.findOneAndUpdate({
+      user,
+    }, {
+      user,
+      post: 'Text',
+    }, {
+      upsert: true,
+      new: true,
+    });
+    post.user.should.be.ok();
   });
 });

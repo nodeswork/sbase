@@ -452,7 +452,7 @@ export function DBRefArray(ref: string, schema: any = {}) {
       {
         type: SchemaTypes.ObjectId,
         ref,
-      }
+      },
     ],
   }));
 }
