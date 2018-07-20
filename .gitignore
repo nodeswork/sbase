@@ -62,4 +62,5 @@ dist/
 
 # compiled modules
 /mongoose
+/koa
 /index*
