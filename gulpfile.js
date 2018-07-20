@@ -13,5 +13,5 @@ gulp.task("default", function () {
     .pipe(sourcemaps.write('.', {
       sourceRoot: function(file) { return file.cwd + '/src'; }
     }))
-    .pipe(gulp.dest("dist"));
+    .pipe(gulp.dest("."));
 });
