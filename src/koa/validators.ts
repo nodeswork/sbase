@@ -399,25 +399,33 @@ export function matches(
 // --------------------------- Sanitizers ----------------------------------- //
 export function blacklist(chars: string) {
   const blacklist: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.blacklist(val, chars));
+    if (val != null) {
+      dotty.put(ctx.request, path, validator.blacklist(val, chars));
+    }
     return true;
   };
   return blacklist;
 }
 
 export function escape(ctx: Router.IRouterContext, path: string, val: any) {
-  dotty.put(ctx.request, path, validator.escape(val));
+  if (val != null) {
+    dotty.put(ctx.request, path, validator.escape(val));
+  }
   return true;
 }
 
 export function unescape(ctx: Router.IRouterContext, path: string, val: any) {
-  dotty.put(ctx.request, path, validator.unescape(val));
+  if (val != null) {
+    dotty.put(ctx.request, path, validator.unescape(val));
+  }
   return true;
 }
 
 export function ltrim(chars?: string) {
   const ltrim: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.ltrim(val, chars));
+    if (val != null) {
+      dotty.put(ctx.request, path, validator.ltrim(val, chars));
+    }
     return true;
   };
   return ltrim;
@@ -425,7 +433,9 @@ export function ltrim(chars?: string) {
 
 export function normalizeEmail(options?: ValidatorJS.NormalizeEmailOptions) {
   const normalizeEmail: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.normalizeEmail(val, options));
+    if (val != null) {
+      dotty.put(ctx.request, path, validator.normalizeEmail(val, options));
+    }
     return true;
   };
   return normalizeEmail;
@@ -433,7 +443,9 @@ export function normalizeEmail(options?: ValidatorJS.NormalizeEmailOptions) {
 
 export function rtrim(chars?: string) {
   const rtrim: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.rtrim(val, chars));
+    if (val != null) {
+      dotty.put(ctx.request, path, validator.rtrim(val, chars));
+    }
     return true;
   };
   return rtrim;
@@ -441,7 +453,9 @@ export function rtrim(chars?: string) {
 
 export function stripLow(keep_new_lines?: boolean) {
   const stripLow: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.stripLow(val, keep_new_lines));
+    if (val != null) {
+      dotty.put(ctx.request, path, validator.stripLow(val, keep_new_lines));
+    }
     return true;
   };
   return stripLow;
@@ -449,25 +463,33 @@ export function stripLow(keep_new_lines?: boolean) {
 
 export function toBoolean(strict?: boolean) {
   const toBoolean: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.toBoolean(val, strict));
+    if (val != null && !_.isBoolean(val)) {
+      dotty.put(ctx.request, path, validator.toBoolean(val, strict));
+    }
     return true;
   };
   return toBoolean;
 }
 
 export function toDate(ctx: Router.IRouterContext, path: string, val: any) {
-  dotty.put(ctx.request, path, validator.toDate(val));
+  if (val != null && !_.isDate(val)) {
+    dotty.put(ctx.request, path, validator.toDate(val));
+  }
   return true;
 }
 
 export function toFloat(ctx: Router.IRouterContext, path: string, val: any) {
-  dotty.put(ctx.request, path, validator.toFloat(val));
+  if (val != null && !_.isNumber(val)) {
+    dotty.put(ctx.request, path, validator.toFloat(val));
+  }
   return true;
 }
 
 export function toInt(radix?: number) {
   const toInt: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.toInt(val, radix));
+    if (val != null && !_.isNumber(val)) {
+      dotty.put(ctx.request, path, validator.toInt(val, radix));
+    }
     return true;
   };
   return toInt;
@@ -475,7 +497,9 @@ export function toInt(radix?: number) {
 
 export function trim(chars?: string) {
   const trim: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.trim(val, chars));
+    if (val != null) {
+      dotty.put(ctx.request, path, validator.trim(val, chars));
+    }
     return true;
   };
   return trim;
@@ -483,7 +507,9 @@ export function trim(chars?: string) {
 
 export function whitelist(chars?: string) {
   const whitelist: Validator = (ctx, path, val) => {
-    dotty.put(ctx.request, path, validator.whitelist(val, chars));
+    if (val != null) {
+      dotty.put(ctx.request, path, validator.whitelist(val, chars));
+    }
     return true;
   };
   return whitelist;

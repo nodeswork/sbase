@@ -1,7 +1,7 @@
 import * as should from 'should';
 import * as Router from 'koa-router';
 
-import { params, required, ParamsContext, ltrim } from '../../src/koa';
+import { params, required, ParamsContext, ltrim, toDate } from '../../src/koa';
 
 describe('koa.params', () => {
 
@@ -43,6 +43,28 @@ describe('koa.params', () => {
     await m(ctx, () => null);
     ctx.errors.should.be.empty();
     ctx.request.query.foo.should.be.equal('bbb');
+  });
+
+  it('should allow undefined', async () => {
+    const m = params({
+      'query.foo': toDate,
+    });
+    const ctx = getFakeContext({
+      query: { },
+    });
+    await m(ctx, () => null);
+    ctx.errors.should.be.empty();
+  });
+
+  it('should allow organic', async () => {
+    const m = params({
+      'query.foo': toDate,
+    });
+    const ctx = getFakeContext({
+      query: { foo: new Date() },
+    });
+    await m(ctx, () => null);
+    ctx.errors.should.be.empty();
   });
 });
 
