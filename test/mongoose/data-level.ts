@@ -1,0 +1,180 @@
+import * as _        from 'underscore';
+import * as should   from 'should';
+import * as mongoose from 'mongoose';
+
+import {
+  ArrayField,
+  Config,
+  Field,
+  Level,
+  Model,
+  NModel,
+}                    from '../../src/mongoose';
+
+enum DataLevels {
+  L1 = 'L1',
+  L2 = 'L2',
+  L3 = 'L3',
+  L31 = 'L31',
+}
+
+@Config({
+  _id: false,
+})
+class DL13 extends Model {
+
+  @Field() f130: string;
+  @Level(DataLevels.L31) f131: string;
+}
+
+@Config({
+  _id: false,
+})
+class DL1 extends Model {
+
+  @Level(DataLevels.L1) f11: string;
+
+  @Level(DataLevels.L2) f12: string;
+
+  @ArrayField(DL13)
+  @Level(DataLevels.L3) f13: DL13[];
+}
+
+@Config({
+  collection: 'sbase.tests.dlroot',
+  dataLevel: {
+    levels: DataLevels,
+  },
+})
+class DLRootModel extends NModel {
+  @Field() f1: DL1;
+}
+
+const DLRoot = DLRootModel.$registerNModel<DLRootModel, typeof DLRootModel>();
+type  DLRoot = DLRootModel;
+
+describe('NModel Data Level', () => {
+
+  const d1 = {
+    f1: {
+      f11: 'v11',
+      f12: 'v12',
+      f13: [
+        {
+          f130: 'v130',
+          f131: 'v131',
+        }
+      ],
+    },
+  };
+
+  const e1: any = {
+    f1: {
+      f11: 'v11',
+      f13: [],
+    },
+  };
+
+  const e2: any = {
+    f1: {
+      f11: 'v11',
+      f12: 'v12',
+      f13: [],
+    },
+  };
+
+  const e3 = {
+    f1: {
+      f11: 'v11',
+      f12: 'v12',
+      f13: [
+        {
+          f130: 'v130',
+        }
+      ],
+    },
+  };
+
+  const e31 = {
+    f1: {
+      f11: 'v11',
+      f12: 'v12',
+      f13: [
+        {
+          f130: 'v130',
+          f131: 'v131',
+        }
+      ],
+    },
+  };
+
+  beforeEach(async () => {
+    await DLRoot.deleteMany({});
+    await DLRoot.create(d1);
+  });
+
+  it('should be able to retrieve all values', async () => {
+    const data = await DLRoot.findOne({});
+    _.pick(data.toJSON(), 'f1').should.be.deepEqual(d1);
+  });
+
+  it('should be able to retrieve l1 values', async () => {
+    const data = await DLRoot.findOne({}, null, {
+      level: DataLevels.L1,
+    });
+    _.pick(data.toJSON(), 'f1').should.be.deepEqual(e1);
+  });
+
+  it('should be able to retrieve l2 values', async () => {
+    const data = await DLRoot.findOne({}, null, {
+      level: DataLevels.L2,
+    });
+    _.pick(data.toJSON(), 'f1').should.be.deepEqual(e2);
+  });
+
+  it('should be able to retrieve l3 values', async () => {
+    const data = await DLRoot.findOne({}, null, {
+      level: DataLevels.L3,
+    });
+    _.pick(data.toJSON(), 'f1').should.be.deepEqual(e3);
+  });
+
+  it('should be able to retrieve l31 values', async () => {
+    const data = await DLRoot.findOne({}, null, {
+      level: DataLevels.L31,
+    });
+    _.pick(data.toJSON(), 'f1').should.be.deepEqual(e31);
+  });
+
+  it('should be able to project l1 values', async () => {
+    const data = await DLRoot.findOne({});
+    _.pick(data.toJSON({ level: DataLevels.L1 }), 'f1').should.be.deepEqual({
+      f1: {
+        f11: 'v11',
+      },
+    });
+  });
+
+  it('should be able to project l2 values', async () => {
+    const data = await DLRoot.findOne({});
+    _.pick(data.toJSON({ level: DataLevels.L2 }), 'f1').should.be.deepEqual({
+      f1: {
+        f11: 'v11',
+        f12: 'v12',
+      },
+    });
+  });
+
+  it('should be able to project l3 values', async () => {
+    const data = await DLRoot.findOne({});
+    _.pick(data.toJSON({ level: DataLevels.L3 }), 'f1').should.be.deepEqual(e3);
+  });
+
+  it('should be able to project l31 values', async () => {
+    const data = await DLRoot.findOne({});
+    _.pick(data.toJSON({ level: DataLevels.L31 }), 'f1').should.be.deepEqual(
+      e31,
+    );
+  });
+
+});

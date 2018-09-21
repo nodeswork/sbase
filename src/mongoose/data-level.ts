@@ -3,10 +3,8 @@ import { DocumentToObjectOptions, Schema, SchemaOptions } from 'mongoose';
 
 import * as model                                         from './model';
 import { ToJSONOption }                                   from './model-config';
-import { Field } from './';
-
-export const MINIMAL = 'MINIMAL';
-export const MAXIMAL = 'MAXIMAL';
+import { Field }                                          from './';
+import { DataLevelConfig }                                from './model-config';
 
 export type DataLevelModelType = typeof DataLevelModel;
 
@@ -19,26 +17,66 @@ export class DataLevelModel extends model.DocumentModel {
   public toJSON(options?: DocumentToObjectOptions): object {
     let obj = this.toObject(options);
     if (options && options.level) {
-      const fields = (
-        this.schema.dataLevel && this.schema.dataLevel.levelMap[options.level]
-        || []
-      );
-      obj = _.pick(obj, fields);
+      const fields = _.keys(fetchModelFields(
+        this.schema.options.dataLevel,
+        options.level,
+        this.schema.dataLevel.levelMap,
+      ));
+      obj = deepOmit(obj, fields);
     }
     return obj;
   }
 }
 
-function dataLevelPlugin(schema: Schema, options: SchemaOptions) {
-  for (let s = schema; s; s = s.parentSchema) {
-    if (s.dataLevel == null) {
-      s.dataLevel = {
-        levelMap: {},
-      };
-    }
+function deepOmit(obj: any, fields: string[]): any {
+  if (_.isArray(obj)) {
+    return _.map(obj, o => deepOmit(o, fields));
   }
 
-  // schema.levels = [ MINIMAL ].concat(options.levels || []);
+  const grouped = _.groupBy(fields, f => f.indexOf('.') === -1 ? 1 : 0);
+  if (grouped[1]) {
+    obj = _.omit(obj, ...grouped[1]);
+  }
+  if (grouped[0]) {
+    const goal: any = _.chain(grouped[0])
+      .map(v => {
+        const idx = v.indexOf('.');
+        return [v.substr(0, idx), v.substring(idx + 1)];
+      })
+      .groupBy(pair => pair[0])
+      .mapObject(pairs => _.map(pairs, p => p[1]))
+      .value();
+    _.each(goal, (fs: string[], name: string) => {
+      if (obj && obj[name]) {
+        obj[name] = deepOmit(obj[name], fs);
+      }
+    });
+  }
+  return obj;
+}
+
+function dataLevelPlugin(schema: Schema, options: SchemaOptions) {
+  if (schema.dataLevel != null) {
+    return;
+  }
+  if (options == null) {
+    options = schema.options;
+  }
+
+  const dataLevelOptionsLevels = _.values(
+    options.dataLevel && options.dataLevel.levels || [],
+  );
+
+  schema.dataLevel = {
+    levelMap: {},
+  };
+
+  _.each((schema as any).paths, (st: any, path: string) => {
+    if (st && st.schema) {
+      dataLevelPlugin(st.schema, options);
+    }
+  });
+
   addToLevelMap(schema, levelPaths(schema));
 
   for (const name of model.preQueries) {
@@ -48,65 +86,104 @@ function dataLevelPlugin(schema: Schema, options: SchemaOptions) {
 
 function modifyProjection(next: () => void) {
   const schema: Schema = this.schema;
+  if (!schema.options || !schema.options.dataLevel) {
+    next();
+    return;
+  }
+
+  const levels = _.values(schema.options.dataLevel.levels);
+
   const level = (
     this.options.level ||
     schema.options.dataLevel && schema.options.dataLevel.default
   );
 
   if (level) {
-    const fields = schema.dataLevel.levelMap[level] || [];
-
     if (this._fields == null) {
       this._fields = {};
     }
-
-    for (const field of fields) {
-      this._fields[field] = 1;
-    }
+    const projectedFields = fetchModelFields(
+      schema.options.dataLevel, level,
+      schema.dataLevel.levelMap,
+    );
+    _.extend(this._fields, projectedFields);
   }
   next();
 }
 
-function addToLevelMap(schema: Schema, lps: LevelPath[]) {
-  if (schema.parentSchema) {
-    addToLevelMap(schema.parentSchema, lps);
+function fetchModelFields(
+  config: DataLevelConfig, level: string,
+  levelMap: { [name: string]: string[] },
+): object {
+  if (config._levelsMap == null) {
+    config._levelsMap = {};
+  }
+  if (config._levelsMap[level]) {
+    return config._levelsMap[level];
   }
 
+  const fields: string[]= [];
+
+  let valid = false;
+
+  _.each(_.values(config.levels), (l: string) => {
+    if (valid) {
+      _.each(levelMap[l], (p: string) => {
+        fields.push(p);
+      });
+    }
+    if (l === level) {
+      valid = true;
+    }
+  });
+
+  const filtered: string[] = _.filter(fields, (target) => {
+    return _.all(fields, r => {
+      return target.indexOf(r + '.') !== 0;
+    });
+  });
+
+  const result: any = {};
+  _.each(filtered, f => {
+    result[f] = 0;
+  });
+
+  config._levelsMap[level] = result;
+
+  return result;
+}
+
+function addToLevelMap(schema: Schema, lps: LevelPath[]) {
   const dataLevelOptionsLevels = _.values(
     schema.options.dataLevel && schema.options.dataLevel.levels || [],
   );
   const levelMap = schema.dataLevel.levelMap;
 
   for (const {path, level} of lps) {
-    // mongoose Map fields added extra path.
-    if (path.indexOf('$*') >= 0) {
-      continue;
-    }
-    for (
-      let levelIndex = (
-        level === MINIMAL ? 0 : dataLevelOptionsLevels.indexOf(level)
-      );
-      levelIndex >= 0 && levelIndex < dataLevelOptionsLevels.length;
-      levelIndex++
-    ) {
-      const cLevel = dataLevelOptionsLevels[levelIndex];
-      levelMap[cLevel] = _.union(levelMap[cLevel], [path]);
-    }
-
-    if (level === MINIMAL) {
-      levelMap[MINIMAL] = _.union(levelMap[MINIMAL], [path]);
-    }
-    levelMap[MAXIMAL] = _.union(levelMap[MAXIMAL], [path]);
+    levelMap[level] = _.union(levelMap[level], [path]);
   }
+
+  _.each((schema as any).paths, (st: any, path: string) => {
+    if (st && st.schema) {
+      const s: Schema = st.schema;
+      _.each(s.dataLevel.levelMap, (ps, l) => {
+        levelMap[l] = _.union(levelMap[l], _.map(ps, p => `${path}.${p}`));
+      });
+    }
+  });
 }
 
 function levelPaths(schema: Schema): LevelPath[] {
   const res: LevelPath[] = [];
   schema.eachPath((pathname, schemaType) => {
-    res.push({
-      path: pathname,
-      level: (schemaType as any).options.level || MINIMAL,
-    });
+    if (pathname.indexOf('$*') >= 0) {
+      return;
+    }
+    const level = (schemaType as any).options.level;
+
+    if (level != null) {
+      res.push({ path: pathname, level });
+    }
   });
   return res;
 }

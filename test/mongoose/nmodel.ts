@@ -60,13 +60,13 @@ class UserModel extends sbase.mongoose.NModel {
   @sbase.mongoose.Field()
   address: Address;
 
-  // @sbase.mongoose.Field({
-    // type: Map,
-    // of: String,
-    // default: {},
-    // level:  UserDataLevel.DETAILS,
-  // })
-  // maps: Map<string, string>;
+  @sbase.mongoose.Field({
+    type: Map,
+    of: String,
+    default: {},
+    level:  UserDataLevel.DETAILS,
+  })
+  maps: Map<string, string>;
 
   get fullname() {
     return this.name.first + ' ' + this.name.last;
@@ -94,7 +94,7 @@ type  Post = PostModel;
 describe('NModel Basics', () => {
 
   beforeEach(async () => {
-    await User.remove({});
+    await User.deleteMany({});
   });
 
   it('should generate default value', async () => {

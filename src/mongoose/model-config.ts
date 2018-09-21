@@ -59,8 +59,9 @@ export interface SchemaTypeOptions {
  * Configuration for dataLevel.
  */
 export interface DataLevelConfig {
-  levels:     string[] | object;
-  default?:   string;
+  levels:       string[] | object;
+  default?:     string;
+  _levelsMap?:  { [level: string]: object };
 }
 
 export interface ToJSONOption {
