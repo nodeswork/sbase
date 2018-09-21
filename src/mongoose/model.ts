@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import * as _         from 'underscore';
+import * as _                           from 'underscore';
 import {
   Document,
   Model as MModel,
@@ -10,35 +10,18 @@ import {
   Types,
   SchemaTypes,
   DocumentToObjectOptions,
-}                     from 'mongoose';
-import { MongoError } from 'mongodb';
-import { NModelType } from './';
+}                                       from 'mongoose';
+import { MongoError }                   from 'mongodb';
+import { NModelType }                   from './';
+import { pushMetadata, extendMetadata } from './helpers';
 
-// export var ModelType: new(...args: any[]) => ModelType
 export type ModelType = typeof Model;
 export type IModel<E extends DocumentModel> = MModel<E>;
-
-function pushMetadata<T>(key: any, target: any, ...metadataValue: T[]): T[] {
-  const meta: T[] = Reflect.getOwnMetadata(key, target) || [];
-  meta.push(...metadataValue);
-  Reflect.defineMetadata(key, meta, target);
-  return meta;
-}
-
-function extendMetadata<T>(key: any, target: object, ...metadataValue: T[]): T {
-  const meta: T = Reflect.getOwnMetadata(key, target) || {};
-  _.extend(meta, ...metadataValue);
-  Reflect.defineMetadata(key, meta, target);
-  return meta;
-}
 
 /**
  * Wrapped Model from mongoose.Model.
  */
 export class Model {
-
-  // placeholder for calculated mongoose options.
-  private static _mongooseOptions:   MongooseOptions;
 
   public static Schema(schema: Schema): ModelType {
     extendMetadata(SCHEMA_KEY, this.prototype, schema);
@@ -85,96 +68,91 @@ export class Model {
     return this;
   }
 
-  public static get $schema(): Schema {
-    return this.$mongooseOptions().mongooseSchema;
-  }
-
-  public static $mongooseOptions(): MongooseOptions {
-    this._$initialize();
-    if (this._mongooseOptions.initialized || this === Model) {
-      return this._mongooseOptions;
+  public static get $mongooseOptions(): MongooseOptions {
+    if (this === Model) {
+      return null;
     }
 
-    const superClass = (this as any).__proto__ as ModelType;
+    var mongooseOptions: MongooseOptions = Reflect.getOwnMetadata(
+      MONGOOSE_OPTIONS_KEY, this.prototype,
+    );
+    if (mongooseOptions) {
+      return mongooseOptions;
+    }
 
-    const superOptions: MongooseOptions = (
-      superClass.$mongooseOptions ? superClass.$mongooseOptions() : {
-        initialized: false,
-      }
+    mongooseOptions = {};
+    Reflect.defineMetadata(
+      MONGOOSE_OPTIONS_KEY, mongooseOptions, this.prototype,
     );
 
-    const mixinModels  = _.union(_.flatten([
+    const superClass: ModelType = (this as any).__proto__;
+
+    const superOptions: MongooseOptions = superClass.$mongooseOptions || {};
+
+    const mixinModels: ModelType[] = _.union(
       Reflect.getOwnMetadata(MIXIN_KEY, this.prototype) || [],
-    ]));
-    const mixinOptions = _.map(mixinModels, (model) => model.$mongooseOptions());
-
-    const mixinSchemas   = _.map(mixinOptions, (opt) => opt.schema);
-    const decoSchema     = Reflect.getOwnMetadata(SCHEMA_KEY, this.prototype) || {};
-    const flattenSchemas = _.flatten(
-      [{}, mixinSchemas, superOptions.schema, decoSchema],
     );
-    this._mongooseOptions.schema = _.extend.apply(null, flattenSchemas);
+    const mixinOptions = _.map(mixinModels, (model) => model.$mongooseOptions);
 
-    const mixinConfigs   = _.map(mixinOptions, (opt) => opt.config);
-    const decoConfigs = Reflect.getOwnMetadata(CONFIG_KEY, this.prototype) || {};
-    const flattenConfigs = _.flatten(
-      [{}, mixinConfigs, superOptions.config, decoConfigs],
-    );
-    this._mongooseOptions.config = _.extend.apply(null, flattenConfigs);
+    const schemas = _.flatten([
+      _.map(mixinOptions, (opt) => opt.schema),
+      superOptions.schema,
+      Reflect.getOwnMetadata(SCHEMA_KEY, this.prototype),
+    ]);
+    mongooseOptions.schema = _.extend({}, ...schemas);
 
-    const mixinPres = _.map(mixinOptions, (opt) => opt.pres);
-    const decoPres  = Reflect.getOwnMetadata(PRE_KEY, this.prototype) || [];
-    this._mongooseOptions.pres = _.union(_.flatten([
-      mixinPres, superOptions.pres || [],
-      decoPres,
-    ]));
+    const configs = _.flatten([
+      _.map(mixinOptions, (opt) => opt.config),
+      superOptions.config,
+      Reflect.getOwnMetadata(CONFIG_KEY, this.prototype),
+    ]);
+    mongooseOptions.config = _.extend({}, ...configs);
 
-    const mixinPosts = _.map(mixinOptions, (opt) => opt.posts);
-    const decoPosts  = Reflect.getOwnMetadata(POST_KEY, this.prototype) || [];
-    this._mongooseOptions.posts = _.union(_.flatten([
-      mixinPosts, superOptions.posts || [],
-      decoPosts,
-    ]));
+    mongooseOptions.pres = _.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.pres),
+      superOptions.pres,
+      Reflect.getOwnMetadata(PRE_KEY, this.prototype),
+    ])), x => !!x);
 
-    const mixinVirtuals = _.map(mixinOptions, (opt) => opt.virtuals);
-    this._mongooseOptions.virtuals = _.union(_.flatten([
-      mixinVirtuals, superOptions.virtuals || [],
-    ]));
+    mongooseOptions.posts = _.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.posts),
+      superOptions.posts,
+      Reflect.getOwnMetadata(POST_KEY, this.prototype),
+    ])), x => !!x);
 
-    const mixinValidates = _.map(mixinOptions, (opt) => opt.validates);
-    const decoValidates  = Reflect.getOwnMetadata(VALIDATE_KEY, this.prototype);
-    this._mongooseOptions.validates = _.union(_.flatten([
-      mixinValidates, superOptions.validates || [],
-      decoValidates || [],
-    ]));
+    mongooseOptions.virtuals = _.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.virtuals),
+      superOptions.virtuals,
+      Reflect.getOwnMetadata(VIRTUAL_KEY, this.prototype),
+    ])), x => !!x);
 
-    const mixinPlugins = _.map(mixinOptions, (opt) => opt.plugins);
-    const decoPlugins = Reflect.getOwnMetadata(PLUGIN_KEY, this.prototype) || [];
-    this._mongooseOptions.plugins = _.union(_.flatten([
-      mixinPlugins, superOptions.plugins || [],
-      decoPlugins,
-    ]));
-    this._mongooseOptions.plugins = _.sortBy(
-      this._mongooseOptions.plugins,
-      (plugin) => plugin.priority,
-    );
+    mongooseOptions.validates = _.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.validates),
+      superOptions.validates,
+      Reflect.getOwnMetadata(VALIDATE_KEY, this.prototype),
+    ])), x => !!x);
 
-    const mixinIndexes = _.map(mixinOptions, (opt) => opt.indexes);
-    const decoIndexes  = Reflect.getOwnMetadata(INDEX_KEY, this.prototype) || [];
-    this._mongooseOptions.indexes = _.union(_.flatten([
-      mixinIndexes, superOptions.indexes || [],
-      decoIndexes,
-    ]));
+    mongooseOptions.plugins = _.sortBy(_.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.plugins),
+      superOptions.plugins,
+      Reflect.getOwnMetadata(PLUGIN_KEY, this.prototype),
+    ])), x => !!x), (plugin) => plugin.priority);
 
-    const mixinMethods = _.map(mixinOptions, (opt) => opt.methods);
-    this._mongooseOptions.methods = _.union(_.flatten([
-      mixinMethods, superOptions.methods || [],
-    ]));
+    mongooseOptions.indexes = _.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.indexes),
+      superOptions.indexes,
+      Reflect.getOwnMetadata(INDEX_KEY, this.prototype),
+    ])), x => !!x);
 
-    const mixinStatics = _.map(mixinOptions, (opt) => opt.statics);
-    this._mongooseOptions.statics = _.union(_.flatten([
-      mixinStatics, superOptions.statics || [],
-    ]));
+    mongooseOptions.methods = _.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.methods),
+      superOptions.methods,
+    ])), x => !!x);
+
+    mongooseOptions.statics = _.filter(_.union(_.flatten([
+      _.map(mixinOptions, (opt) => opt.statics),
+      superOptions.statics,
+    ])), x => !!x);
 
     for (const name of Object.getOwnPropertyNames(this.prototype)) {
       if (name === 'constructor') {
@@ -184,14 +162,11 @@ export class Model {
       const descriptor = Object.getOwnPropertyDescriptor(this.prototype, name);
 
       if (descriptor.value && _.isFunction(descriptor.value)) {
-        this._mongooseOptions.methods.push({
-          name,
-          fn: descriptor.value,
-        });
+        mongooseOptions.methods.push({ name, fn: descriptor.value });
       }
 
       if (descriptor.get || descriptor.set) {
-        this._mongooseOptions.virtuals.push({
+        mongooseOptions.virtuals.push({
           name,
           get: descriptor.get,
           set: descriptor.set,
@@ -207,29 +182,26 @@ export class Model {
       }
 
       if (descriptor.value) {
-        this._mongooseOptions.statics.push({
-          name,
-          fn: descriptor.value,
-        });
+        mongooseOptions.statics.push({ name, fn: descriptor.value });
       }
     }
 
     const mongooseSchema = new Schema(
-      this._mongooseOptions.schema, _.clone(this._mongooseOptions.config),
+      mongooseOptions.schema, _.clone(mongooseOptions.config),
     );
 
     (mongooseSchema as any).parentSchema = superOptions.mongooseSchema;
 
-    for (const pre of this._mongooseOptions.pres) {
+    for (const pre of mongooseOptions.pres) {
       pre.parallel = pre.parallel || false;
       mongooseSchema.pre(pre.name, pre.parallel, pre.fn, pre.errorCb);
     }
 
-    for (const post of this._mongooseOptions.posts) {
+    for (const post of mongooseOptions.posts) {
       (mongooseSchema as any).post(post.name, post.fn);
     }
 
-    for (const virtual of this._mongooseOptions.virtuals) {
+    for (const virtual of mongooseOptions.virtuals) {
       let v = mongooseSchema.virtual(virtual.name);
       if (virtual.get) {
         v = v.get(virtual.get);
@@ -239,32 +211,31 @@ export class Model {
       }
     }
 
-    for (const method of this._mongooseOptions.methods) {
+    for (const method of mongooseOptions.methods) {
       mongooseSchema.methods[method.name] = method.fn;
     }
 
-    for (const method of this._mongooseOptions.statics) {
+    for (const method of mongooseOptions.statics) {
       mongooseSchema.statics[method.name] = method.fn;
     }
 
-    for (const plugin of this._mongooseOptions.plugins) {
-      const options = _.extend({}, this._mongooseOptions.config, plugin.options);
+    for (const plugin of mongooseOptions.plugins) {
+      const options = _.extend({}, mongooseOptions.config, plugin.options);
       mongooseSchema.plugin(plugin.fn, options);
     }
 
-    for (const index of this._mongooseOptions.indexes) {
+    for (const index of mongooseOptions.indexes) {
       mongooseSchema.index(index.fields, index.options);
     }
 
-    for (const validate of this._mongooseOptions.validates) {
+    for (const validate of mongooseOptions.validates) {
       mongooseSchema
         .path(validate.path)
         .validate(validate.fn, validate.errorMsg, validate.type);
     }
 
-    this._mongooseOptions.mongooseSchema  = mongooseSchema;
-    this._mongooseOptions.initialized     = true;
-    return this._mongooseOptions;
+    mongooseOptions.mongooseSchema  = mongooseSchema;
+    return mongooseOptions;
   }
 
   public static $register<D extends Document, M>(
@@ -274,7 +245,9 @@ export class Model {
       mongooseInstance = require('mongoose');
     }
 
-    return mongooseInstance.model(this.name, this.$schema) as (MModel<D> & M);
+    return mongooseInstance.model(
+      this.name, this.$mongooseOptions.mongooseSchema,
+    ) as (MModel<D> & M);
   }
 
   public static $registerNModel<D extends Document, M>(
@@ -284,19 +257,9 @@ export class Model {
       mongooseInstance = require('mongoose');
     }
 
-    return mongooseInstance.model(this.name, this.$schema) as (
-      MModel<D> & M & NModelType
-    );
-  }
-
-  public static _$initialize() {
-    if (this.hasOwnProperty('_mongooseOptions')) {
-      return;
-    }
-    this._mongooseOptions = {
-      initialized:  false,
-      config:       {},
-    };
+    return mongooseInstance.model(
+      this.name, this.$mongooseOptions.mongooseSchema,
+    ) as (MModel<D> & M & NModelType);
   }
 
   public static cast<D extends DocumentModel>(): IModel<D> {
@@ -310,15 +273,16 @@ export interface DocumentModel extends Document {
 export class DocumentModel extends Model {
 }
 
-const SCHEMA_KEY      = Symbol('sbase:schema');
-const CONFIG_KEY      = Symbol('sbase:config');
-const PRE_KEY         = Symbol('sbase:pre');
-const POST_KEY        = Symbol('sbase:post');
-const VIRTUAL_KEY     = Symbol('sbase:virtual');
-const PLUGIN_KEY      = Symbol('sbase:plugin');
-const INDEX_KEY       = Symbol('sbase:index');
-const VALIDATE_KEY    = Symbol('sbase:validate');
-const MIXIN_KEY       = Symbol('sbase:mixin');
+const SCHEMA_KEY            = Symbol('sbase:schema');
+const CONFIG_KEY            = Symbol('sbase:config');
+const PRE_KEY               = Symbol('sbase:pre');
+const POST_KEY              = Symbol('sbase:post');
+const VIRTUAL_KEY           = Symbol('sbase:virtual');
+const PLUGIN_KEY            = Symbol('sbase:plugin');
+const INDEX_KEY             = Symbol('sbase:index');
+const VALIDATE_KEY          = Symbol('sbase:validate');
+const MIXIN_KEY             = Symbol('sbase:mixin');
+const MONGOOSE_OPTIONS_KEY  = Symbol('sbase:mongooseOptions');
 
 export function Enum(e: any, schema: any = {}) {
   return Field(_.extend({}, schema, {
@@ -391,7 +355,10 @@ export function Field(schema: any = {}) {
       return _.map(o, x => mapModelSchame(x));
     } else if (_.isFunction(o)) {
       if (o.prototype instanceof Model) {
-        return o.__proto__.$mongooseOptions.call(o).mongooseSchema;
+        const func = Object.getOwnPropertyDescriptor(
+          o.__proto__, '$mongooseOptions',
+        );
+        return func.get.call(o).mongooseSchema;
       } else {
         return o;
       }
@@ -515,7 +482,6 @@ export function Validate(validate: Validate) {
  * Mongoose options for current model.
  */
 export interface MongooseOptions {
-  initialized:     boolean;
   config?:         SchemaOptions;
   schema?:         {};
   mongooseSchema?: Schema;
@@ -592,4 +558,4 @@ export const preQueries = [
   'find', 'findOne', 'count', 'findOneAndUpdate', 'findOneAndRemove', 'update',
 ];
 
-const STATIC_FILTER_NAMES = [ 'name', 'prototype', '_mongooseOptions' ];
+const STATIC_FILTER_NAMES = [ 'name', 'prototype' ];
