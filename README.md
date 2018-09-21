@@ -1,5 +1,15 @@
 # @nodeswork/sbase
-Basic REST api foundation from Nodeswork.
+SBase is a user friendly Typescript wrapper for Mongoose and Koa2.
+
+First, it maps Mongoose schema to a Typescript class and allows to use decorators to config the MongoDB models. It also supports model inherient and model reference.
+
+| Mongoose Features        | SBase implementation                                                            |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| Collection configuration | Class deocorator @Config                                                        |
+| Schema                   | Properties and specific decorators like @Field, @Enum, etc.                     |
+| Methods                  | Class methods                                                                   |
+| Static methods           | Class static methods                                                            |
+| Model registration       | Pre-defined class static methoed Model.$register() & Model.$registerNModel.     |
 
 
 ## Installation
