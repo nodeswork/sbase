@@ -18,173 +18,71 @@ import { NModelType } from './';
 export type ModelType = typeof Model;
 export type IModel<E extends DocumentModel> = MModel<E>;
 
+function pushMetadata<T>(key: any, target: any, ...metadataValue: T[]): T[] {
+  const meta: T[] = Reflect.getOwnMetadata(key, target) || [];
+  meta.push(...metadataValue);
+  Reflect.defineMetadata(key, meta, target);
+  return meta;
+}
+
+function extendMetadata<T>(key: any, target: object, ...metadataValue: T[]): T {
+  const meta: T = Reflect.getOwnMetadata(key, target) || {};
+  _.extend(meta, ...metadataValue);
+  Reflect.defineMetadata(key, meta, target);
+  return meta;
+}
+
 /**
  * Wrapped Model from mongoose.Model.
  */
 export class Model {
 
-  // reflects the configuration for current model.
-  public static $CONFIG:     SchemaOptions;
-
-  // preset the schema of current model.
-  public static $SCHEMA:     {};
-
-  private static $PRES:      Pre[];
-
-  private static $POSTS:     Post[];
-
-  private static $VIRTUALS:  Virtual[];
-
-  private static $PLUGINS:   Plugin[];
-
-  private static $INDEXES:   Index[];
-
-  private static $MIXINS:    ModelType[];
-
-  private static $VALIDATES: Validate[];
-
   // placeholder for calculated mongoose options.
   private static _mongooseOptions:   MongooseOptions;
 
-  public static Config(config: SchemaOptions): ModelType {
-    if (this.hasOwnProperty('$CONFIG')) {
-      _.extend(this.$CONFIG, config);
-    } else {
-      this.$CONFIG = config;
-    }
+  public static Schema(schema: Schema): ModelType {
+    extendMetadata(SCHEMA_KEY, this.prototype, schema);
     return this;
   }
 
-  public static Schema(schema: {}): ModelType {
-    if (this.hasOwnProperty('$SCHEMA')) {
-      _.extend(this.$SCHEMA, schema);
-    } else {
-      this.$SCHEMA = schema;
-    }
+  public static Config(config: SchemaOptions): ModelType {
+    extendMetadata(CONFIG_KEY, this.prototype, config);
     return this;
   }
 
   public static Pre(pre: Pre): ModelType {
-    if (this.hasOwnProperty('$PRES')) {
-      this.$PRES.push(pre);
-    } else {
-      this.$PRES = [pre];
-    }
+    pushMetadata(PRE_KEY, this.prototype, pre);
     return this;
   }
 
   public static Post(post: Post): ModelType {
-    if (this.hasOwnProperty('$POSTS')) {
-      this.$POSTS.push(post);
-    } else {
-      this.$POSTS = [post];
-    }
+    pushMetadata(POST_KEY, this.prototype, post);
     return this;
   }
 
   public static Virtual(virtual: Virtual): ModelType {
-    if (this.hasOwnProperty('$VIRTUALS')) {
-      this.$VIRTUALS.push(virtual);
-    } else {
-      this.$VIRTUALS = [virtual];
-    }
+    pushMetadata(VIRTUAL_KEY, this.prototype, virtual);
     return this;
   }
 
   public static Plugin(plugin: Plugin): ModelType {
-    if (this.hasOwnProperty('$PLUGINS')) {
-      this.$PLUGINS.push(plugin);
-    } else {
-      this.$PLUGINS = [plugin];
-    }
+    pushMetadata(PLUGIN_KEY, this.prototype, plugin);
     return this;
   }
 
   public static Index(index: Index): ModelType {
-    if (this.hasOwnProperty('$INDEXES')) {
-      this.$INDEXES.push(index);
-    } else {
-      this.$INDEXES = [index];
-    }
+    pushMetadata(INDEX_KEY, this.prototype, index);
     return this;
   }
 
   public static Mixin(model: ModelType): ModelType {
-    if (this.hasOwnProperty('$MIXINS')) {
-      this.$MIXINS.push(model);
-    } else {
-      this.$MIXINS = [model];
-    }
+    pushMetadata(MIXIN_KEY, this.prototype, model);
     return this;
   }
 
   public static Validate(validate: Validate): ModelType {
-    if (this.hasOwnProperty('$VALIDATES')) {
-      this.$VALIDATES.push(validate);
-    } else {
-      this.$VALIDATES = [validate];
-    }
+    pushMetadata(VALIDATE_KEY, this.prototype, validate);
     return this;
-  }
-
-  private static _$modifySchema(discriminatorKey: string) {
-    if (!this.hasOwnProperty('$SCHEMA')) {
-      this.$SCHEMA = {};
-    }
-
-    const uniqueFields: string[] = [];
-    for (const name in this.$SCHEMA) {
-      const opt = (this.$SCHEMA as any)[name];
-      if (opt.unique) {
-        opt.unique = false;
-        uniqueFields.push(name);
-      }
-    }
-
-    for (const field of uniqueFields) {
-
-      const fieldUniqueKey      = `${field}_unique`;
-      const fields: any         = {};
-      fields[discriminatorKey]  = 1;
-      fields[field]             = 1;
-      fields[fieldUniqueKey]    = '2dsphere';
-
-      (this.$SCHEMA as any)[fieldUniqueKey] = {
-        type:       PointSchema,
-        // api:        AUTOGEN,
-        default:    PointSchema,
-        // dataLevel:  'HIDDEN',
-      };
-
-      this.Index({
-        fields,
-        options:   {
-          unique:  true,
-        },
-      });
-    }
-
-    (this.$SCHEMA as any)[discriminatorKey] = { type: String };
-
-    this.Pre({
-      name: 'save',
-      fn: setDiscriminatorKey,
-    });
-
-    for (const name of preQueries) {
-      this.Pre({ name, fn: patchDiscriminatorKey });
-    }
-
-    function setDiscriminatorKey(next: () => void) {
-      if (this[discriminatorKey] == null) {
-        this[discriminatorKey] = this.constructor.modelName;
-      }
-      next();
-    }
-
-    function patchDiscriminatorKey() {
-      this._conditions[discriminatorKey] = this.model.modelName;
-    }
   }
 
   public static get $schema(): Schema {
@@ -205,65 +103,55 @@ export class Model {
       }
     );
 
-    if (superOptions.config.discriminatorKey) {
-      this._$modifySchema(superOptions.config.discriminatorKey);
-    }
-
     const mixinModels  = _.union(_.flatten([
-      Reflect.getOwnMetadata(mixinKey, this.prototype) || [],
-      this.hasOwnProperty('$MIXINS') ? this.$MIXINS : [],
+      Reflect.getOwnMetadata(MIXIN_KEY, this.prototype) || [],
     ]));
     const mixinOptions = _.map(mixinModels, (model) => model.$mongooseOptions());
 
     const mixinSchemas   = _.map(mixinOptions, (opt) => opt.schema);
-    const decoSchema     = Reflect.getOwnMetadata(schemaKey, this.prototype) || {};
+    const decoSchema     = Reflect.getOwnMetadata(SCHEMA_KEY, this.prototype) || {};
     const flattenSchemas = _.flatten(
-      [{}, mixinSchemas, superOptions.schema, this.$SCHEMA, decoSchema],
+      [{}, mixinSchemas, superOptions.schema, decoSchema],
     );
     this._mongooseOptions.schema = _.extend.apply(null, flattenSchemas);
 
     const mixinConfigs   = _.map(mixinOptions, (opt) => opt.config);
-    const decoConfigs = Reflect.getOwnMetadata(configKey, this.prototype) || {};
+    const decoConfigs = Reflect.getOwnMetadata(CONFIG_KEY, this.prototype) || {};
     const flattenConfigs = _.flatten(
-      [{}, mixinConfigs, superOptions.config, this.$CONFIG, decoConfigs],
+      [{}, mixinConfigs, superOptions.config, decoConfigs],
     );
     this._mongooseOptions.config = _.extend.apply(null, flattenConfigs);
 
     const mixinPres = _.map(mixinOptions, (opt) => opt.pres);
-    const decoPres  = Reflect.getOwnMetadata(preKey, this.prototype) || [];
+    const decoPres  = Reflect.getOwnMetadata(PRE_KEY, this.prototype) || [];
     this._mongooseOptions.pres = _.union(_.flatten([
       mixinPres, superOptions.pres || [],
-      this.hasOwnProperty('$PRES') ?  this.$PRES : [],
       decoPres,
     ]));
 
     const mixinPosts = _.map(mixinOptions, (opt) => opt.posts);
-    const decoPosts  = Reflect.getOwnMetadata(postKey, this.prototype) || [];
+    const decoPosts  = Reflect.getOwnMetadata(POST_KEY, this.prototype) || [];
     this._mongooseOptions.posts = _.union(_.flatten([
       mixinPosts, superOptions.posts || [],
-      this.hasOwnProperty('$POSTS') ? this.$POSTS : [],
       decoPosts,
     ]));
 
     const mixinVirtuals = _.map(mixinOptions, (opt) => opt.virtuals);
     this._mongooseOptions.virtuals = _.union(_.flatten([
       mixinVirtuals, superOptions.virtuals || [],
-      this.hasOwnProperty('$VIRTUALS') ? this.$VIRTUALS : [],
     ]));
 
     const mixinValidates = _.map(mixinOptions, (opt) => opt.validates);
-    const decoValidates  = Reflect.getOwnMetadata(validateKey, this.prototype);
+    const decoValidates  = Reflect.getOwnMetadata(VALIDATE_KEY, this.prototype);
     this._mongooseOptions.validates = _.union(_.flatten([
       mixinValidates, superOptions.validates || [],
-      this.hasOwnProperty('$VALIDATES') ? this.$VALIDATES : [],
       decoValidates || [],
     ]));
 
     const mixinPlugins = _.map(mixinOptions, (opt) => opt.plugins);
-    const decoPlugins = Reflect.getOwnMetadata(pluginKey, this.prototype) || [];
+    const decoPlugins = Reflect.getOwnMetadata(PLUGIN_KEY, this.prototype) || [];
     this._mongooseOptions.plugins = _.union(_.flatten([
       mixinPlugins, superOptions.plugins || [],
-      this.hasOwnProperty('$PLUGINS') ? this.$PLUGINS : [],
       decoPlugins,
     ]));
     this._mongooseOptions.plugins = _.sortBy(
@@ -272,10 +160,9 @@ export class Model {
     );
 
     const mixinIndexes = _.map(mixinOptions, (opt) => opt.indexes);
-    const decoIndexes  = Reflect.getOwnMetadata(indexKey, this.prototype) || [];
+    const decoIndexes  = Reflect.getOwnMetadata(INDEX_KEY, this.prototype) || [];
     this._mongooseOptions.indexes = _.union(_.flatten([
       mixinIndexes, superOptions.indexes || [],
-      this.hasOwnProperty('$INDEXES') ? this.$INDEXES : [],
       decoIndexes,
     ]));
 
@@ -423,14 +310,15 @@ export interface DocumentModel extends Document {
 export class DocumentModel extends Model {
 }
 
-const schemaKey      = Symbol('sbase:schema');
-const configKey      = Symbol('sbase:config');
-const pluginKey      = Symbol('sbase:plugin');
-const preKey         = Symbol('sbase:pre');
-const postKey        = Symbol('sbase:post');
-const indexKey       = Symbol('sbase:index');
-const validateKey    = Symbol('sbase:validate');
-const mixinKey       = Symbol('sbase:mixin');
+const SCHEMA_KEY      = Symbol('sbase:schema');
+const CONFIG_KEY      = Symbol('sbase:config');
+const PRE_KEY         = Symbol('sbase:pre');
+const POST_KEY        = Symbol('sbase:post');
+const VIRTUAL_KEY     = Symbol('sbase:virtual');
+const PLUGIN_KEY      = Symbol('sbase:plugin');
+const INDEX_KEY       = Symbol('sbase:index');
+const VALIDATE_KEY    = Symbol('sbase:validate');
+const MIXIN_KEY       = Symbol('sbase:mixin');
 
 export function Enum(e: any, schema: any = {}) {
   return Field(_.extend({}, schema, {
@@ -515,7 +403,7 @@ export function Field(schema: any = {}) {
   }
 
   return (target: any, propertyName: string) => {
-    const schemas = Reflect.getOwnMetadata(schemaKey, target) || {};
+    const schemas = Reflect.getOwnMetadata(SCHEMA_KEY, target) || {};
     const existing = schemas[propertyName];
 
     if (schema.type == null && existing == null) {
@@ -531,106 +419,95 @@ export function Field(schema: any = {}) {
     }
 
     schemas[propertyName] = _.extend({}, existing, mapModelSchame(schema));
-    Reflect.defineMetadata(schemaKey, schemas, target);
+    Reflect.defineMetadata(SCHEMA_KEY, schemas, target);
   };
 }
 
 export function Mixin(model: ModelType) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     const models: ModelType[] = Reflect.getOwnMetadata(
-      mixinKey, constructor.prototype,
+      MIXIN_KEY, constructor.prototype,
     ) || [];
 
     models.push(model);
-    Reflect.defineMetadata(mixinKey, models, constructor.prototype);
+    Reflect.defineMetadata(MIXIN_KEY, models, constructor.prototype);
   };
 }
 
 export function Config(config: SchemaOptions) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     const configs: SchemaOptions = Reflect.getOwnMetadata(
-      configKey, constructor.prototype,
+      CONFIG_KEY, constructor.prototype,
     ) || {};
 
     _.extend(configs, config);
-    Reflect.defineMetadata(configKey, configs, constructor.prototype);
+    Reflect.defineMetadata(CONFIG_KEY, configs, constructor.prototype);
   };
 }
 
 export function Plugin(plugin: Plugin) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     const plugins: Plugin[] = Reflect.getOwnMetadata(
-      pluginKey, constructor.prototype,
+      PLUGIN_KEY, constructor.prototype,
     ) || [];
 
     plugins.push(plugin);
-    Reflect.defineMetadata(pluginKey, plugins, constructor.prototype);
+    Reflect.defineMetadata(PLUGIN_KEY, plugins, constructor.prototype);
   };
 }
 
 export function Pre(pre: Pre) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
-    const pres: Pre[] = Reflect.getOwnMetadata(
-      preKey, constructor.prototype,
-    ) || [];
-
-    pres.push(pre);
-    Reflect.defineMetadata(preKey, pres, constructor.prototype);
+    pushMetadata(PRE_KEY, constructor.prototype, pre);
   };
 }
 
 export function Pres(names: string[], pre: PPre) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
-    const pres: Pre[] = Reflect.getOwnMetadata(
-      preKey, constructor.prototype,
-    ) || [];
-
-    for (const name of names) {
-      pres.push(_.extend({name}, pre));
-    }
-    Reflect.defineMetadata(preKey, pres, constructor.prototype);
+    const pres = _.map(names, name => _.extend({ name } , pre));
+    pushMetadata(PRE_KEY, constructor.prototype, ...pres)
   };
 }
 
 export function Post(post: Post) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     const posts: Post[] = Reflect.getOwnMetadata(
-      postKey, constructor.prototype,
+      POST_KEY, constructor.prototype,
     ) || [];
     posts.push(post);
-    Reflect.defineMetadata(postKey, posts, constructor.prototype);
+    Reflect.defineMetadata(POST_KEY, posts, constructor.prototype);
   };
 }
 
 export function Posts(names: string[], post: PPost) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     const posts: Post[] = Reflect.getOwnMetadata(
-      postKey, constructor.prototype,
+      POST_KEY, constructor.prototype,
     ) || [];
     for (const name of names) {
       posts.push(_.extend({name}, post));
     }
-    Reflect.defineMetadata(postKey, posts, constructor.prototype);
+    Reflect.defineMetadata(POST_KEY, posts, constructor.prototype);
   };
 }
 
 export function Index(index: Index) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     const indexes: Index[] = Reflect.getOwnMetadata(
-      indexKey, constructor.prototype,
+      INDEX_KEY, constructor.prototype,
     ) || [];
     indexes.push(index);
-    Reflect.defineMetadata(indexKey, indexes, constructor.prototype);
+    Reflect.defineMetadata(INDEX_KEY, indexes, constructor.prototype);
   };
 }
 
 export function Validate(validate: Validate) {
   return <T extends { new(...args: any[]): {} }>(constructor: T) => {
     const validates: Validate[] = Reflect.getOwnMetadata(
-      validateKey, constructor.prototype,
+      VALIDATE_KEY, constructor.prototype,
     ) || [];
     validates.push(validate);
-    Reflect.defineMetadata(validateKey, validates, constructor.prototype);
+    Reflect.defineMetadata(VALIDATE_KEY, validates, constructor.prototype);
   };
 }
 
@@ -715,46 +592,4 @@ export const preQueries = [
   'find', 'findOne', 'count', 'findOneAndUpdate', 'findOneAndRemove', 'update',
 ];
 
-const PointSchema = new Schema({
-  type: {
-    type:       String,
-    enum:       ['Point'],
-    default:    'Point',
-  },
-  coordinates: {
-    type:       [Number],
-    default:    [0, 0],
-  },
-});
-
-const STATIC_FILTER_NAMES = [
-  'name', 'prototype', '_mongooseOptions', '$PLUGINS', '$PRES', '$SCHEMA',
-  '$MIXINS', '$CONFIG', '$INDEXES',
-];
-
-// Patch MModel.prototype.init
-const _init = MModel.prototype.init;
-
-(MModel as any).cast = Model.cast;
-
-MModel.prototype.init = function(
-  doc: any, query: any, fn: (res?: any) => void,
-) {
-  const discriminatorKey = this.schema.options.discriminatorKey;
-  const type = doc[discriminatorKey];
-
-  if (type) {
-
-    const model = this.db.model(type);
-
-    if (model) {
-      this.schema = model.schema;
-      this.__proto__ = model.prototype;
-      _init.call(this, doc, query);
-      if (fn) { fn(null); }
-      return this;
-    }
-  }
-
-  _init.call(this, doc, query, fn);
-};
+const STATIC_FILTER_NAMES = [ 'name', 'prototype', '_mongooseOptions' ];

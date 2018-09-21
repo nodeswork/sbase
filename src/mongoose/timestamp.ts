@@ -2,6 +2,14 @@ import * as model from './model';
 
 export type TimestampModelType = typeof TimestampModel;
 
+@model.Pre({
+  name:  'save',
+  fn:    setLastUpdateTimeOnSave,
+})
+@model.Pre({
+  name:  'findOneAndUpdate',
+  fn:    setLastUpdateTimeOnUpdate,
+})
 export class TimestampModel extends model.Model {
 
   @model.Field({
@@ -15,16 +23,6 @@ export class TimestampModel extends model.Model {
   })
   lastUpdateTime:  Date;
 }
-
-TimestampModel.Pre({
-  name:  'save',
-  fn:    setLastUpdateTimeOnSave,
-});
-
-TimestampModel.Pre({
-  name:  'findOneAndUpdate',
-  fn:    setLastUpdateTimeOnUpdate,
-});
 
 function setLastUpdateTimeOnSave(next: () => void) {
   this.lastUpdateTime = Date.now();

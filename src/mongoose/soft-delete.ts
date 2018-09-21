@@ -2,6 +2,11 @@ import * as model from './model';
 
 export type SoftDeleteModelType = typeof SoftDeleteModel;
 
+@model.Pre({
+  name:  'remove',
+  fn:    blockRemove,
+})
+@model.Pres(model.preQueries, { fn: patchDelete })
 export class SoftDeleteModel extends model.DocumentModel {
 
   @model.Field({
@@ -17,15 +22,6 @@ export class SoftDeleteModel extends model.DocumentModel {
     this.deleted = true;
     return await this.save();
   }
-}
-
-SoftDeleteModel.Pre({
-  name:  'remove',
-  fn:    blockRemove,
-});
-
-for (const name of model.preQueries) {
-  SoftDeleteModel.Pre({ name, fn: patchDelete });
 }
 
 function patchDelete() {
