@@ -1,15 +1,22 @@
 # @nodeswork/sbase
-SBase is a user friendly Typescript wrapper for Mongoose and Koa2.
 
-First, it maps Mongoose schema to a Typescript class and allows to use decorators to config the MongoDB models. It also supports model inherient and model reference.
+SBase is a user-friendly Typescript wrapper on top of Mongoose and KOA2. It maps
+the model to a Typescript class, the schemas to the class properties, and the
+methods to the class methods so that all the model configurations are
+centralized and the models have distinct property types. It also supports model
+inheritance and mixin so that common logic can be abstracted out. It has some
+useful pre-defined model extensions, such as auto-generate timestamp, KOA2
+middlewares, etc.
 
-| Mongoose Features        | SBase implementation                                                            |
+Below listed how SBase mapping the Mongoose definitions.
+
+| Mongoose Features        | SBase Implementation                                                            |
 | ------------------------ | ------------------------------------------------------------------------------- |
 | Collection configuration | Class deocorator @Config                                                        |
 | Schema                   | Properties and specific decorators like @Field, @Enum, etc.                     |
 | Methods                  | Class methods                                                                   |
 | Static methods           | Class static methods                                                            |
-| Model registration       | Pre-defined class static methoed Model.$register() & Model.$registerNModel.     |
+| Model registration       | Pre-defined class static methoed Model.$register() & Model.$registerNModel().   |
 
 
 ## Installation
@@ -17,8 +24,6 @@ First, it maps Mongoose schema to a Typescript class and allows to use decorator
 ```
 $ npm install @nodeswork/sbase
 ```
-
-
 
 ## Mongoose Model
 
@@ -28,23 +33,18 @@ $ npm install @nodeswork/sbase
 
 // models/def.ts
 
-export type UserType = typeof User & sbase.mongoose.NModelType
+import { Config, Field, NModel } from '@nodeswork/sbase/mongoose';
 
-@sbase.mongoose.Config({
+@Config({
   collections: 'users',
 })
-export class User extends sbase.mongoose.NModel {
+export class User extends NModel {
 
-  @sbase.mongoose.Field({
-    index:     true,
-  })
-  email:      string;
+  @Unique() email: string;
 
-  @sbase.mongoose.Field()
-  firstName:  string;
+  @Field() firstName: string;
 
-  @sbase.mongoose.Field()
-  lastName:   string
+  @Field() lastName: string
 
   // get property maps to virtual get function
   get fullName(): string {
@@ -73,7 +73,7 @@ export class User extends sbase.mongoose.NModel {
 // models/index.ts
 import * as defs from './def'
 
-export const User = defs.User.$register<User, UserType>(mongoose);
+export const User = defs.User.$registerNModel<User, typeof User>();
 export type  User = defs.User;
 
 ```
