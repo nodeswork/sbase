@@ -1,12 +1,13 @@
 # @nodeswork/sbase
 
-SBase is a user-friendly Typescript wrapper on top of Mongoose and KOA2. It maps
-the model to a Typescript class, the schemas to the class properties, and the
-methods to the class methods so that all the model configurations are
-centralized and the models have distinct property types. It also supports model
-inheritance and mixin so that common logic can be abstracted out. It has some
-useful pre-defined model extensions, such as auto-generate timestamp, KOA2
-middlewares, etc.
+SBase is a user-friendly Typescript wrapper on top of Mongoose and KOA2.
+
+It maps the db model to a Typescript class, the db schema to the class
+properties, and the methods to the class methods so that all the model
+configuration code is organized in a centralized place and the models have
+distinct property types. It also supports model inheritance and mixin so that
+common logic can be abstracted out. It has some useful pre-defined model
+extensions, such as auto-generate timestamp, KOA2 middlewares, etc.
 
 Below listed how SBase mapping the Mongoose definitions.
 
@@ -25,9 +26,9 @@ Below listed how SBase mapping the Mongoose definitions.
 $ npm install @nodeswork/sbase
 ```
 
-## Mongoose Model
+## Model Definition
 
-### Define User Model
+### Define a Model
 
 ```Typescript
 
@@ -35,6 +36,7 @@ $ npm install @nodeswork/sbase
 
 import { Config, Field, NModel } from '@nodeswork/sbase/mongoose';
 
+// Pass-in model configuration
 @Config({
   collections: 'users',
 })
