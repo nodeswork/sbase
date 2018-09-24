@@ -144,20 +144,60 @@ import { User } from './models';
 
 ### Data Levels
 
+Data fields can be grouped by pre-defined levels, and the level can be used as a
+short-cut for projecting, either while retrieving the models or calling model
+`toJSON()` method.
+
+For example, suppose there are three levels of data for `User` model: 1) Basic
+info; 2) Detail info; 3) Credentials.  Below is the model definitions and sample
+usages.
+
 ```Typescript
+import { Config, Field, Level, NModel } from '@nodeswork/sbase/mongoose';
 
-@sbase.mongoose.Config({
-  collections: 'users',
-  levels: [ 'CREDENTIAL' ],  // specifies the data level
-})
-export class User extends sbase.mongoose.NModel {
-
-  @sbase.mongoose.Field({
-    required:  true,
-    level:     'CREDENTIAL',
-  })
-  password:   string
+export enum UserDataLevel {
+  BASIC = 'BASIC',
+  DETAIL = 'DETAIL',
+  CREDENTIAL = 'CREDENTIAL',
 }
+
+@Config({
+  collections: 'users',
+  dataLevel: {
+    levels: UserDataLevel,
+    default: UserDataLevel.BASIC,
+  },
+})
+export class User extends NModel {
+
+  @Field() email: string;
+
+  @Level(UserDataLevel.BASIC) username: string;
+
+  @Level(UserDataLevel.DETAIL) bio: string;
+
+  @Level(UserDataLevel.CREDENTIAL) password:   string
+}
+
+```
+
+```Typescript`
+
+await User.find({} /* query */, null /* field projection */, {
+  level: UserDataLevel.BASIC,
+});  // returns email and username
+
+await User.find({} /* query */, null /* field projection */, {
+  level: UserDataLevel.DETAIL,
+});  // returns email, username, and bio
+
+const user = await User.find({} /* query */, null /* field projection */, {
+  level: UserDataLevel.CREDENTIAL,
+});  // returns email, username, bio, and password
+
+const userJson = user.toJSON({
+  level: UserDataLevel.DETAIL,
+}); // returns email, username, and bio.
 
 ```
 
