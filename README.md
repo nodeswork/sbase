@@ -181,7 +181,7 @@ export class User extends NModel {
 
 ```
 
-```Typescript`
+```Typescript
 
 await User.find({} /* query */, null /* field projection */, {
   level: UserDataLevel.BASIC,
@@ -200,10 +200,6 @@ const userJson = user.toJSON({
 }); // returns email, username, and bio.
 
 ```
-
-`User.find({}, undefined /* projection */, { level: 'MINIMAL' })` returns data with default level
-
-`User.find({}, undefined /* projection */, { level: 'CREDENTIAL' })` returns data with MINIMAL + CREDENTIAL levels
 
 ### Koa Middlewares
 
