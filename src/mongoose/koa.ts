@@ -363,9 +363,6 @@ export interface CommonWriteOptions {
 
 export interface CreateOptions extends CommonOptions, CommonResponseOptions,
   CommonWriteOptions {
-
-  // if allows to create from parent model when there's discriminator config
-  allowCreateFromParentModel?: boolean;
 }
 
 export interface GetOptions extends CommonOptions, CommonResponseOptions,

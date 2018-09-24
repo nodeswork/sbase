@@ -1,8 +1,11 @@
 # @nodeswork/sbase
 
-SBase is a user-friendly Typescript wrapper on top of Mongoose and KOA2.
+SBase is a user-friendly Typescript wrapper on top of
+[Mongoose](https://mongoosejs.com/) and [Koa2](https://koajs.com/).
 
-## Features
+## Key Features
+
+### 1. Model Definition
 
 It maps the db model to a Typescript class, the db schema to the class
 properties, and the methods to the class methods so that all the model
@@ -21,6 +24,27 @@ Below listed how SBase mapping the Mongoose definitions.
 | Static methods           | Class static methods                                                            |
 | Model registration       | Pre-defined class static methoed Model.$register() & Model.$registerNModel().   |
 
+### 2. Web Context Validation
+
+It provides numerious built-in
+[validators](https://www.npmjs.com/package/validator) and sanitizers that can
+validate any fields under `ctx`, usually query param and body.
+
+```Typescript
+import { params, isByteLength, isEmail, ltrim, rtrim } from '@nodeswork/sbase/koa';
+
+router
+  .post('/user', params({
+    body: {
+      '!email': isEmail,
+      '!description': [ isByteLength(6, 1400), ltrim(), rtrim() ],
+    },
+  }))
+  // ... other middleware chain
+;
+```
+
+### 3. Model-direct Koa Middlewares
 
 ## Installation
 
@@ -136,7 +160,7 @@ import { User } from './models';
 
 ## Advanced Features
 
-### Field Definitions
+### Field Definition
 
 **Field**
 
