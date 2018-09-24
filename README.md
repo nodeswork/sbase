@@ -138,6 +138,50 @@ import { User } from './models';
 
 ### Field Definitions
 
+The common decorator is `@Field`, which accepts the schema and passes down to
+the Mongoose schema object.
+
+For example, to define a field phone number and specifies the regex validation:
+
+```Typescript
+import { Config, Field, NModel } from '@nodeswork/sbase/mongoose';
+
+@Config({})
+export class User extends NModel {
+
+  @Field({
+    type: String,
+    validate: {
+      validator: function(v) {
+        return /\d{3}-\d{3}-\d{4}/.test(v);
+      },
+      message: props => `${props.value} is not a valid phone number!`,
+    },
+    required: [true, 'User phone number required'],
+  }) phone: string;
+}
+
+```
+
+There are many other decorators to make definitions easiler.
+
+**Enum**
+
+```Typescript
+import { Enum } from '@nodeswork/sbase/mongoose';
+
+export enum UserAuthMethod {
+  EMAIL = 'EMAIL',
+  FACEBOOK = 'FACEBOOK',
+  GOOGLE = 'GOOGLE',
+}
+
+export class User extends NModel {
+  @Enum(UserAuthMethod) authMethod: UserAuthMethod;
+}
+```
+
+
 ### Nested Reference
 
 Nested schema can be defined separately and shared or referenced by other
