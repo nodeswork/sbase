@@ -6,7 +6,7 @@ SBase is a user-friendly Typescript wrapper on top of Mongoose and KOA2.
 
 It maps the db model to a Typescript class, the db schema to the class
 properties, and the methods to the class methods so that all the model
-configuration code is organized in a centralized place and the models have
+configuration code is well organized in a centralized place and the models have
 distinct property types. It also supports model inheritance and mixin so that
 common logic can be abstracted out. It has some useful pre-defined model
 extensions, such as auto-generate timestamp, KOA2 middlewares, etc.
@@ -16,7 +16,7 @@ Below listed how SBase mapping the Mongoose definitions.
 | Mongoose Features        | SBase Implementation                                                            |
 | ------------------------ | ------------------------------------------------------------------------------- |
 | Collection configuration | Class deocorator @Config                                                        |
-| Schema                   | Properties and specific decorators like @Field, @Enum, etc.                     |
+| Schema                   | Properties combines with decorators like @Field, @Enum, @Unique, etc.           |
 | Methods                  | Class methods                                                                   |
 | Static methods           | Class static methods                                                            |
 | Model registration       | Pre-defined class static methoed Model.$register() & Model.$registerNModel().   |
@@ -320,6 +320,48 @@ export class User extends NModel {
 
   @Field() firstName: string;
   @Field() lastName: string;
+}
+
+```
+
+### Hooks
+
+`@Pre`, `@Post`, `@Pres`, and `@Posts` allow to add hooks to the model.
+
+```Typescript
+import { Config, Default, Pre, Pres, NModel } from '@nodeswork/sbase/mongoose';
+
+@Config({
+  collections: 'users',
+})
+@Pre({
+  name: 'save',
+  fn: () => this.saveVersion++,
+})
+@Pres(['save', 'update'], {
+  fn: () => this.allUpdateVersion++,
+})
+export class User extends NModel {
+  @Default(0) saveVersion: number;
+  @Default(0) allUpdateVersion: number;
+}
+
+```
+
+### Plugins
+
+`@Plugin` allows to extend the model with normal Mongoose plugins.
+
+```Typescript
+import { Config, NModel, Plugin } from '@nodeswork/sbase/mongoose';
+
+@Config({
+  collections: 'users',
+})
+@Plugin({
+  fn: () => {}, // plugin logic
+})
+export class User extends NModel {
 }
 
 ```
