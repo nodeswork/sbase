@@ -35,10 +35,8 @@ import { params, isByteLength, isEmail, ltrim, rtrim } from '@nodeswork/sbase/ko
 
 router
   .post('/user', params({
-    body: {
-      '!email': isEmail,
-      '!description': [ isByteLength(6, 1400), ltrim(), rtrim() ],
-    },
+    '!body.email': isEmail,
+    '!body.description': [ isByteLength(6, 1400), ltrim(), rtrim() ],
   }))
   // ... other middleware chain
 ;
