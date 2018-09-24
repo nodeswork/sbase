@@ -140,13 +140,60 @@ import { User } from './models';
 
 ### Nested Reference
 
+Nested schema can be defined separately and shared or referenced by other
+models.
+
+```Typescript
+import { Config, Field, Model, NModel } from '@nodeswork/sbase/mongoose';
+
+@Config({
+  _id: false,
+})
+export class UserProfile extends Model {
+  @Field() phone: string;
+  @Field() address: string;
+}
+
+export class User extends NModel {
+  @Field() profile: UserProfile;
+}
+
+```
+
 ### Indexes
+
+Indexes can be defined either through `@Unique` decorator on properties or
+`@Index` decorator on model class.
+
+```Typescript
+import { Config, Field, Index, NModel, Unique } from '@nodeswork/sbase/mongoose';
+
+@Config({
+  collections: 'users',
+})
+@Index({
+  fields: {
+    firstName: 1,
+    lastName: 1,
+  },
+  options: {
+    unique: false,
+  },
+})
+export class User extends NModel {
+  @Unique() email: string;
+
+  @Field() firstName: string;
+  @Field() lastName: string;
+}
+
+```
 
 ### Data Levels
 
 Data fields can be grouped by pre-defined levels, and the level can be used as a
-short-cut for projecting, either while retrieving the models or calling model
-`toJSON()` method.
+short-cut for projecting, while either retrieving the model instances or calling
+instance `toJSON()` method.
 
 For example, suppose there are three levels of data for `User` model: 1) Basic
 info; 2) Detail info; 3) Credentials.  Below is the model definitions and sample
