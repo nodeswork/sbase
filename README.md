@@ -46,6 +46,22 @@ router
 
 ### 3. Model-direct Koa Middlewares
 
+It provides customizable Koa middlewares which are generated from model and
+allows to chain them with other middlewares.
+
+```Typescript
+
+router
+
+  .post('/user', models.User.createMiddleware())
+
+  .post('/user/:userId', models.User.updateMiddleware({
+    field: 'userId',
+  }))
+;
+```
+
+
 ## Installation
 
 ```
