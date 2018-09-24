@@ -28,7 +28,7 @@ Below listed how SBase mapping the Mongoose definitions.
 
 It provides numerious built-in
 [validators](https://www.npmjs.com/package/validator) and sanitizers that can
-validate any fields under `ctx`, usually query param and body.
+validate any fields under `ctx.request`, usually query param and body.
 
 ```Typescript
 import { params, isByteLength, isEmail, ltrim, rtrim } from '@nodeswork/sbase/koa';
