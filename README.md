@@ -209,6 +209,18 @@ export class Post extends NModel {
 }
 ```
 
+**Default**
+
+`@Default` provides default value for the field.
+
+```Typescript
+import { Default, NModel } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+  @Default(false) active: boolean;
+}
+```
+
 **Enum**
 
 ```Typescript
@@ -225,6 +237,41 @@ export class User extends NModel {
 }
 ```
 
+**IndexField**
+
+`@IndexField` builds index on the target field.
+
+```Typescript
+import { NModel, Required } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+  @IndexField() email: string;
+}
+```
+
+**Required**
+
+`@Required` marks the target as a required field.
+
+```Typescript
+import { NModel, Required } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+  @Required() email: string;
+}
+```
+
+**Unique**
+
+`@Unique` marks the target as a unique field.
+
+```Typescript
+import { NModel, Unique } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+  @Unique() email: string;
+}
+```
 
 ### Nested Reference
 
