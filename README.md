@@ -65,7 +65,7 @@ export class User extends NModel {
   }
 
   // method maps to document method
-  emailFromDomain(domain: string): boolean {
+  isEmailFromDomain(domain: string): boolean {
     return this.email.endsWith(`@${domain}`);
   }
 
@@ -85,10 +85,52 @@ Register models and expose model types.
 
 // models/index.ts
 
-import * as users from './users'
+import * as users from './users';
 
 export const User = users.User.$registerNModel<User, typeof User>();
 export type  User = users.User;
+
+```
+
+### Use the Model
+
+Use the model with normal Mongoose interfaces.
+
+```Typescript
+import { User } from './models';
+
+(async function usage() {
+
+  // Create a new user.
+  const user = await User.create({
+    email: 'test@abc.com',
+    firstName: 'Alice',
+    lastName: 'North',
+  });
+
+  // Getter
+  user.fullName === 'Alice North';  // returns true
+
+  // Modify the user's first name.
+  user.firstName = 'Bob';
+  // or
+  user.fullName = 'Bob North';
+
+  // Save the modified model.
+  await user.save();
+
+  // Find by user attributes.
+  const user = await User.findOne({
+    email: 'test@abc.com',
+  });
+
+  // Instance method
+  user.isEmailFromDomain('abc.com');  // returns true
+
+  // Class method
+  await User.findByName('Bob', 'North');  // returns the instance
+
+})();
 
 ```
 
