@@ -2,6 +2,8 @@
 
 SBase is a user-friendly Typescript wrapper on top of Mongoose and KOA2.
 
+## Features
+
 It maps the db model to a Typescript class, the db schema to the class
 properties, and the methods to the class methods so that all the model
 configuration code is organized in a centralized place and the models have
@@ -26,13 +28,15 @@ Below listed how SBase mapping the Mongoose definitions.
 $ npm install @nodeswork/sbase
 ```
 
-## Model Definition
+## Quick Start
 
 ### Define a Model
 
+Models are defined by extending `NModel` or `Model` class.
+
 ```Typescript
 
-// models/def.ts
+// models/users.ts
 
 import { Config, Field, NModel } from '@nodeswork/sbase/mongoose';
 
@@ -71,14 +75,30 @@ export class User extends NModel {
     return self.findOne({ firstName, lastName });
   }
 }
+```
+
+### Register the Model
+
+Register models and expose model types.
+
+```Typescript
 
 // models/index.ts
-import * as defs from './def'
 
-export const User = defs.User.$registerNModel<User, typeof User>();
-export type  User = defs.User;
+import * as users from './users'
+
+export const User = users.User.$registerNModel<User, typeof User>();
+export type  User = users.User;
 
 ```
+
+## Advanced Features
+
+### Field Definitions
+
+### Nested Reference
+
+### Indexes
 
 ### Data Levels
 
@@ -103,40 +123,6 @@ export class User extends sbase.mongoose.NModel {
 
 `User.find({}, undefined /* projection */, { level: 'CREDENTIAL' })` returns data with MINIMAL + CREDENTIAL levels
 
-## Koa
-
-### CRUD
+### Koa Middlewares
 
 ### Api Level
-
-### Customized Methods
-
-### Model Bindings
-
-```Typescript
-import * as sbase from '@nodeswork/sbase'
-
-export class User extends sbase.mongoose.NModel {
-
-  @sbase.koa.bind('POST')
-  async verifyEmail(): Promise<User> {
-  }
-
-  @sbase.koa.bind('POST')
-  static async forgotPassword(
-    @sbase.koa.params('$request.body.email') email: string
-  ): Promise<void> {
-    let self = this.cast<UserType>();
-    let user = await self.findOne({ email });
-
-    if (user == null) {
-      throw new NodesworkError('Unknown email address', {
-        responseCode: 400,
-      });
-    }
-
-    await user.sendPasswordReset();
-  }
-}
-
-```
