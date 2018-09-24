@@ -27,35 +27,6 @@ export class KoaMiddlewares extends model.DocumentModel {
       let doc      = _.omit(ctx.request.body, omits);
       doc          = _.extend(doc, ctx.overrides && ctx.overrides.doc);
 
-      const discriminatorKey: string = self.schema.options.discriminatorKey;
-
-      if (discriminatorKey && discriminatorKey !== '__t') {
-        const modelName = doc[discriminatorKey];
-
-        if (modelName) {
-          try {
-            rModel = self.db.model(modelName);
-          } catch (e) {
-            /* handle error */
-            rModel = null;
-          }
-        }
-
-        if (!opts.allowCreateFromParentModel && !modelName) {
-          throw new NodesworkError('required field is missing', {
-            responseCode: 422,
-            path: discriminatorKey,
-          });
-        }
-
-        if (!rModel) {
-          throw new NodesworkError('invalid value', {
-            responseCode: 422,
-            path: discriminatorKey,
-          });
-        }
-      }
-
       (ctx as any)[opts.target] = doc;
 
       if (opts.triggerNext) {
@@ -275,20 +246,7 @@ export class KoaMiddlewares extends model.DocumentModel {
       const upDoc   = {
         $set: doc,
       };
-      let rModel                     = self;
-      const discriminatorKey: string = self.schema.options.discriminatorKey;
-      const modelName                = ctx.request.body[discriminatorKey];
-
-      if (discriminatorKey && modelName) {
-        try {
-          rModel = self.db.model(modelName);
-          query[discriminatorKey] = modelName;
-        } catch (e) {
-          /* handle error */
-        }
-      }
-
-      let updatePromise = rModel.findOneAndUpdate(query, upDoc, queryOption);
+      let updatePromise = self.findOneAndUpdate(query, upDoc, queryOption);
 
       if (opts.populate) {
         updatePromise = updatePromise.populate(opts.populate);
