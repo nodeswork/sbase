@@ -138,6 +138,8 @@ import { User } from './models';
 
 ### Field Definitions
 
+**Field**
+
 The common decorator is `@Field`, which accepts the schema and passes down to
 the Mongoose schema object.
 
@@ -165,10 +167,52 @@ export class User extends NModel {
 
 There are many other decorators to make definitions easiler.
 
+**ArrayField**
+
+`@ArrayField` allows to define an array of any other type.
+
+```Typescript
+import { ArrayField, NModel } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+  @ArrayField(String) phones: string[];
+}
+```
+
+**DBRef**
+
+`@DBRef` allows to reference to other models.
+
+```Typescript
+import { DBRef, NModel } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+}
+
+export class Post extends NModel {
+  @DBRef('User') author: mongoose.Types.ObjectId | models.User;
+}
+```
+
+**DBRefArray**
+
+`@DBRefArray` allows to reference to other model in a list.
+
+```Typescript
+import { DBRefArray, NModel } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+}
+
+export class Post extends NModel {
+  @DBRef('User') authors: Array<mongoose.Types.ObjectId | models.User>;
+}
+```
+
 **Enum**
 
 ```Typescript
-import { Enum } from '@nodeswork/sbase/mongoose';
+import { Enum, NModel } from '@nodeswork/sbase/mongoose';
 
 export enum UserAuthMethod {
   EMAIL = 'EMAIL',
