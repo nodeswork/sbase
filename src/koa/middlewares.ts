@@ -1,3 +1,5 @@
+import '../mongoose/model-config';
+
 import * as Router from 'koa-router';
 
 const dotty = require('dotty');

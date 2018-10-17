@@ -261,16 +261,15 @@ export class Model {
       this.name, this.$mongooseOptions.mongooseSchema,
     ) as (MModel<D> & M & NModelType);
   }
-
-  public static cast<D extends DocumentModel>(): IModel<D> {
-    return this as any as IModel<D>;
-  }
 }
 
 export interface DocumentModel extends Document {
 }
 
 export class DocumentModel extends Model {
+  public static cast<D extends DocumentModel>(): IModel<D> {
+    return this as any as IModel<D>;
+  }
 }
 
 const SCHEMA_KEY            = Symbol('sbase:schema');
@@ -558,4 +557,4 @@ export const preQueries = [
   'find', 'findOne', 'count', 'findOneAndUpdate', 'findOneAndRemove', 'update',
 ];
 
-const STATIC_FILTER_NAMES = [ 'name', 'prototype' ];
+const STATIC_FILTER_NAMES = [ 'name', 'length', 'prototype' ];
