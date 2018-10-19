@@ -17,7 +17,7 @@ export function overrides(...rules: string[]): Router.IMiddleware {
     for (const { src, dst } of rs) {
       const value = dotty.get(ctx, src);
       if (value !== undefined) {
-        dotty.put(ctx, `overrides.${dst}`, value);
+        dotty.put(ctx, ['overrides'].concat(dst), value);
       }
     }
     await next();
