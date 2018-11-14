@@ -36,6 +36,7 @@ export {
   isMimeType,
   isMongoId,
   isMultibyte,
+  isNumber,
   isNumeric,
   isPort,
   isString,
@@ -263,6 +264,8 @@ export function isLength(a: any, b?: number): Validator {
 const isString: Validator = (ctx, path, val) => _.isString(val);
 
 const isArray: Validator = (ctx, path, val) => _.isArray(val);
+
+const isNumber: Validator = (ctx, path, val) => _.isNumber(val);
 
 const isLowercase: Validator = (ctx, path, val) => (
   validator.isLowercase(val)
