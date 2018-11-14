@@ -1,13 +1,13 @@
 import * as should from 'should';
 import * as Router from 'koa-router';
 
-import { params, required, ParamsContext, ltrim, toDate } from '../../src/koa';
+import { ParamsContext, params, validators } from '../../src/koa';
 
 describe('koa.params', () => {
 
   it('should validate require', async () => {
     const m = params({
-      foo: required,
+      foo: validators.required,
     });
     const ctx = getFakeContext({
     });
@@ -33,7 +33,7 @@ describe('koa.params', () => {
 
   it('should modified by ltrim', async () => {
     const m = params({
-      '!query.foo': ltrim('a'),
+      '!query.foo': validators.ltrim('a'),
     });
     const ctx = getFakeContext({
       query: {
@@ -47,7 +47,7 @@ describe('koa.params', () => {
 
   it('should allow undefined', async () => {
     const m = params({
-      'query.foo': toDate,
+      'query.foo': validators.toDate,
     });
     const ctx = getFakeContext({
       query: { },
@@ -58,7 +58,7 @@ describe('koa.params', () => {
 
   it('should allow organic', async () => {
     const m = params({
-      'query.foo': toDate,
+      'query.foo': validators.toDate,
     });
     const ctx = getFakeContext({
       query: { foo: new Date() },

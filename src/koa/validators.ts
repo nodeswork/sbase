@@ -6,65 +6,14 @@ import * as validator from 'validator';
 
 const dotty = require('dotty');
 
-export function params(options: ParamsOptions): Router.IMiddleware {
-  const mappedOptions = _.map(options, (v, key) => {
-    const validators: Validator[] = _.flatten([v]);
-    if (key.startsWith('!')) {
-      validators.push(required);
-      key = key.substring(1);
-    }
-    return {key, validators};
-  });
-
-  return async (
-    ctx: Router.IRouterContext & ParamsContext, next: () => void,
-  ) => {
-    ctx.errors = [];
-    for (const o of mappedOptions) {
-      const value = dotty.get(ctx.request, o.key);
-      for (const fn of o.validators) {
-        const pass = fn(ctx, o.key, value);
-        if (!pass) {
-          ctx.errors.push({
-            path: o.key,
-            value,
-            failed: fn.name,
-          });
-        }
-      }
-    }
-
-    if (!_.isEmpty(ctx.errors)) {
-      ctx.body = { errors: ctx.errors };
-      ctx.status = 422;
-    } else {
-      await next();
-    }
-  };
-}
-
-export interface ParamsContext {
-  errors?: ParamError[];
-}
-
-export interface ParamsOptions {
-  [key: string]: Validator | Validator[];
-}
-
 export type Validator = (
   ctx: Router.IRouterContext, path: string, val: any,
 ) => boolean;
 
-export interface ParamError {
-  path:    string;
-  value:   any;
-  failed:  string;
-}
-
 // --------------------------- Validators ----------------------------------- //
 // TODO: remove after https://github.com/Microsoft/TypeScript/issues/14127 fixed
 export {
-  required,
+  isArray,
   isAscii,
   isBase64,
   isBoolean,
@@ -76,8 +25,8 @@ export {
   isHexColor,
   isHexadecimal,
   isISIN,
-  isISO8601,
   isISO31661Alpha2,
+  isISO8601,
   isISRC,
   isJSON,
   isLatLong,
@@ -89,9 +38,11 @@ export {
   isMultibyte,
   isNumeric,
   isPort,
+  isString,
   isSurrogatePair,
   isUppercase,
   isVariableWidth,
+  required,
 };
 
 const required: Validator = (ctx, path, val) => val != null;
@@ -299,11 +250,19 @@ export function isLength(
   options: ValidatorJS.IsLengthOptions,
 ): Validator;
 export function isLength(a: any, b?: number): Validator {
-  const isLength: Validator = (ctx, path, val) => (
-    validator.isLength(val, a, b)
-  );
+  const isLength: Validator = (ctx, path, val) => {
+    if (_.isArray(val)) {
+      return a <= val.length && (b == null || val.length <= b);
+    } else {
+      return validator.isLength(val, a, b)
+    }
+  };
   return isLength;
 }
+
+const isString: Validator = (ctx, path, val) => _.isString(val);
+
+const isArray: Validator = (ctx, path, val) => _.isArray(val);
 
 const isLowercase: Validator = (ctx, path, val) => (
   validator.isLowercase(val)
