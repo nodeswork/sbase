@@ -1,11 +1,13 @@
 import * as _                                       from 'underscore';
+import * as model                                   from './model';
+
 import { IMiddleware, IRouterContext }              from 'koa-router';
 import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
-
 import { NodesworkError, validator2 }               from '@nodeswork/utils';
 
-import * as model                                   from './model';
 import { Field } from './';
+
+const dotty = require('dotty');
 
 export const READONLY = 'READONLY';
 export const AUTOGEN  = 'AUTOGEN';
@@ -73,7 +75,13 @@ export class KoaMiddlewares extends model.DocumentModel {
       );
       const query = ctx.overrides && ctx.overrides.query || {};
       if (opts.field !== '*') {
-        query._id = ctx.params[opts.field];
+
+        if (opts.field.indexOf('.') >= 0) {
+          query._id = dotty.get(ctx.request, opts.field);
+        } else {
+          query._id = ctx.params[opts.field];
+        }
+
         if (query._id == null) {
           throw new NodesworkError('invalid value', {
             responseCode: 422,
@@ -216,7 +224,13 @@ export class KoaMiddlewares extends model.DocumentModel {
       );
       const query = ctx.overrides && ctx.overrides.query || {};
       if (opts.field !== '*') {
-        query._id = ctx.params[opts.field];
+
+        if (opts.field.indexOf('.') >= 0) {
+          query._id = dotty.get(ctx.request, opts.field);
+        } else {
+          query._id = ctx.params[opts.field];
+        }
+
         if (query._id == null) {
           throw new NodesworkError('invalid value', {
             responseCode: 422,
@@ -282,7 +296,13 @@ export class KoaMiddlewares extends model.DocumentModel {
         {}, options, ctx.overrides && ctx.overrides.options,
       );
       const query             = ctx.overrides && ctx.overrides.query || {};
-      query._id               = ctx.params[opts.field];
+
+      if (opts.field.indexOf('.') >= 0) {
+        query._id = dotty.get(ctx.request, opts.field);
+      } else {
+        query._id = ctx.params[opts.field];
+      }
+
       const queryOption: any  = {};
 
       const queryPromise      = self.findOne(query, undefined, queryOption);
