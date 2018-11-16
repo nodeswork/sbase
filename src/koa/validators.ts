@@ -1,5 +1,5 @@
-import * as _ from 'underscore';
 import * as Router from 'koa-router';
+import * as _ from 'underscore';
 import * as validator from 'validator';
 
 /* tslint:disable:rule1 no-shadowed-variable */
@@ -249,6 +249,13 @@ const isMD5: Validator = (ctx, path, val) =>
 const isMimeType: Validator = (ctx, path, val) =>
   val == null || validator.isMimeType(val);
 
+export function isInRange(min: number, max?: number): Validator {
+  const isInRange: Validator = (ctx, path, val) => {
+    return val == null || (val >= min && (max == null || val <= max));
+  };
+  return isInRange;
+}
+
 export function isMobilePhone(
   locale: ValidatorJS.MobilePhoneLocale,
   options?: ValidatorJS.IsMobilePhoneOptions,
@@ -405,8 +412,13 @@ export function toFloat(ctx: Router.IRouterContext, path: string, val: any) {
 
 export function toInt(radix?: number) {
   const toInt: Validator = (ctx, path, val) => {
-    if (val != null && !_.isNumber(val)) {
-      dotty.put(ctx.request, path, validator.toInt(val, radix));
+    if (val != null) {
+
+      const value = _.isNumber(val)
+        ? Math.floor(val)
+        : validator.toInt(val, radix);
+
+      dotty.put(ctx.request, path, value);
     }
     return true;
   };
