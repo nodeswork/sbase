@@ -348,6 +348,10 @@ export function MapField(type: any, schema: any = {}) {
   }));
 }
 
+export function Optional(schema: any = {}) {
+  return Field(schema);
+}
+
 export function Field(schema: any = {}) {
   function mapModelSchame(o: any): any {
     if (_.isArray(o)) {
