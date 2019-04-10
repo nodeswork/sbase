@@ -49,7 +49,7 @@ class DLRootModel extends A7Model {
   @Field() f1: DL1;
 }
 
-const DLRoot = DLRootModel.$registerNModel<DLRootModel, typeof DLRootModel>();
+const DLRoot = DLRootModel.$registerA7Model<DLRootModel, typeof DLRootModel>();
 type DLRoot = DLRootModel;
 
 describe('NModel Data Level', () => {

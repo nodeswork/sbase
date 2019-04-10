@@ -7,12 +7,10 @@ import {
   Mongoose,
   Schema,
   SchemaOptions,
-  Types,
   SchemaTypes,
-  DocumentToObjectOptions,
 } from 'mongoose';
 import { MongoError } from 'mongodb';
-import { A7ModelType } from './';
+import { A7ModelType } from './a7-model';
 import { pushMetadata, extendMetadata } from './helpers';
 
 export type ModelType = typeof Model;
@@ -297,7 +295,7 @@ export class Model {
     ) as MModel<D> & M;
   }
 
-  public static $registerNModel<D extends Document, M>(
+  public static $registerA7Model<D extends Document, M>(
     mongooseInstance?: Mongoose,
   ): MModel<D> & M & A7ModelType {
     if (!mongooseInstance) {
