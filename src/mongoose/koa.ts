@@ -3,7 +3,7 @@ import * as model from './model';
 
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
-import { NodesworkError, validator2 } from '@nodeswork/utils';
+import { NodesworkError } from '@nodeswork/utils';
 
 import { Field } from './';
 
@@ -159,7 +159,6 @@ export class KoaMiddlewares extends model.DocumentModel {
       let pagination = null;
 
       if (opts.pagination) {
-        // pagination       = VALIDATE_QUERY_PAGINATION(ctx.request.query);
         pagination = ctx.request.query;
         _.defaults(pagination, defaultPagination);
 
@@ -368,11 +367,6 @@ const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size: 20,
   sizeChoices: [20, 50, 100, 200],
 };
-
-const VALIDATE_QUERY_PAGINATION = validator2.compile({
-  page: [],
-  size: [],
-});
 
 export interface CommonResponseOptions {
   level?: string; // the data level for projection
