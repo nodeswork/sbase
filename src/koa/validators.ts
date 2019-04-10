@@ -450,10 +450,10 @@ export function whitelist(chars?: string) {
   return whitelist;
 }
 
-export function split(separator: string = ',') {
+export function split(separator: string = ',', restricted: boolean = false) {
   const split: Validator = (target, path, val) => {
     if (val != null && !_.isString(val)) {
-      return false;
+      return !restricted;
     }
 
     if (val != null) {
