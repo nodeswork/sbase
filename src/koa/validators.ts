@@ -464,6 +464,19 @@ export function split(separator: string = ',') {
   return split;
 }
 
+export function withDefault(option: any) {
+
+  const withDefault: Validator = (target, path, val, root) => {
+    if (val == null) {
+      val = _.isFunction(option) ? option(root) : option;
+      dotty.put(target, path, val);
+    }
+    return true;
+  };
+
+  return withDefault;
+}
+
 export function array(options: ParamsOptions | Validator | Validator[]) {
   const selfValidators =
     _.isArray(options) || _.isFunction(options) ? _.flatten([options]) : [];
