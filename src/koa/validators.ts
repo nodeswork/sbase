@@ -477,6 +477,19 @@ export function withDefault(option: any) {
   return withDefault;
 }
 
+export function map(fn: (val: any, root: any) => any) {
+
+  const map: Validator = (target, path, val, root) => {
+    if (val != null) {
+      val = fn(val, root);
+      dotty.put(target, path, val);
+    }
+    return true;
+  };
+
+  return map;
+}
+
 export function array(options: ParamsOptions | Validator | Validator[]) {
   const selfValidators =
     _.isArray(options) || _.isFunction(options) ? _.flatten([options]) : [];
