@@ -464,22 +464,25 @@ export function split(separator: string = ',') {
   return split;
 }
 
-export function array(options: ParamsOptions | Validator[]) {
-  const selfValidators = _.isArray(options) ? options : [];
-  const mappedOptions = _.isArray(options)
-    ? []
-    : _.map(options, (v, key) => {
-        const vs: Validator[] = _.chain([v])
-          .flatten()
-          .filter(x => !!x)
-          .value();
+export function array(options: ParamsOptions | Validator | Validator[]) {
+  const selfValidators =
+    _.isArray(options) || _.isFunction(options) ? _.flatten([options]) : [];
 
-        if (key.startsWith('!')) {
-          vs.push(required);
-          key = key.substring(1);
-        }
-        return { key, validators: vs };
-      });
+  const mappedOptions =
+    _.isArray(options) || _.isFunction(options)
+      ? []
+      : _.map(options, (v, key) => {
+          const vs: Validator[] = _.chain([v])
+            .flatten()
+            .filter(x => !!x)
+            .value();
+
+          if (key.startsWith('!')) {
+            vs.push(required);
+            key = key.substring(1);
+          }
+          return { key, validators: vs };
+        });
 
   const array: Validator = (target, path, val, root) => {
     if (val == null) {
