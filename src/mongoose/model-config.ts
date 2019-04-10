@@ -6,49 +6,48 @@ declare module 'koa' {
 
 declare module 'koa-router' {
   export interface IRouterContext {
-    overrides?:   IOverwrites;
+    overrides?: IOverwrites;
   }
 }
 
 // Overwrite mongoose Schema.
 declare module 'mongoose' {
-
   interface SchemaOptions {
     discriminatorKey?: string;
-    dataLevel?:        DataLevelConfig;
+    dataLevel?: DataLevelConfig;
   }
 
   interface Schema {
-    dataLevel?:           {
-      levelMap:           { [name: string]: string[] },
+    dataLevel?: {
+      levelMap: { [name: string]: string[] };
     };
-    parentSchema?:        Schema;
-    options?:             SchemaOptions;
-    api:                  {
-      READONLY:           string[];
-      AUTOGEN:            string[];
-      [name:  string]:    string[];
+    parentSchema?: Schema;
+    options?: SchemaOptions;
+    api: {
+      READONLY: string[];
+      AUTOGEN: string[];
+      [name: string]: string[];
     };
   }
 
   interface SchemaType {
-    options?:      SchemaTypeOptions;
+    options?: SchemaTypeOptions;
   }
 
   interface DocumentToObjectOptions {
-    level?:        string;
+    level?: string;
   }
 }
 
 export interface IOverwrites {
-  query?:       { [name: string]: any };
-  pagination?:  {
-    page:       number;
-    size:       number;
+  query?: { [name: string]: any };
+  pagination?: {
+    page: number;
+    size: number;
   };
-  doc?:         any;
-  sort?:        any;
-  options?:     any;
+  doc?: any;
+  sort?: any;
+  options?: any;
 }
 
 export interface SchemaTypeOptions {
@@ -59,11 +58,11 @@ export interface SchemaTypeOptions {
  * Configuration for dataLevel.
  */
 export interface DataLevelConfig {
-  levels:       string[] | object;
-  default?:     string;
-  _levelsMap?:  { [level: string]: object };
+  levels: string[] | object;
+  default?: string;
+  _levelsMap?: { [level: string]: object };
 }
 
 export interface ToJSONOption {
-  level?:     string;
+  level?: string;
 }

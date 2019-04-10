@@ -1,25 +1,23 @@
 {
-    "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
-    "jsRules": {},
-    "rules": {
-      "interface-name": false,
-      "object-literal-sort-keys": false,
-      "no-empty-interface": false,
-      "typedef-whitespace": false,
-      "member-ordering": false,
-      "member-access": false,
-      "no-var-requires": false,
-      "quotemark": false,
-      "ordered-imports": false,
-      "import-spacing": false,
-      "max-classes-per-file": false,
-      "no-namespace": false,
-      "no-empty": false,
-      "variable-name": false,
-      "forin": false
-    },
-    "rulesDirectory": []
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "interface-name": false,
+    "object-literal-sort-keys": false,
+    "no-empty-interface": false,
+    "typedef-whitespace": false,
+    "member-ordering": false,
+    "member-access": false,
+    "no-var-requires": false,
+    "quotemark": false,
+    "ordered-imports": false,
+    "import-spacing": false,
+    "max-classes-per-file": false,
+    "no-namespace": false,
+    "no-empty": false,
+    "variable-name": false,
+    "forin": false
+  },
+  "rulesDirectory": []
 }

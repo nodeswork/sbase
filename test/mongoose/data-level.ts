@@ -1,5 +1,5 @@
-import * as _        from 'underscore';
-import * as should   from 'should';
+import * as _ from 'underscore';
+import * as should from 'should';
 import * as mongoose from 'mongoose';
 
 import {
@@ -9,7 +9,7 @@ import {
   Level,
   Model,
   A7Model,
-}                    from '../../src/mongoose';
+} from '../../src/mongoose';
 
 enum DataLevels {
   L1 = 'L1',
@@ -22,7 +22,6 @@ enum DataLevels {
   _id: false,
 })
 class DL13 extends Model {
-
   @Field() f130: string;
   @Level(DataLevels.L31) f131: string;
 }
@@ -31,13 +30,13 @@ class DL13 extends Model {
   _id: false,
 })
 class DL1 extends Model {
-
   @Level(DataLevels.L1) f11: string;
 
   @Level(DataLevels.L2) f12: string;
 
   @ArrayField(DL13)
-  @Level(DataLevels.L3) f13: DL13[];
+  @Level(DataLevels.L3)
+  f13: DL13[];
 }
 
 @Config({
@@ -51,10 +50,9 @@ class DLRootModel extends A7Model {
 }
 
 const DLRoot = DLRootModel.$registerNModel<DLRootModel, typeof DLRootModel>();
-type  DLRoot = DLRootModel;
+type DLRoot = DLRootModel;
 
 describe('NModel Data Level', () => {
-
   const d1 = {
     f1: {
       f11: 'v11',
@@ -63,7 +61,7 @@ describe('NModel Data Level', () => {
         {
           f130: 'v130',
           f131: 'v131',
-        }
+        },
       ],
     },
   };
@@ -90,7 +88,7 @@ describe('NModel Data Level', () => {
       f13: [
         {
           f130: 'v130',
-        }
+        },
       ],
     },
   };
@@ -103,7 +101,7 @@ describe('NModel Data Level', () => {
         {
           f130: 'v130',
           f131: 'v131',
-        }
+        },
       ],
     },
   };
@@ -176,5 +174,4 @@ describe('NModel Data Level', () => {
       e31,
     );
   });
-
 });

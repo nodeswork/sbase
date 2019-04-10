@@ -1,33 +1,34 @@
-import * as _                                       from 'underscore';
-import * as model                                   from './model';
+import * as _ from 'underscore';
+import * as model from './model';
 
-import { IMiddleware, IRouterContext }              from 'koa-router';
+import { IMiddleware, IRouterContext } from 'koa-router';
 import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
-import { NodesworkError, validator2 }               from '@nodeswork/utils';
+import { NodesworkError, validator2 } from '@nodeswork/utils';
 
 import { Field } from './';
 
 const dotty = require('dotty');
 
 export const READONLY = 'READONLY';
-export const AUTOGEN  = 'AUTOGEN';
+export const AUTOGEN = 'AUTOGEN';
 
 export type KoaMiddlewaresType = typeof KoaMiddlewares;
 export class KoaMiddlewares extends model.DocumentModel {
-
   public static createMiddleware(options: CreateOptions): IMiddleware {
     const self = this.cast<KoaMiddlewares>();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function create(ctx: IRouterContext, next: INext) {
-      const opts   = _.extend(
-        {}, options, ctx.overrides && ctx.overrides.options,
+      const opts = _.extend(
+        {},
+        options,
+        ctx.overrides && ctx.overrides.options,
       );
-      let rModel   = self;
-      const omits  = _.union([ '_id' ], opts.omits, self.schema.api.AUTOGEN);
-      let doc      = _.omit(ctx.request.body, omits);
-      doc          = _.extend(doc, ctx.overrides && ctx.overrides.doc);
+      let rModel = self;
+      const omits = _.union(['_id'], opts.omits, self.schema.api.AUTOGEN);
+      let doc = _.omit(ctx.request.body, omits);
+      doc = _.extend(doc, ctx.overrides && ctx.overrides.doc);
 
       (ctx as any)[opts.target] = doc;
 
@@ -36,9 +37,9 @@ export class KoaMiddlewares extends model.DocumentModel {
       }
 
       doc = (ctx as any)[opts.target];
-      let object: KoaMiddlewares = (
-        await rModel.create(doc)
-      ) as any as KoaMiddlewares;
+      let object: KoaMiddlewares = ((await rModel.create(
+        doc,
+      )) as any) as KoaMiddlewares;
 
       if (opts.project || opts.level) {
         object = await self.findById(object._id, opts.project, {
@@ -70,12 +71,13 @@ export class KoaMiddlewares extends model.DocumentModel {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function get(ctx: IRouterContext, next: INext) {
-      const opts  = _.extend(
-        {}, options, ctx.overrides && ctx.overrides.options,
+      const opts = _.extend(
+        {},
+        options,
+        ctx.overrides && ctx.overrides.options,
       );
-      const query = ctx.overrides && ctx.overrides.query || {};
+      const query = (ctx.overrides && ctx.overrides.query) || {};
       if (opts.field !== '*') {
-
         if (opts.field.indexOf('.') >= 0) {
           query._id = dotty.get(ctx.request, opts.field);
         } else {
@@ -96,15 +98,15 @@ export class KoaMiddlewares extends model.DocumentModel {
         });
       }
 
-      const queryOption: any  = {};
+      const queryOption: any = {};
       if (opts.level) {
         queryOption.level = opts.level;
       }
 
-      let queryPromise  = self.findOne(query, opts.project, queryOption);
+      let queryPromise = self.findOne(query, opts.project, queryOption);
 
       if (opts.populate) {
-        queryPromise    = queryPromise.populate(opts.populate);
+        queryPromise = queryPromise.populate(opts.populate);
       }
 
       const object = await queryPromise;
@@ -147,20 +149,22 @@ export class KoaMiddlewares extends model.DocumentModel {
     };
 
     async function find(ctx: IRouterContext, next: INext) {
-      const opts              = _.extend(
-        {}, options, ctx.overrides && ctx.overrides.options,
+      const opts = _.extend(
+        {},
+        options,
+        ctx.overrides && ctx.overrides.options,
       );
-      const query             = ctx.overrides && ctx.overrides.query || {};
-      const queryOption: any  = {};
-      let pagination          = null;
+      const query = (ctx.overrides && ctx.overrides.query) || {};
+      const queryOption: any = {};
+      let pagination = null;
 
       if (opts.pagination) {
         // pagination       = VALIDATE_QUERY_PAGINATION(ctx.request.query);
-        pagination          = ctx.request.query;
+        pagination = ctx.request.query;
         _.defaults(pagination, defaultPagination);
 
-        queryOption.skip    = pagination.page * pagination.size;
-        queryOption.limit   = pagination.size;
+        queryOption.skip = pagination.page * pagination.size;
+        queryOption.limit = pagination.size;
       }
 
       if (opts.sort) {
@@ -175,10 +179,10 @@ export class KoaMiddlewares extends model.DocumentModel {
         queryOption.level = opts.level;
       }
 
-      let queryPromise  = self.find(query, opts.project, queryOption);
+      let queryPromise = self.find(query, opts.project, queryOption);
 
       if (opts.populate) {
-        queryPromise    = queryPromise.populate(opts.populate);
+        queryPromise = queryPromise.populate(opts.populate);
       }
 
       const object = await queryPromise;
@@ -190,9 +194,9 @@ export class KoaMiddlewares extends model.DocumentModel {
       }
 
       if (pagination) {
-        const totalPage = Math.floor((
-          await self.find(query).count() - 1
-        ) / pagination.size + 1);
+        const totalPage = Math.floor(
+          ((await self.find(query).count()) - 1) / pagination.size + 1,
+        );
         ctx.response.set('total_page', totalPage.toString());
       }
 
@@ -219,12 +223,13 @@ export class KoaMiddlewares extends model.DocumentModel {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function update(ctx: IRouterContext, next: INext) {
-      const opts  = _.extend(
-        {}, options, ctx.overrides && ctx.overrides.options,
+      const opts = _.extend(
+        {},
+        options,
+        ctx.overrides && ctx.overrides.options,
       );
-      const query = ctx.overrides && ctx.overrides.query || {};
+      const query = (ctx.overrides && ctx.overrides.query) || {};
       if (opts.field !== '*') {
-
         if (opts.field.indexOf('.') >= 0) {
           query._id = dotty.get(ctx.request, opts.field);
         } else {
@@ -245,19 +250,21 @@ export class KoaMiddlewares extends model.DocumentModel {
         });
       }
 
-      const queryOption: any  = {
-        new:            true,
-        fields:         opts.project,
-        level:          opts.level,
-        runValidators:  true,
+      const queryOption: any = {
+        new: true,
+        fields: opts.project,
+        level: opts.level,
+        runValidators: true,
       };
-      const omits             = _.union(
-        [ '_id' ], opts.omits,
-        self.schema.api.READONLY, self.schema.api.AUTOGEN,
+      const omits = _.union(
+        ['_id'],
+        opts.omits,
+        self.schema.api.READONLY,
+        self.schema.api.AUTOGEN,
       );
-      let doc       = _.omit(ctx.request.body, omits);
-      doc           = _.extend(doc, ctx.overrides && ctx.overrides.doc);
-      const upDoc   = {
+      let doc = _.omit(ctx.request.body, omits);
+      doc = _.extend(doc, ctx.overrides && ctx.overrides.doc);
+      const upDoc = {
         $set: doc,
       };
       let updatePromise = self.findOneAndUpdate(query, upDoc, queryOption);
@@ -292,10 +299,12 @@ export class KoaMiddlewares extends model.DocumentModel {
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
 
     async function del(ctx: IRouterContext, next: INext) {
-      const opts              = _.extend(
-        {}, options, ctx.overrides && ctx.overrides.options,
+      const opts = _.extend(
+        {},
+        options,
+        ctx.overrides && ctx.overrides.options,
       );
-      const query             = ctx.overrides && ctx.overrides.query || {};
+      const query = (ctx.overrides && ctx.overrides.query) || {};
 
       if (opts.field.indexOf('.') >= 0) {
         query._id = dotty.get(ctx.request, opts.field);
@@ -303,9 +312,9 @@ export class KoaMiddlewares extends model.DocumentModel {
         query._id = ctx.params[opts.field];
       }
 
-      const queryOption: any  = {};
+      const queryOption: any = {};
 
-      const queryPromise      = self.findOne(query, undefined, queryOption);
+      const queryPromise = self.findOne(query, undefined, queryOption);
 
       let object = await queryPromise;
 
@@ -340,25 +349,24 @@ export class KoaMiddlewares extends model.DocumentModel {
 }
 
 export interface CommonOptions {
-
-  noBody?:      boolean;          // if to write the result to body
-  triggerNext?: boolean;          // if to trigger next middleware
+  noBody?: boolean; // if to write the result to body
+  triggerNext?: boolean; // if to trigger next middleware
 
   // the target field name write to ctx, default: object
-  target?:      string;
+  target?: string;
 
   // transform the result before write to body
-  transform?:   (a: any, ctx: IRouterContext) => Promise<any>;
+  transform?: (a: any, ctx: IRouterContext) => Promise<any>;
 }
 
 const DEFAULT_COMMON_OPTIONS = {
-  target:       'object',
-  transform:    _.identity,
+  target: 'object',
+  transform: _.identity,
 };
 
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
-  size:         20,
-  sizeChoices:  [20, 50, 100, 200],
+  size: 20,
+  sizeChoices: [20, 50, 100, 200],
 };
 
 const VALIDATE_QUERY_PAGINATION = validator2.compile({
@@ -367,52 +375,55 @@ const VALIDATE_QUERY_PAGINATION = validator2.compile({
 });
 
 export interface CommonResponseOptions {
-  level?:       string;    // the data level for projection
-  project?:     string[];  // the data fields for projection
+  level?: string; // the data level for projection
+  project?: string[]; // the data fields for projection
 
   // populate specific fields only
-  populate?:    ModelPopulateOptions | ModelPopulateOptions[];
+  populate?: ModelPopulateOptions | ModelPopulateOptions[];
 }
 
-export interface CommonReadOptions {
-}
+export interface CommonReadOptions {}
 
 export interface CommonWriteOptions {
-  omits?:       string[];  // omits fields to be modified
+  omits?: string[]; // omits fields to be modified
 }
 
-export interface CreateOptions extends CommonOptions, CommonResponseOptions,
-  CommonWriteOptions {
+export interface CreateOptions
+  extends CommonOptions,
+    CommonResponseOptions,
+    CommonWriteOptions {}
+
+export interface GetOptions
+  extends CommonOptions,
+    CommonResponseOptions,
+    CommonReadOptions {
+  field: string;
+  nullable?: boolean;
 }
 
-export interface GetOptions extends CommonOptions, CommonResponseOptions,
-  CommonReadOptions {
-
-  field:        string;
-  nullable?:    boolean;
-}
-
-export interface FindOptions extends CommonOptions, CommonResponseOptions,
-  CommonReadOptions {
-
-  pagination?:  {
-    size?:         number;
-    sizeChoices?:  number[];
+export interface FindOptions
+  extends CommonOptions,
+    CommonResponseOptions,
+    CommonReadOptions {
+  pagination?: {
+    size?: number;
+    sizeChoices?: number[];
   };
 
   sort?: object;
 }
 
-export interface UpdateOptions extends CommonOptions, CommonResponseOptions,
-  CommonWriteOptions {
-
-  field:        string;
-  nullable?:    boolean;
+export interface UpdateOptions
+  extends CommonOptions,
+    CommonResponseOptions,
+    CommonWriteOptions {
+  field: string;
+  nullable?: boolean;
 }
 
 export interface DeleteOptions extends CommonOptions {
-  field:        string;
-  nullable?:    boolean;
+  field: string;
+  nullable?: boolean;
 }
 
 KoaMiddlewares.Plugin({
@@ -423,20 +434,20 @@ function apiLevel(schema: Schema, options: object) {
   for (let s = schema; s; s = s.parentSchema) {
     if (s.api == null) {
       s.api = {
-        READONLY:  [],
-        AUTOGEN:   [],
+        READONLY: [],
+        AUTOGEN: [],
       };
     }
   }
 
   schema.eachPath((pathname: string, schemaType: SchemaType) => {
-    if ([ READONLY, AUTOGEN ].indexOf(schemaType.options.api) < 0) {
+    if ([READONLY, AUTOGEN].indexOf(schemaType.options.api) < 0) {
       return;
     }
     for (let s = schema; s != null; s = s.parentSchema) {
-      s.api[schemaType.options.api] = _.union(
-        s.api[schemaType.options.api], [ pathname ],
-      );
+      s.api[schemaType.options.api] = _.union(s.api[schemaType.options.api], [
+        pathname,
+      ]);
     }
   });
 }
@@ -444,13 +455,17 @@ function apiLevel(schema: Schema, options: object) {
 export type INext = () => Promise<any>;
 
 export function Autogen(schema: any = {}) {
-  return Field(_.extend({}, schema, {
-    api: AUTOGEN,
-  }));
+  return Field(
+    _.extend({}, schema, {
+      api: AUTOGEN,
+    }),
+  );
 }
 
 export function Readonly(schema: any = {}) {
-  return Field(_.extend({}, schema, {
-    api: READONLY,
-  }));
+  return Field(
+    _.extend({}, schema, {
+      api: READONLY,
+    }),
+  );
 }

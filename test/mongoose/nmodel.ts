@@ -4,21 +4,20 @@ import * as mongoose from 'mongoose';
 import * as sbase from '../../src';
 
 enum UserDataLevel {
-  BASIC    = 'BASIC',
-  DETAILS  = 'DETAILS',
+  BASIC = 'BASIC',
+  DETAILS = 'DETAILS',
 }
 
 class Name extends sbase.mongoose.Model {
+  @sbase.mongoose.Field({
+    default: 'A_FIRSTNAME',
+  })
+  first: string;
 
   @sbase.mongoose.Field({
-    default:  'A_FIRSTNAME',
+    default: 'A_LASTNAME',
   })
-  first:      string;
-
-  @sbase.mongoose.Field({
-    default:  'A_LASTNAME',
-  })
-  last:       string;
+  last: string;
 }
 
 export enum UserType {
@@ -31,21 +30,20 @@ export interface Address {
 }
 
 @sbase.mongoose.Config({
-  collection:        'sbase.tests.users',
-  discriminatorKey:  'kind',
-  dataLevel:         {
-    levels:          UserDataLevel,
+  collection: 'sbase.tests.users',
+  discriminatorKey: 'kind',
+  dataLevel: {
+    levels: UserDataLevel,
   },
 })
 class UserModel extends sbase.mongoose.A7Model {
-
   @sbase.mongoose.Field({
-    level:    UserDataLevel.BASIC,
+    level: UserDataLevel.BASIC,
   })
   name: Name;
 
   @sbase.mongoose.Field({
-    level:  UserDataLevel.DETAILS,
+    level: UserDataLevel.DETAILS,
   })
   bio: string;
 
@@ -64,7 +62,7 @@ class UserModel extends sbase.mongoose.A7Model {
     type: Map,
     of: String,
     default: {},
-    level:  UserDataLevel.DETAILS,
+    level: UserDataLevel.DETAILS,
   })
   maps: Map<string, string>;
 
@@ -74,10 +72,9 @@ class UserModel extends sbase.mongoose.A7Model {
 }
 
 @sbase.mongoose.Config({
-  collection:        'sbase.tests.posts',
+  collection: 'sbase.tests.posts',
 })
 class PostModel extends sbase.mongoose.A7Model {
-
   @sbase.mongoose.DBRef('User')
   user: mongoose.Types.ObjectId;
 
@@ -86,13 +83,12 @@ class PostModel extends sbase.mongoose.A7Model {
 }
 
 const User = UserModel.$register<UserModel, typeof UserModel>();
-type  User = UserModel;
+type User = UserModel;
 
 const Post = PostModel.$register<PostModel, typeof PostModel>();
-type  Post = PostModel;
+type Post = PostModel;
 
 describe('NModel Basics', () => {
-
   beforeEach(async () => {
     await User.deleteMany({});
   });
@@ -115,7 +111,11 @@ describe('NModel Basics', () => {
     user.name.last.should.be.equal('bar');
     user.bio.should.be.equal('tie');
 
-    const user1 = await User.findById(user._id, {}, { level: UserDataLevel.BASIC });
+    const user1 = await User.findById(
+      user._id,
+      {},
+      { level: UserDataLevel.BASIC },
+    );
     user1.name.first.should.be.equal('foo');
     user1.name.last.should.be.equal('bar');
     should(user1.bio).not.be.ok();
@@ -140,15 +140,19 @@ describe('NModel Basics', () => {
       },
       bio: 'tie',
     });
-    const post = await Post.findOneAndUpdate({
-      user,
-    }, {
-      user,
-      post: 'Text',
-    }, {
-      upsert: true,
-      new: true,
-    });
+    const post = await Post.findOneAndUpdate(
+      {
+        user,
+      },
+      {
+        user,
+        post: 'Text',
+      },
+      {
+        upsert: true,
+        new: true,
+      },
+    );
     post.user.should.be.ok();
   });
 });

@@ -3,17 +3,16 @@ import * as model from './model';
 export type SoftDeleteModelType = typeof SoftDeleteModel;
 
 @model.Pre({
-  name:  'remove',
-  fn:    blockRemove,
+  name: 'remove',
+  fn: blockRemove,
 })
 @model.Pres(model.preQueries, { fn: patchDelete })
 export class SoftDeleteModel extends model.DocumentModel {
-
   @model.Field({
-    type:          Boolean,
-    default:       false,
+    type: Boolean,
+    default: false,
   })
-  public deleted:  boolean;
+  public deleted: boolean;
 
   public async delete(): Promise<this> {
     if (this.deleted) {

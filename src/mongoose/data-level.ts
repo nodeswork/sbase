@@ -1,27 +1,28 @@
-import * as _                                             from 'underscore';
+import * as _ from 'underscore';
 import { DocumentToObjectOptions, Schema, SchemaOptions } from 'mongoose';
 
-import * as model                                         from './model';
-import { ToJSONOption }                                   from './model-config';
-import { Field }                                          from './';
-import { DataLevelConfig }                                from './model-config';
+import * as model from './model';
+import { ToJSONOption } from './model-config';
+import { Field } from './';
+import { DataLevelConfig } from './model-config';
 
 export type DataLevelModelType = typeof DataLevelModel;
 
 @model.Plugin({
-  fn:        dataLevelPlugin,
-  priority:  100,
+  fn: dataLevelPlugin,
+  priority: 100,
 })
 export class DataLevelModel extends model.DocumentModel {
-
   public toJSON(options?: DocumentToObjectOptions): object {
     let obj = this.toObject(options);
     if (options && options.level) {
-      const fields = _.keys(fetchModelFields(
-        this.schema.options.dataLevel,
-        options.level,
-        this.schema.dataLevel.levelMap,
-      ));
+      const fields = _.keys(
+        fetchModelFields(
+          this.schema.options.dataLevel,
+          options.level,
+          this.schema.dataLevel.levelMap,
+        ),
+      );
       obj = deepOmit(obj, fields);
     }
     return obj;
@@ -33,7 +34,7 @@ function deepOmit(obj: any, fields: string[]): any {
     return _.map(obj, o => deepOmit(o, fields));
   }
 
-  const grouped = _.groupBy(fields, f => f.indexOf('.') === -1 ? 1 : 0);
+  const grouped = _.groupBy(fields, f => (f.indexOf('.') === -1 ? 1 : 0));
   if (grouped[1]) {
     obj = _.omit(obj, ...grouped[1]);
   }
@@ -64,7 +65,7 @@ function dataLevelPlugin(schema: Schema, options: SchemaOptions) {
   }
 
   const dataLevelOptionsLevels = _.values(
-    options.dataLevel && options.dataLevel.levels || [],
+    (options.dataLevel && options.dataLevel.levels) || [],
   );
 
   schema.dataLevel = {
@@ -93,17 +94,17 @@ function modifyProjection(next: () => void) {
 
   const levels = _.values(schema.options.dataLevel.levels);
 
-  const level = (
+  const level =
     this.options.level ||
-    schema.options.dataLevel && schema.options.dataLevel.default
-  );
+    (schema.options.dataLevel && schema.options.dataLevel.default);
 
   if (level) {
     if (this._fields == null) {
       this._fields = {};
     }
     const projectedFields = fetchModelFields(
-      schema.options.dataLevel, level,
+      schema.options.dataLevel,
+      level,
       schema.dataLevel.levelMap,
     );
     _.extend(this._fields, projectedFields);
@@ -112,7 +113,8 @@ function modifyProjection(next: () => void) {
 }
 
 function fetchModelFields(
-  config: DataLevelConfig, level: string,
+  config: DataLevelConfig,
+  level: string,
   levelMap: { [name: string]: string[] },
 ): object {
   if (config._levelsMap == null) {
@@ -122,7 +124,7 @@ function fetchModelFields(
     return config._levelsMap[level];
   }
 
-  const fields: string[]= [];
+  const fields: string[] = [];
 
   let valid = false;
 
@@ -137,7 +139,7 @@ function fetchModelFields(
     }
   });
 
-  const filtered: string[] = _.filter(fields, (target) => {
+  const filtered: string[] = _.filter(fields, target => {
     return _.all(fields, r => {
       return target.indexOf(r + '.') !== 0;
     });
@@ -155,11 +157,11 @@ function fetchModelFields(
 
 function addToLevelMap(schema: Schema, lps: LevelPath[]) {
   const dataLevelOptionsLevels = _.values(
-    schema.options.dataLevel && schema.options.dataLevel.levels || [],
+    (schema.options.dataLevel && schema.options.dataLevel.levels) || [],
   );
   const levelMap = schema.dataLevel.levelMap;
 
-  for (const {path, level} of lps) {
+  for (const { path, level } of lps) {
     levelMap[level] = _.union(levelMap[level], [path]);
   }
 
@@ -189,12 +191,14 @@ function levelPaths(schema: Schema): LevelPath[] {
 }
 
 interface LevelPath {
-  path:   string;
-  level:  string;
+  path: string;
+  level: string;
 }
 
 export function Level(level: string, schema: any = {}) {
-  return Field(_.extend({}, schema, {
-    level,
-  }));
+  return Field(
+    _.extend({}, schema, {
+      level,
+    }),
+  );
 }

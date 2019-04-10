@@ -1,14 +1,11 @@
 import * as sbase from '../../src';
 
 describe('decorator Field', () => {
-
   it('should work', () => {
-
     @sbase.mongoose.Config({
       collection: 'dt1s',
     })
     class DT1 extends sbase.mongoose.Model {
-
       @sbase.mongoose.Field({
         type: String,
       })

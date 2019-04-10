@@ -5,7 +5,7 @@ import * as Router from 'koa-router';
 const dotty = require('dotty');
 
 export function overrides(...rules: string[]): Router.IMiddleware {
-  const rs: Array<{ src: string[], dst: string[] }> = [];
+  const rs: Array<{ src: string[]; dst: string[] }> = [];
   for (const rule of rules) {
     const [os, od] = rule.split('->');
     if (!od) {
@@ -27,8 +27,8 @@ export function overrides(...rules: string[]): Router.IMiddleware {
 export function clearOverrides(): Router.IMiddleware {
   return async (ctx: Router.IRouterContext, next: () => void) => {
     ctx.overrides = {
-      query:  {},
-      doc:    {},
+      query: {},
+      doc: {},
     };
     await next();
   };
