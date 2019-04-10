@@ -37,7 +37,7 @@ export interface Address {
     levels:          UserDataLevel,
   },
 })
-class UserModel extends sbase.mongoose.NModel {
+class UserModel extends sbase.mongoose.A7Model {
 
   @sbase.mongoose.Field({
     level:    UserDataLevel.BASIC,
@@ -76,7 +76,7 @@ class UserModel extends sbase.mongoose.NModel {
 @sbase.mongoose.Config({
   collection:        'sbase.tests.posts',
 })
-class PostModel extends sbase.mongoose.NModel {
+class PostModel extends sbase.mongoose.A7Model {
 
   @sbase.mongoose.DBRef('User')
   user: mongoose.Types.ObjectId;

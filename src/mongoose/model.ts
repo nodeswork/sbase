@@ -12,7 +12,7 @@ import {
   DocumentToObjectOptions,
 }                                       from 'mongoose';
 import { MongoError }                   from 'mongodb';
-import { NModelType }                   from './';
+import { A7ModelType }                   from './';
 import { pushMetadata, extendMetadata } from './helpers';
 
 export type ModelType = typeof Model;
@@ -252,14 +252,14 @@ export class Model {
 
   public static $registerNModel<D extends Document, M>(
     mongooseInstance?: Mongoose,
-  ): MModel<D> & M & NModelType {
+  ): MModel<D> & M & A7ModelType {
     if (!mongooseInstance) {
       mongooseInstance = require('mongoose');
     }
 
     return mongooseInstance.model(
       this.name, this.$mongooseOptions.mongooseSchema,
-    ) as (MModel<D> & M & NModelType);
+    ) as (MModel<D> & M & A7ModelType);
   }
 }
 

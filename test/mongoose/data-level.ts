@@ -8,7 +8,7 @@ import {
   Field,
   Level,
   Model,
-  NModel,
+  A7Model,
 }                    from '../../src/mongoose';
 
 enum DataLevels {
@@ -46,7 +46,7 @@ class DL1 extends Model {
     levels: DataLevels,
   },
 })
-class DLRootModel extends NModel {
+class DLRootModel extends A7Model {
   @Field() f1: DL1;
 }
 
