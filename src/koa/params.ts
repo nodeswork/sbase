@@ -6,9 +6,10 @@ import * as validators from './validators';
 const dotty = require('dotty');
 
 export interface ParamError {
-  path:    string;
-  value:   any;
-  failed:  string;
+  path: string | number;
+  value: any;
+  failed: string;
+  reason?: string;
 }
 
 export interface ParamsContext {
@@ -16,37 +17,34 @@ export interface ParamsContext {
 }
 
 export interface ParamsOptions {
-  [key: string]: validators.Validator | validators.Validator[];
+  [key: string]: null | validators.Validator | validators.Validator[];
+}
+
+export interface StandardParamsOptions {
+  key: string;
+  validators: validators.Validator[];
 }
 
 export function params(options: ParamsOptions): Router.IMiddleware {
-  const mappedOptions = _.map(options, (v, key) => {
-    const vs: validators.Validator[] = _.flatten([v]);
+  const mappedOptions: StandardParamsOptions[] = _.map(options, (v, key) => {
+    const vs: validators.Validator[] = _.chain([v])
+      .flatten()
+      .filter(x => !!x)
+      .value();
+
     if (key.startsWith('!')) {
       vs.push(validators.required);
       key = key.substring(1);
     }
-    return {key, validators: vs};
+
+    return { key, validators: vs };
   });
 
   return async (
-    ctx: Router.IRouterContext & ParamsContext, next: () => void,
+    ctx: Router.IRouterContext & ParamsContext,
+    next: () => void,
   ) => {
-    ctx.errors = [];
-    for (const o of mappedOptions) {
-      const value = dotty.get(ctx.request, o.key);
-      for (const fn of o.validators) {
-        const pass = fn(ctx, o.key, value);
-        if (!pass) {
-          ctx.errors.push({
-            path: o.key,
-            value,
-            failed: fn.name,
-          });
-        }
-      }
-    }
-
+    ctx.errors = processValidators(ctx.request, mappedOptions, ctx);
     if (!_.isEmpty(ctx.errors)) {
       ctx.body = { errors: ctx.errors };
       ctx.status = 422;
@@ -54,4 +52,42 @@ export function params(options: ParamsOptions): Router.IMiddleware {
       await next();
     }
   };
+}
+
+export function processValidators(
+  target: any,
+  standardOptions: StandardParamsOptions[],
+  root: any,
+): ParamError[] {
+  const errors = [];
+  for (const o of standardOptions) {
+    const newTarget = o.key.startsWith('~') ? root : target;
+    const key = o.key.startsWith('~') ? o.key.substring(1) : o.key;
+
+    for (const fn of o.validators) {
+      const value = dotty.get(newTarget, key);
+      const pass = fn(newTarget, key, value, root);
+      if (pass === false || _.isString(pass)) {
+        errors.push({
+          path: o.key,
+          value,
+          failed: fn.name,
+          reason: pass || '',
+        });
+      }
+
+      if (_.isArray(pass)) {
+        for (const error of pass) {
+          errors.push({
+            path: o.key + '.' + error.path,
+            value: error.value,
+            failed: fn.name + '>' + error.failed,
+            reason: error.reason,
+          });
+        }
+      }
+    }
+  }
+
+  return errors;
 }
