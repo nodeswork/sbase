@@ -31,11 +31,21 @@ export class A7Controller {
     for (const handler in meta.handlers) {
       const handlerMeta = meta.handlers[handler];
 
-      const method = (this as any)[handler];
+      let method = (this as any)[handler];
+      if (method != null) {
+        method = _.bind(method, this);
+      } else {
+        method = _.identity;
+      }
+
+      if (handlerMeta.middleware != null) {
+        method = compose([handlerMeta.middleware, method]);
+        (this as any)[handler] = method;
+      }
 
       (this.$router as any)[handlerMeta.method](
         handlerMeta.path,
-        _.bind(method, this),
+        method,
       );
     }
 

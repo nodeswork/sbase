@@ -27,6 +27,8 @@ class Controller extends A7Controller {
 
 const controller = new Controller();
 
+controller.$koaRouterUseArgs;
+
 describe('koa.controller', () => {
   it('should create middlewares', async () => {
     const ctx: any = { values: [] };

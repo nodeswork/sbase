@@ -23,6 +23,7 @@ export interface IMetadata {
 export interface IHandlerMetadata {
   method: Method;
   path: string;
+  middleware: Router.IMiddleware;
 }
 
 export const METADATA_KEY = 'a7:router-meta';

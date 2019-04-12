@@ -41,6 +41,7 @@ export function Handler(options: IHandlerOptions = {}): PropertyDecorator {
       meta.handlers[propertyKey] = {
         method: Method.GET,
         path: '/',
+        middleware: null,
       };
     }
 
@@ -163,13 +164,20 @@ function buildPropertyMiddleware(
     meta.handlers[propertyKey] = {
       method: Method.GET,
       path: '/',
+      middleware: null,
     };
   }
 
   if (descriptor != null) {
     descriptor.value = compose(middlewares.concat(descriptor.value));
   } else {
-    target[propertyKey] = compose(middlewares);
+    const m = meta.handlers[propertyKey];
+
+    if (m.middleware == null) {
+      m.middleware = compose(middlewares);
+    } else {
+      m.middleware = compose(middlewares.concat(m.middleware));
+    }
   }
 
   Reflect.defineMetadata(METADATA_KEY, meta, cls);
