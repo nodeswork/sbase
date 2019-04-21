@@ -2,7 +2,8 @@ import 'reflect-metadata';
 
 import * as Router from 'koa-router';
 import * as _ from 'underscore';
-import * as compose from 'koa-compose';
+
+import { compose } from './utils';
 
 import {
   IHandlerOptions,

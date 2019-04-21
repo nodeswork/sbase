@@ -2,7 +2,8 @@ import 'reflect-metadata';
 
 import * as _ from 'underscore';
 import * as Router from 'koa-router';
-import * as compose from 'koa-compose';
+
+import { compose } from './utils';
 
 import { IMetadata, METADATA_KEY } from './declarations';
 
