@@ -17,12 +17,15 @@ class Controller extends A7Controller {
     ctx.values.push('m3');
     await next();
   })
-  m4(ctx: any) {
+  async m4(ctx: any, next: () => void) {
     ctx.values.push('m4');
+    await next();
   }
 
   @Middleware(Controller.prototype.m4)
-  m5: any;
+  m5 = async (ctx: any) => {
+    ctx.values.push('m5');
+  };
 }
 
 const controller = new Controller();
@@ -32,13 +35,13 @@ controller.$koaRouterUseArgs;
 describe('koa.controller', () => {
   it('should create middlewares', async () => {
     const ctx: any = { values: [] };
-    await controller.m4(ctx);
+    await controller.m4(ctx, function () {});
     ctx.values.should.deepEqual(['m1', 'm2', 'm3', 'm4']);
   });
 
   it('should create with empty middlewares', async () => {
     const ctx: any = { values: [] };
     await controller.m5(ctx);
-    ctx.values.should.deepEqual(['m1', 'm2', 'm3', 'm4']);
+    ctx.values.should.deepEqual(['m1', 'm2', 'm3', 'm4', 'm5']);
   });
 });

@@ -54,6 +54,10 @@ export function Handler(options: IHandlerOptions = {}): PropertyDecorator {
       meta.handlers[propertyKey].path = options.path;
     }
 
+    if (meta.handlers[propertyKey].path == null) {
+      meta.handlers[propertyKey].path = '/';
+    }
+
     Reflect.defineMetadata(METADATA_KEY, meta, cls);
   };
 }
@@ -164,7 +168,7 @@ function buildPropertyMiddleware(
   if (meta.handlers[propertyKey] == null) {
     meta.handlers[propertyKey] = {
       method: Method.GET,
-      path: '/',
+      path: null,
       middleware: null,
     };
   }

@@ -32,6 +32,10 @@ export class A7Controller {
     for (const handler in meta.handlers) {
       const handlerMeta = meta.handlers[handler];
 
+      // if (handlerMeta.path == null) {
+        // continue;
+      // }
+
       let method = (this as any)[handler];
       if (method != null) {
         method = _.bind(method, this);
@@ -44,10 +48,12 @@ export class A7Controller {
         (this as any)[handler] = method;
       }
 
-      (this.$router as any)[handlerMeta.method](
-        handlerMeta.path,
-        method,
-      );
+      if (handlerMeta.path != null) {
+        (this.$router as any)[handlerMeta.method](
+          handlerMeta.path,
+          method,
+        );
+      }
     }
 
     return this.$router;
