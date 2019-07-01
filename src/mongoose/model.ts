@@ -388,7 +388,6 @@ export function Unique(schema: any = {}) {
   return Field(
     _.extend({}, schema, {
       index: true,
-      required: true,
       unique: true,
     }),
   );
