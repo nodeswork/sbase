@@ -636,7 +636,7 @@ export interface VirtualOptions {
   localField: string;
   foreignField: string;
   justOne?: boolean;
-  options: any;
+  options?: any;
 }
 
 export class NativeError extends global.Error {}
