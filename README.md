@@ -247,6 +247,23 @@ export class Post extends NModel {
 }
 ```
 
+**Virtual Reference**
+
+`@Virtual` allows to reference to other model in a single object or a list.
+
+```typescript
+import { DBRefArray, NModel } from '@nodeswork/sbase/mongoose';
+
+export class User extends NModel {
+  @Virtual({ ref: 'Post', localField: '_id', foreignField: 'author' })
+  posts: models.Post[];
+}
+
+export class Post extends NModel {
+  @DBRef('User') author: mongoose.Types.ObjectId | models.User;
+}
+```
+
 **Default**
 
 `@Default` provides default value for the field.

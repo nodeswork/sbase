@@ -246,7 +246,7 @@ export class Model {
     }
 
     for (const virtual of mongooseOptions.virtuals) {
-      let v = mongooseSchema.virtual(virtual.name);
+      let v = mongooseSchema.virtual(virtual.name, virtual.options);
       if (virtual.get) {
         v = v.get(virtual.get);
       }
@@ -502,6 +502,18 @@ export function Pres(names: string[], pre: PPre) {
   };
 }
 
+export function Virtual(options: VirtualOptions) {
+  return (target: any, propertyName: string) => {
+    const virtuals: Virtual[] =
+      Reflect.getOwnMetadata(VIRTUAL_KEY, target) || [];
+    virtuals.push({
+      name: propertyName,
+      options,
+    });
+    Reflect.defineMetadata(VIRTUAL_KEY, virtuals, target);
+  };
+}
+
 export function Post(post: Post) {
   return <T extends { new (...args: any[]): {} }>(constructor: T) => {
     const posts: Post[] =
@@ -590,6 +602,7 @@ export interface Virtual {
   name: string;
   get?: () => any;
   set?: (val?: any) => void;
+  options?: VirtualOptions;
 }
 
 export interface Method {
@@ -616,6 +629,14 @@ export interface Validate {
   fn: (val?: any) => boolean;
   errorMsg?: string;
   type?: string;
+}
+
+export interface VirtualOptions {
+  ref: string;
+  localField: string;
+  foreignField: string;
+  justOne?: boolean;
+  options: any;
 }
 
 export class NativeError extends global.Error {}
