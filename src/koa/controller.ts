@@ -32,16 +32,7 @@ export class A7Controller {
     for (const handler in meta.handlers) {
       const handlerMeta = meta.handlers[handler];
 
-      // if (handlerMeta.path == null) {
-        // continue;
-      // }
-
-      let method = (this as any)[handler];
-      if (method != null) {
-        method = _.bind(method, this);
-      } else {
-        method = _.identity;
-      }
+      let method = (this as any)[handler] || _.identity;
 
       if (handlerMeta.middleware != null) {
         method = compose([handlerMeta.middleware, method]);
@@ -51,7 +42,7 @@ export class A7Controller {
       if (handlerMeta.path != null) {
         (this.$router as any)[handlerMeta.method](
           handlerMeta.path,
-          method,
+          method.bind(this),
         );
       }
     }
