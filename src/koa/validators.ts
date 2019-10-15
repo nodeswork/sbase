@@ -1,4 +1,3 @@
-import * as Router from 'koa-router';
 import * as _ from 'underscore';
 import * as validator from 'validator';
 
@@ -141,8 +140,11 @@ export function isEmail(options?: ValidatorJS.IsEmailOptions): Validator {
 const isEmpty: Validator = (target, path, val) =>
   val == null || validator.isEmpty(val);
 
-export function isEnum(enumObject?: object): Validator {
-  const values = _.values(enumObject);
+export function isEnum(
+  enumObject?: object,
+  from: 'value' | 'key' = 'value',
+): Validator {
+  const values = from === 'value' ? _.values(enumObject) : _.keys(enumObject);
   const isEnum: Validator = (target, path, val) =>
     val == null || _.indexOf(values, val) >= 0;
   return isEnum;
@@ -465,7 +467,6 @@ export function split(separator: string = ',', restricted: boolean = false) {
 }
 
 export function withDefault(option: any) {
-
   const withDefault: Validator = (target, path, val, root) => {
     if (val == null) {
       val = _.isFunction(option) ? option(root) : option;
@@ -478,7 +479,6 @@ export function withDefault(option: any) {
 }
 
 export function map(fn: (val: any, root: any) => any) {
-
   const map: Validator = (target, path, val, root) => {
     if (val != null) {
       val = fn(val, root);
