@@ -102,12 +102,18 @@ function modifyProjection(next: () => void) {
     if (this._fields == null) {
       this._fields = {};
     }
-    const projectedFields = fetchModelFields(
-      schema.options.dataLevel,
-      level,
-      schema.dataLevel.levelMap,
-    );
-    _.extend(this._fields, projectedFields);
+
+    if (
+      _.findIndex(_.values(this._fields), (x: any) => x === true || x === 1) ===
+      -1
+    ) {
+      const projectedFields = fetchModelFields(
+        schema.options.dataLevel,
+        level,
+        schema.dataLevel.levelMap,
+      );
+      _.extend(this._fields, projectedFields);
+    }
   }
   next();
 }
