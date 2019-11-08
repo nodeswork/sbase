@@ -151,81 +151,81 @@ export function isEnum(
 }
 
 export function isFQDN(options?: ValidatorJS.IsFQDNOptions): Validator {
-  const isFQDN: Validator = (target, path, val) =>
+  const isFQDN: Validator = (_target, _path, val) =>
     val == null || validator.isFQDN(val, options);
   return isFQDN;
 }
 
 export function isFloat(options?: ValidatorJS.IsFloatOptions): Validator {
-  const isFloat: Validator = (target, path, val) =>
+  const isFloat: Validator = (_target, _path, val) =>
     val == null || validator.isFloat(val, options);
   return isFloat;
 }
 
-const isFullWidth: Validator = (target, path, val) =>
+const isFullWidth: Validator = (_target, _path, val) =>
   val == null || validator.isFullWidth(val);
 
-const isHalfWidth: Validator = (target, path, val) =>
+const isHalfWidth: Validator = (_target, _path, val) =>
   val == null || validator.isHalfWidth(val);
 
 export function isHash(algorithm: ValidatorJS.HashAlgorithm): Validator {
-  const isHash: Validator = (target, path, val) =>
+  const isHash: Validator = (_target, _path, val) =>
     val == null || validator.isHash(val, algorithm);
   return isHash;
 }
 
-const isHexColor: Validator = (target, path, val) =>
+const isHexColor: Validator = (_target, _path, val) =>
   val == null || validator.isHexColor(val);
 
-const isHexadecimal: Validator = (target, path, val) =>
+const isHexadecimal: Validator = (_target, _path, val) =>
   val == null || validator.isHexadecimal(val);
 
 export function isIP(version?: number): Validator {
-  const isIP: Validator = (target, path, val) =>
+  const isIP: Validator = (_target, _path, val) =>
     val == null || validator.isIP(val, version);
   return isIP;
 }
 
 export function isISSN(options?: ValidatorJS.IsISSNOptions): Validator {
-  const isISSN: Validator = (target, path, val) =>
+  const isISSN: Validator = (_target, _path, val) =>
     val == null || validator.isISSN(val, options);
   return isISSN;
 }
 
-const isISIN: Validator = (target, path, val) =>
+const isISIN: Validator = (_target, _path, val) =>
   val == null || validator.isISIN(val);
 
-const isISO8601: Validator = (target, path, val) =>
+const isISO8601: Validator = (_target, _path, val) =>
   val == null || validator.isISO8601(val);
 
-const isISO31661Alpha2: Validator = (target, path, val) =>
+const isISO31661Alpha2: Validator = (_target, _path, val) =>
   val == null || validator.isISO31661Alpha2(val);
 
-const isISRC: Validator = (target, path, val) =>
+const isISRC: Validator = (_target, _path, val) =>
   val == null || validator.isISRC(val);
 
 export function isIn(values: any[]): Validator {
-  const isIn: Validator = (target, path, val) =>
+  const isIn: Validator = (_target, _path, val) =>
     val == null || validator.isIn(val, values);
   return isIn;
 }
 
 export function isInt(options?: ValidatorJS.IsIntOptions): Validator {
-  const isInt: Validator = (target, path, val) =>
+  const isInt: Validator = (_target, _path, val) =>
     val == null || validator.isInt(val, options);
   return isInt;
 }
 
-const isJSON: Validator = (target, path, val) =>
+const isJSON: Validator = (_target, _path, val) =>
   val == null || validator.isJSON(val);
 
-const isLatLong: Validator = (target, path, val) =>
+const isLatLong: Validator = (_target, _path, val) =>
   val == null || validator.isLatLong(val);
 
 export function isLength(min: number, max?: number): Validator;
 export function isLength(options: ValidatorJS.IsLengthOptions): Validator;
 export function isLength(a: any, b?: number): Validator {
-  const isLength: Validator = (target, path, val) => {
+  const isLength: Validator = (_target, _path, val) => {
     if (val == null) {
       return true;
     } else if (_.isArray(val)) {
@@ -237,21 +237,21 @@ export function isLength(a: any, b?: number): Validator {
   return isLength;
 }
 
-const isString: Validator = (target, path, val) =>
+const isString: Validator = (_target, _path, val) =>
   val == null || _.isString(val);
 
-const isArray: Validator = (target, path, val) => val == null || _.isArray(val);
+const isArray: Validator = (_target, _path, val) => val == null || _.isArray(val);
 
-const isNumber: Validator = (target, path, val) =>
+const isNumber: Validator = (_target, _path, val) =>
   val == null || _.isNumber(val);
 
-const isLowercase: Validator = (target, path, val) =>
+const isLowercase: Validator = (_target, _path, val) =>
   val == null || validator.isLowercase(val);
 
-const isMACAddress: Validator = (target, path, val) =>
+const isMACAddress: Validator = (_target, _path, val) =>
   val == null || validator.isMACAddress(val);
 
-const isMD5: Validator = (target, path, val) =>
+const isMD5: Validator = (_target, _path, val) =>
   val == null || validator.isMD5(val);
 
 const isMimeType: Validator = (_target, _path, val) =>
@@ -494,6 +494,15 @@ export function extractId(field: string = '_id') {
   return extractId;
 }
 
+export function toNull(target: any, path: string, val: any) {
+  if (val == null) {
+    return;
+  }
+  if (val === 'null') {
+    dotty.put(target, path, null);
+  }
+}
+
 export function map(fn: (val: any, root: any) => any) {
   const map: Validator = (target, path, val, root) => {
     if (val != null) {
@@ -526,7 +535,7 @@ export function array(options: ParamsOptions | Validator | Validator[]) {
           return { key, validators: vs };
         });
 
-  const array: Validator = (target, path, val, root) => {
+  const array: Validator = (_target, _path, val, root) => {
     if (val == null) {
       return;
     }
@@ -537,7 +546,7 @@ export function array(options: ParamsOptions | Validator | Validator[]) {
 
     const errors: ParamError[] = [];
 
-    _.each(val, (v, index: number) => {
+    _.each(val, (_v, index: number) => {
       for (const fn of selfValidators) {
         const uv = val[index];
         const pass = fn(val, index, uv, root);
