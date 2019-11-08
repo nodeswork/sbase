@@ -495,12 +495,10 @@ export function extractId(field: string = '_id') {
 }
 
 export function toNull(target: any, path: string, val: any) {
-  if (val == null) {
-    return;
-  }
   if (val === 'null') {
     dotty.put(target, path, null);
   }
+  return true;
 }
 
 export function map(fn: (val: any, root: any) => any) {
