@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 
 import * as _ from 'underscore';
+import debug from 'debug';
 import {
   Document,
   Model as MModel,
@@ -12,6 +13,8 @@ import {
 import { MongoError } from 'mongodb';
 import { A7ModelType } from './a7-model';
 import { pushMetadata, extendMetadata } from './helpers';
+
+const d = debug('sbase:model');
 
 export type ModelType = typeof Model;
 export type IModel<E extends DocumentModel> = MModel<E>;
@@ -69,6 +72,8 @@ export class Model {
     if (this === Model) {
       return null;
     }
+
+    d('generate $mongooseOptions for %O', this.name);
 
     var mongooseOptions: MongooseOptions = Reflect.getOwnMetadata(
       MONGOOSE_OPTIONS_KEY,
@@ -237,15 +242,33 @@ export class Model {
     (mongooseSchema as any).parentSchema = superOptions.mongooseSchema;
 
     for (const pre of mongooseOptions.pres) {
+      d(
+        'create pre for %O with name %O and options %O',
+        this.name,
+        pre.name,
+        pre,
+      );
       pre.parallel = pre.parallel || false;
       mongooseSchema.pre(pre.name, pre.parallel, pre.fn, pre.errorCb);
     }
 
     for (const post of mongooseOptions.posts) {
+      d(
+        'create post for %O with name %O and options %O',
+        this.name,
+        post.name,
+        post,
+      );
       (mongooseSchema as any).post(post.name, post.fn);
     }
 
     for (const virtual of mongooseOptions.virtuals) {
+      d(
+        'create virtual for %O with name %O and options %O',
+        this.name,
+        virtual.name,
+        virtual.options,
+      );
       let v = mongooseSchema.virtual(virtual.name, virtual.options);
       if (virtual.get) {
         v = v.get(virtual.get);
@@ -256,6 +279,12 @@ export class Model {
     }
 
     for (const method of mongooseOptions.methods) {
+      d(
+        'create method for %O with name %O and function %O',
+        this.name,
+        method.name,
+        method.fn,
+      );
       mongooseSchema.methods[method.name] = method.fn;
     }
 
@@ -269,6 +298,12 @@ export class Model {
     }
 
     for (const index of mongooseOptions.indexes) {
+      d(
+        'create index for %O with fields %O and options %O',
+        this.name,
+        index.fields,
+        index.options,
+      );
       mongooseSchema.index(index.fields, index.options);
     }
 
