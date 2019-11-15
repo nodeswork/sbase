@@ -9,6 +9,7 @@ import {
   Schema,
   SchemaOptions,
   SchemaTypes,
+  Query,
 } from 'mongoose';
 import { MongoError } from 'mongodb';
 import { A7ModelType } from './a7-model';
@@ -310,7 +311,11 @@ export class Model {
     for (const validate of mongooseOptions.updateValidators) {
       mongooseSchema
         .path(validate.path)
-        .validate(validate.fn, validate.errorMsg, validate.type);
+        .validate(
+          combineValidator(validate.fn),
+          validate.errorMsg,
+          validate.type,
+        );
     }
 
     mongooseOptions.mongooseSchema = mongooseSchema;
@@ -409,7 +414,7 @@ export function Required(
 ) {
   return Field(
     _.extend({}, schema, {
-      required: opt,
+      required: _.isFunction(opt) ? combineValidator(opt) : opt,
     }),
   );
 }
@@ -455,7 +460,10 @@ export function Optional(schema: any = {}) {
 export function Validate(validator: Validator, schema: any = {}) {
   return Field(
     _.extend({}, schema, {
-      validate: validator,
+      validate: {
+        validator: combineValidator(validator.validator),
+        message: validator.message,
+      },
     }),
   );
 }
@@ -706,3 +714,15 @@ export const preQueries = [
 ];
 
 const STATIC_FILTER_NAMES = ['name', 'length', 'prototype'];
+
+export function combineValidator<T>(
+  fn: (this: T) => boolean | Promise<boolean>,
+): () => boolean | Promise<boolean> {
+  return function(this: T | Query<T>) {
+    if (this instanceof Query) {
+      return fn.apply(this.getUpdate().$set, arguments);
+    } else {
+      return fn.apply(this, arguments);
+    }
+  };
+}
