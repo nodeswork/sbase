@@ -63,8 +63,8 @@ export class Model {
     return this;
   }
 
-  public static Validate(validate: Validate): ModelType {
-    pushMetadata(VALIDATE_KEY, this.prototype, validate);
+  public static UpdateValidator(validate: UpdateValidator): ModelType {
+    pushMetadata(UPDATE_VALIDATOR_KEY, this.prototype, validate);
     return this;
   }
 
@@ -146,12 +146,12 @@ export class Model {
       x => !!x,
     );
 
-    mongooseOptions.validates = _.filter(
+    mongooseOptions.updateValidators = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.validates),
-          superOptions.validates,
-          Reflect.getOwnMetadata(VALIDATE_KEY, this.prototype),
+          _.map(mixinOptions, opt => opt.updateValidators),
+          superOptions.updateValidators,
+          Reflect.getOwnMetadata(UPDATE_VALIDATOR_KEY, this.prototype),
         ]),
       ),
       x => !!x,
@@ -307,7 +307,7 @@ export class Model {
       mongooseSchema.index(index.fields, index.options);
     }
 
-    for (const validate of mongooseOptions.validates) {
+    for (const validate of mongooseOptions.updateValidators) {
       mongooseSchema
         .path(validate.path)
         .validate(validate.fn, validate.errorMsg, validate.type);
@@ -359,7 +359,7 @@ const POST_KEY = Symbol('sbase:post');
 const VIRTUAL_KEY = Symbol('sbase:virtual');
 const PLUGIN_KEY = Symbol('sbase:plugin');
 const INDEX_KEY = Symbol('sbase:index');
-const VALIDATE_KEY = Symbol('sbase:validate');
+const UPDATE_VALIDATOR_KEY = Symbol('sbase:updateValidator');
 const MIXIN_KEY = Symbol('sbase:mixin');
 const MONGOOSE_OPTIONS_KEY = Symbol('sbase:mongooseOptions');
 
@@ -447,6 +447,14 @@ export function MapField(type: any, schema: any = {}) {
 
 export function Optional(schema: any = {}) {
   return Field(schema);
+}
+
+export function Validate(validator: Validator, schema: any = {}) {
+  return Field(
+    _.extend({}, schema, {
+      validate: validator,
+    }),
+  );
 }
 
 export function Field(schema: any = {}) {
@@ -578,12 +586,16 @@ export function Index(index: Index) {
   };
 }
 
-export function Validate(validate: Validate) {
+export function UpdateValidator(validate: UpdateValidator) {
   return <T extends { new (...args: any[]): {} }>(constructor: T) => {
-    const validates: Validate[] =
-      Reflect.getOwnMetadata(VALIDATE_KEY, constructor.prototype) || [];
+    const validates: UpdateValidator[] =
+      Reflect.getOwnMetadata(UPDATE_VALIDATOR_KEY, constructor.prototype) || [];
     validates.push(validate);
-    Reflect.defineMetadata(VALIDATE_KEY, validates, constructor.prototype);
+    Reflect.defineMetadata(
+      UPDATE_VALIDATOR_KEY,
+      validates,
+      constructor.prototype,
+    );
   };
 }
 
@@ -601,7 +613,7 @@ export interface MongooseOptions {
   statics?: Method[];
   plugins?: Plugin[];
   indexes?: Index[];
-  validates?: Validate[];
+  updateValidators?: UpdateValidator[];
 }
 
 export interface Pre {
@@ -659,7 +671,12 @@ export interface Index {
   };
 }
 
-export interface Validate {
+export interface Validator {
+  validator: () => any;
+  message: string | ((props: object) => string);
+}
+
+export interface UpdateValidator {
   path: string;
   fn: (val?: any) => boolean;
   errorMsg?: string;
