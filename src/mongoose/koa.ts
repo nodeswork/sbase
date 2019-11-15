@@ -254,6 +254,7 @@ export class KoaMiddlewares extends model.DocumentModel {
         fields: opts.project,
         level: opts.level,
         runValidators: true,
+        context: 'query',
       };
       const omits = _.union(
         ['_id'],

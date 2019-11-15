@@ -460,7 +460,7 @@ export function Validate(validator: Validator, schema: any = {}) {
   );
 }
 
-export function Field(schema: any = {}) {
+export function Field(schema: any = {}): PropertyDecorator {
   function mapModelSchame(o: any): any {
     if (_.isArray(o)) {
       return _.map(o, x => mapModelSchame(x));
