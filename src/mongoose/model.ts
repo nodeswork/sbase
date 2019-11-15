@@ -404,7 +404,7 @@ export function ArrayField(type: any, schema: any = {}) {
 }
 
 export function Required(
-  opt: boolean | (() => boolean) = true,
+  opt: boolean | (() => boolean | Promise<boolean>) = true,
   schema: any = {},
 ) {
   return Field(
