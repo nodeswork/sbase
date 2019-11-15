@@ -403,10 +403,13 @@ export function ArrayField(type: any, schema: any = {}) {
   );
 }
 
-export function Required(schema: any = {}) {
+export function Required(
+  opt: boolean | (() => boolean) = true,
+  schema: any = {},
+) {
   return Field(
     _.extend({}, schema, {
-      required: true,
+      required: opt,
     }),
   );
 }
