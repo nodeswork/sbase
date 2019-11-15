@@ -367,7 +367,7 @@ export function Enum(e: any, schema: any = {}) {
   return Field(
     _.extend({}, schema, {
       type: String,
-      enum: Object.values(e),
+      enum: Object.values(e).concat([null]),
     }),
   );
 }
