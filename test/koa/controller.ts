@@ -61,13 +61,13 @@ controller.$koaRouterUseArgs;
 
 describe('koa.controller', () => {
   it('should create middlewares', async () => {
-    const ctx: any = { values: [] };
+    const ctx: any = { values: [], request: {} };
     await controller.m4(ctx, function() {});
     ctx.values.should.deepEqual(['m1', 'm2', 'm3', 'm4']);
   });
 
   it('should create with empty middlewares', async () => {
-    const ctx: any = { values: [] };
+    const ctx: any = { values: [], request: {} };
     await controller.m5(ctx);
     ctx.values.should.deepEqual(['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7']);
   });
