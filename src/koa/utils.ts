@@ -27,6 +27,8 @@ export function compose(middleware: Function[]) {
   return function(context: any, next: Function) {
     // last called middleware #
     let index = -1;
+    const rid = context.requestId || '<unknown>';
+
     return dispatch.call(this, 0);
 
     function dispatch(i: number) {
@@ -41,9 +43,12 @@ export function compose(middleware: Function[]) {
       if (!fn) return Promise.resolve();
 
       const start = _.now();
+      const name = fn.name || '<anonymous>';
 
       try {
-        d('Begin of fn %O', fn.name);
+        if (name !== 'bound dispatch') {
+          d('[%O] Begin of middleware %O', rid, name);
+        }
         return Promise.resolve(
           fn.call(this, context, dispatch.bind(this, i + 1)),
         );
@@ -51,7 +56,9 @@ export function compose(middleware: Function[]) {
         return Promise.reject(err);
       } finally {
         const end = _.now();
-        d('End of fn %O, duration: %O', fn.name, end - start);
+        if (name !== 'bound dispatch') {
+          d('[%O] End of middleware %O, duration: %O', rid, name, end - start);
+        }
       }
     }
   };
