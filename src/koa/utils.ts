@@ -27,7 +27,9 @@ export function compose(middleware: Function[]) {
   return function(context: any, next: Function) {
     // last called middleware #
     let index = -1;
-    const rid = context.requestId || '<unknown>';
+    const rid = `${context.request.method} ${context.request.path} ${
+      context.requestId
+    }`;
 
     return dispatch.call(this, 0);
 
