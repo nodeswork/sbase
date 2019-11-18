@@ -25,8 +25,8 @@ export class A7Controller {
 
     this.$router = new Router(meta.routerOptions);
 
-    for (const middleware of meta.middlewares) {
-      this.$router.use(middleware);
+    if (_.isEmpty(meta.middlewares)) {
+      this.$router.use(compose(meta.middlewares));
     }
 
     for (const handler in meta.handlers) {
