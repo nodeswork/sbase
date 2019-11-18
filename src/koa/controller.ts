@@ -25,7 +25,7 @@ export class A7Controller {
 
     this.$router = new Router(meta.routerOptions);
 
-    if (_.isEmpty(meta.middlewares)) {
+    if (!_.isEmpty(meta.middlewares)) {
       this.$router.use(compose(meta.middlewares));
     }
 
