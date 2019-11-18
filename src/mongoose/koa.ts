@@ -274,6 +274,10 @@ export class KoaMiddlewares extends model.DocumentModel {
       }
       const object = await updatePromise;
 
+      if (object == null) {
+        throw NodesworkError.notFound();
+      }
+
       (ctx as any)[opts.target] = object;
 
       if (opts.triggerNext) {
