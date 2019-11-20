@@ -2,12 +2,15 @@ import '../mongoose/model-config';
 
 import * as Router from 'koa-router';
 import * as _ from 'underscore';
+import debug from 'debug';
+
+const d = debug('sbase:overrides');
 
 import { withInheritedProps as dotty } from 'object-path';
 
 export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
   const rs: Array<{
-    src: string[] | OverrideRuleExtractFn | object;
+    src: string[] | OverrideRuleExtractFn;
     dst: string[];
   }> = [];
 
@@ -20,15 +23,17 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
       rs.push({ src: split(os), dst: split(od) });
     } else {
       const [os, od] = rule;
-      rs.push({ src: os, dst: split(od) });
+      rs.push({ src: _.isFunction(os) ? os : () => os, dst: split(od) });
     }
   }
+
+  d('Prepared overrides: %O', rs);
 
   return async (ctx: Router.IRouterContext, next: () => void) => {
     for (const { src, dst } of rs) {
       let value;
 
-      if (_.isString(src)) {
+      if (_.isArray(src)) {
         value = dotty.get(ctx, src);
       } else if (_.isFunction(src)) {
         value = src(ctx);
@@ -39,6 +44,12 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
 
       if (value !== undefined) {
         dotty.set(ctx, ['overrides'].concat(dst), value);
+        d(
+          'Set overrides %O with value %O, result: %O',
+          dst,
+          value,
+          ctx.overrides,
+        );
       }
     }
     await next();
