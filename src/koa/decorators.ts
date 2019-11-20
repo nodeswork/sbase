@@ -3,8 +3,6 @@ import 'reflect-metadata';
 import * as Router from 'koa-router';
 import * as _ from 'underscore';
 
-import { compose } from './utils';
-
 import {
   IHandlerOptions,
   IMetadata,
@@ -12,6 +10,9 @@ import {
   Method,
 } from './declarations';
 import { ParamsOptions, params } from './params';
+
+import { OverrideRule } from '../../koa';
+import { compose } from './utils';
 import { overrides } from './overrides';
 
 export function Config(options: Router.IRouterOptions) {
@@ -188,7 +189,7 @@ function buildPropertyMiddleware(
   Reflect.defineMetadata(METADATA_KEY, meta, cls);
 }
 
-export const Overrides = (...rules: string[]) => {
+export const Overrides = (...rules: OverrideRule[]) => {
   return Middleware(overrides(...rules));
 };
 
