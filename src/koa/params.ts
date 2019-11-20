@@ -3,7 +3,7 @@ import * as _ from 'underscore';
 
 import * as validators from './validators';
 
-const dotty = require('dotty');
+import { withInheritedProps as dotty } from 'object-path';
 
 export interface ParamError {
   path: string | number;

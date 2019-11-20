@@ -3,22 +3,42 @@ import '../mongoose/model-config';
 import * as Router from 'koa-router';
 import * as _ from 'underscore';
 
-const dotty = require('dotty');
+import { withInheritedProps as dotty } from 'object-path';
 
-export function overrides(...rules: string[]): Router.IMiddleware {
-  const rs: Array<{ src: string[]; dst: string[] }> = [];
+export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
+  const rs: Array<{
+    src: string[] | OverrideRuleExtractFn | object;
+    dst: string[];
+  }> = [];
+
   for (const rule of rules) {
-    const [os, od] = rule.split('->');
-    if (!od) {
-      throw new Error(`Rule ${rule} is not correct`);
+    if (_.isString(rule)) {
+      const [os, od] = rule.split('->');
+      if (!od) {
+        throw new Error(`Rule ${rule} is not correct`);
+      }
+      rs.push({ src: split(os), dst: split(od) });
+    } else {
+      const [os, od] = rule;
+      rs.push({ src: os, dst: split(od) });
     }
-    rs.push({ src: split(os), dst: split(od) });
   }
+
   return async (ctx: Router.IRouterContext, next: () => void) => {
     for (const { src, dst } of rs) {
-      const value = dotty.get(ctx, src);
+      let value;
+
+      if (_.isString(src)) {
+        value = dotty.get(ctx, src);
+      } else if (_.isFunction(src)) {
+        value = src(ctx);
+        if (value && (value as Promise<object>).then) {
+          value = await value;
+        }
+      }
+
       if (value !== undefined) {
-        dotty.put(ctx, ['overrides'].concat(dst), value);
+        dotty.set(ctx, ['overrides'].concat(dst), value);
       }
     }
     await next();
@@ -47,3 +67,12 @@ function split(str: string): string[] {
 
   return _.filter(strs, x => !!x);
 }
+
+export type OverrideRuleExtractFn = (
+  ctx: Router.IRouterContext,
+) => object | Promise<object>;
+
+export type OverrideRule =
+  | string
+  | [object, string]
+  | [OverrideRuleExtractFn, string];

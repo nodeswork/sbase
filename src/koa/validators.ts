@@ -2,10 +2,9 @@ import * as _ from 'underscore';
 import * as validator from 'validator';
 
 import { ParamError, ParamsOptions, processValidators } from './params';
+import { withInheritedProps as dotty } from 'object-path';
 
 /* tslint:disable:rule1 no-shadowed-variable */
-
-const dotty = require('dotty');
 
 export type Validator = (
   target: any,
@@ -333,7 +332,7 @@ export function matches(
 export function blacklist(chars: string) {
   const blacklist: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.put(target, path, validator.blacklist(val, chars));
+      dotty.set(target, path, validator.blacklist(val, chars));
     }
     return true;
   };
@@ -342,14 +341,14 @@ export function blacklist(chars: string) {
 
 export function escape(target: any, path: string, val: any) {
   if (val != null) {
-    dotty.put(target, path, validator.escape(val));
+    dotty.set(target, path, validator.escape(val));
   }
   return true;
 }
 
 export function unescape(target: any, path: string, val: any) {
   if (val != null) {
-    dotty.put(target, path, validator.unescape(val));
+    dotty.set(target, path, validator.unescape(val));
   }
   return true;
 }
@@ -357,7 +356,7 @@ export function unescape(target: any, path: string, val: any) {
 export function ltrim(chars?: string) {
   const ltrim: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.put(target, path, validator.ltrim(val, chars));
+      dotty.set(target, path, validator.ltrim(val, chars));
     }
     return true;
   };
@@ -367,7 +366,7 @@ export function ltrim(chars?: string) {
 export function normalizeEmail(options?: ValidatorJS.NormalizeEmailOptions) {
   const normalizeEmail: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.put(target, path, validator.normalizeEmail(val, options));
+      dotty.set(target, path, validator.normalizeEmail(val, options));
     }
     return true;
   };
@@ -377,7 +376,7 @@ export function normalizeEmail(options?: ValidatorJS.NormalizeEmailOptions) {
 export function rtrim(chars?: string) {
   const rtrim: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.put(target, path, validator.rtrim(val, chars));
+      dotty.set(target, path, validator.rtrim(val, chars));
     }
     return true;
   };
@@ -387,7 +386,7 @@ export function rtrim(chars?: string) {
 export function stripLow(keep_new_lines?: boolean) {
   const stripLow: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.put(target, path, validator.stripLow(val, keep_new_lines));
+      dotty.set(target, path, validator.stripLow(val, keep_new_lines));
     }
     return true;
   };
@@ -397,7 +396,7 @@ export function stripLow(keep_new_lines?: boolean) {
 export function toBoolean(strict?: boolean) {
   const toBoolean: Validator = (target, path, val) => {
     if (val != null && !_.isBoolean(val)) {
-      dotty.put(target, path, validator.toBoolean(val, strict));
+      dotty.set(target, path, validator.toBoolean(val, strict));
     }
     return true;
   };
@@ -406,14 +405,14 @@ export function toBoolean(strict?: boolean) {
 
 export function toDate(target: any, path: string, val: any) {
   if (val != null && !_.isDate(val)) {
-    dotty.put(target, path, validator.toDate(val));
+    dotty.set(target, path, validator.toDate(val));
   }
   return true;
 }
 
 export function toFloat(target: any, path: string, val: any) {
   if (val != null && !_.isNumber(val)) {
-    dotty.put(target, path, validator.toFloat(val));
+    dotty.set(target, path, validator.toFloat(val));
   }
   return true;
 }
@@ -425,7 +424,7 @@ export function toInt(radix?: number) {
         ? Math.floor(val)
         : validator.toInt(val, radix);
 
-      dotty.put(target, path, value);
+      dotty.set(target, path, value);
     }
     return true;
   };
@@ -435,7 +434,7 @@ export function toInt(radix?: number) {
 export function trim(chars?: string) {
   const trim: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.put(target, path, validator.trim(val, chars));
+      dotty.set(target, path, validator.trim(val, chars));
     }
     return true;
   };
@@ -445,7 +444,7 @@ export function trim(chars?: string) {
 export function whitelist(chars?: string) {
   const whitelist: Validator = (target, path, val) => {
     if (val != null) {
-      dotty.put(target, path, validator.whitelist(val, chars));
+      dotty.set(target, path, validator.whitelist(val, chars));
     }
     return true;
   };
@@ -459,7 +458,7 @@ export function split(separator: string = ',', restricted: boolean = false) {
     }
 
     if (val != null) {
-      dotty.put(target, path, val.split(separator));
+      dotty.set(target, path, val.split(separator));
     }
     return true;
   };
@@ -470,7 +469,7 @@ export function withDefault(option: any) {
   const withDefault: Validator = (target, path, val, root) => {
     if (val == null) {
       val = _.isFunction(option) ? option(root) : option;
-      dotty.put(target, path, val);
+      dotty.set(target, path, val);
     }
     return true;
   };
@@ -486,7 +485,7 @@ export function extractId(field: string = '_id') {
       _.isObject(val) &&
       _.isString(val[field])
     ) {
-      dotty.put(target, path, val[field]);
+      dotty.set(target, path, val[field]);
     }
     return true;
   };
@@ -496,7 +495,7 @@ export function extractId(field: string = '_id') {
 
 export function toNull(target: any, path: string, val: any) {
   if (val === 'null') {
-    dotty.put(target, path, null);
+    dotty.set(target, path, null);
   }
   return true;
 }
@@ -505,7 +504,7 @@ export function map(fn: (val: any, root: any) => any) {
   const map: Validator = (target, path, val, root) => {
     if (val != null) {
       val = fn(val, root);
-      dotty.put(target, path, val);
+      dotty.set(target, path, val);
     }
     return true;
   };

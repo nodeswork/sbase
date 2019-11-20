@@ -4,10 +4,9 @@ import * as model from './model';
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
 import { NodesworkError } from '@nodeswork/utils';
+import { withInheritedProps as dotty } from 'object-path';
 
 import { Field } from './';
-
-const dotty = require('dotty');
 
 export const READONLY = 'READONLY';
 export const AUTOGEN = 'AUTOGEN';
