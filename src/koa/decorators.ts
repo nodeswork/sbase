@@ -9,11 +9,10 @@ import {
   METADATA_KEY,
   Method,
 } from './declarations';
+import { OverrideRule, overrides } from './overrides';
 import { ParamsOptions, params } from './params';
 
-import { OverrideRule } from '../../koa';
 import { compose } from './utils';
-import { overrides } from './overrides';
 
 export function Config(options: Router.IRouterOptions) {
   return (cls: any) => {
