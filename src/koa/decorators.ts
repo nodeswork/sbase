@@ -55,6 +55,10 @@ export function Handler(options: IHandlerOptions = {}): PropertyDecorator {
       meta.handlers[propertyKey].path = options.path;
     }
 
+    if (options.name) {
+      meta.handlers[propertyKey].name = options.name;
+    }
+
     if (meta.handlers[propertyKey].path == null) {
       meta.handlers[propertyKey].path = '/';
     }

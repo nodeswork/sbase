@@ -10,6 +10,7 @@ export enum Method {
 export interface IHandlerOptions {
   method?: Method;
   path?: string;
+  name?: string;
 }
 
 export interface IMetadata {
@@ -24,6 +25,7 @@ export interface IHandlerMetadata {
   method: Method;
   path: string;
   middleware: Router.IMiddleware;
+  name?: string;
 }
 
 export const METADATA_KEY = 'a7:router-meta';

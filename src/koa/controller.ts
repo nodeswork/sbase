@@ -40,10 +40,15 @@ export class A7Controller {
       }
 
       if (handlerMeta.path != null) {
-        (this.$router as any)[handlerMeta.method](
-          handlerMeta.path,
-          method.bind(this),
-        );
+        const args = [];
+
+        if (handlerMeta.name) {
+          args.push(handlerMeta.name);
+        }
+
+        args.push(handlerMeta.path, method.bind(this));
+
+        (this.$router as any)[handlerMeta.method](...args);
       }
     }
 
