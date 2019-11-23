@@ -153,7 +153,7 @@ export function If(
   ifClause: Router.IMiddleware,
   elseClause?: Router.IMiddleware,
 ) {
-  return Middleware(async (ctx: Router.IRouterContext, next: () => any) {
+  return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
     const value = predictor(ctx);
     const boolValue = value && (value as Promise<boolean>).then ?
       await value : value;
@@ -172,7 +172,7 @@ export function When(
   predictor: (ctx: Router.IRouterContext) => boolean | Promise<boolean>,
   whenClause: Router.IMiddleware,
 ) {
-  return Middleware(async (ctx: Router.IRouterContext, next: () => any) {
+  return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
     const value = predictor(ctx);
     const boolValue = value && (value as Promise<boolean>).then ?
       await value : value;
