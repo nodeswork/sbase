@@ -148,6 +148,43 @@ export function Middleware(
   };
 }
 
+export function If(
+  predictor: (ctx: Router.IRouterContext) => boolean | Promise<boolean>,
+  ifClause: Router.IMiddleware,
+  elseClause?: Router.IMiddleware,
+) {
+  return Middleware(async (ctx: Router.IRouterContext, next: () => any) {
+    const value = predictor(ctx);
+    const boolValue = value && (value as Promise<boolean>).then ?
+      await value : value;
+
+    if (boolValue && ifClause) {
+      await ifClause(ctx, next);
+    }
+
+    if (!boolValue && elseClause) {
+      await elseClause(ctx, next);
+    }
+  });
+}
+
+export function When(
+  predictor: (ctx: Router.IRouterContext) => boolean | Promise<boolean>,
+  whenClause: Router.IMiddleware,
+) {
+  return Middleware(async (ctx: Router.IRouterContext, next: () => any) {
+    const value = predictor(ctx);
+    const boolValue = value && (value as Promise<boolean>).then ?
+      await value : value;
+
+    if (boolValue && whenClause) {
+      await whenClause(ctx, () => Promise.resolve({}));
+    }
+
+    await next();
+  });
+}
+
 function buildConstructorMiddleware(
   cls: any,
   middlewares: Router.IMiddleware[],
