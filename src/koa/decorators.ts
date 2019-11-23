@@ -46,20 +46,31 @@ export function Handler(options: IHandlerOptions = {}): PropertyDecorator {
       };
     }
 
+    const m = meta.handlers[propertyKey];
+
+    if (options.middleware) {
+      const middleware = _.isArray(options.middleware)
+        ? compose(options.middleware)
+        : options.middleware;
+
+      m.middleware =
+        m.middleware == null ? middleware : compose([middleware, m.middleware]);
+    }
+
     if (options.method) {
-      meta.handlers[propertyKey].method = options.method;
+      m.method = options.method;
     }
 
     if (options.path) {
-      meta.handlers[propertyKey].path = options.path;
+      m.path = options.path;
     }
 
     if (options.name) {
-      meta.handlers[propertyKey].name = options.name;
+      m.name = options.name;
     }
 
-    if (meta.handlers[propertyKey].path == null) {
-      meta.handlers[propertyKey].path = '/';
+    if (m.path == null) {
+      m.path = '/';
     }
 
     Reflect.defineMetadata(METADATA_KEY, meta, cls);

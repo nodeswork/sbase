@@ -11,6 +11,7 @@ export interface IHandlerOptions {
   method?: Method;
   path?: string;
   name?: string;
+  middleware?: Router.IMiddleware | Router.IMiddleware[];
 }
 
 export interface IMetadata {
