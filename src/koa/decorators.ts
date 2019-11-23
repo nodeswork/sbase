@@ -158,12 +158,12 @@ export function If(
     const boolValue = value && (value as Promise<boolean>).then ?
       await value : value;
 
-    if (boolValue && ifClause) {
+    if (boolValue) {
       await ifClause(ctx, next);
-    }
-
-    if (!boolValue && elseClause) {
+    } else if (elseClause) {
       await elseClause(ctx, next);
+    } else {
+      await next();
     }
   });
 }
