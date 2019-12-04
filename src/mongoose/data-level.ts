@@ -2,7 +2,6 @@ import * as _ from 'underscore';
 import { DocumentToObjectOptions, Schema, SchemaOptions } from 'mongoose';
 
 import * as model from './model';
-import { ToJSONOption } from './model-config';
 import { Field } from './';
 import { DataLevelConfig } from './model-config';
 

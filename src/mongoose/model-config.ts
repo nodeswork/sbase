@@ -66,3 +66,23 @@ export interface DataLevelConfig {
 export interface ToJSONOption {
   level?: string;
 }
+
+export interface MultiTenancyOptions {
+  enabled?: boolean;
+  defaultCollectionNamespace?: string;
+  tenants?: string[];
+  tenancyFn?: () => string;
+}
+
+export interface SBaseMongooseConfig {
+  multiTenancy?: MultiTenancyOptions;
+}
+
+export const sbaseMongooseConfig: SBaseMongooseConfig = {
+  multiTenancy: {
+    enabled: false,
+    defaultCollectionNamespace: '',
+    tenants: [],
+    tenancyFn: () => 'default',
+  },
+};

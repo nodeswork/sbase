@@ -12,7 +12,7 @@ describe('decorator Field', () => {
       public name: string;
     }
 
-    (DT1.$mongooseOptions.schema as any).name.should.be.ok();
-    (DT1.$mongooseOptions.config as any).collection.should.be.equal('dt1s');
+    (DT1.$mongooseOptions().schema as any).name.should.be.ok();
+    (DT1.$mongooseOptions().config as any).collection.should.be.equal('dt1s');
   });
 });

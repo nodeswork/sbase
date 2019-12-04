@@ -14,6 +14,7 @@ import {
 import { MongoError } from 'mongodb';
 import { A7ModelType } from './a7-model';
 import { pushMetadata, extendMetadata } from './helpers';
+import { sbaseMongooseConfig } from './model-config';
 
 const d = debug('sbase:model');
 
@@ -69,36 +70,45 @@ export class Model {
     return this;
   }
 
-  public static get $mongooseOptions(): MongooseOptions {
+  public static $mongooseOptions(tenancy: string = 'default'): MongooseOptions {
     if (this === Model) {
       return null;
     }
 
     d('generate $mongooseOptions for %O', this.name);
 
-    var mongooseOptions: MongooseOptions = Reflect.getOwnMetadata(
+    var mongooseOptionsMap: MongooseOptionsMap = Reflect.getOwnMetadata(
       MONGOOSE_OPTIONS_KEY,
       this.prototype,
     );
-    if (mongooseOptions) {
-      return mongooseOptions;
+
+    if (mongooseOptionsMap && mongooseOptionsMap[tenancy]) {
+      return mongooseOptionsMap[tenancy];
     }
 
-    mongooseOptions = {};
+    const mongooseOptions: MongooseOptions = {};
+
+    mongooseOptionsMap = {
+      [tenancy]: mongooseOptions,
+    };
+
     Reflect.defineMetadata(
       MONGOOSE_OPTIONS_KEY,
-      mongooseOptions,
+      mongooseOptionsMap,
       this.prototype,
     );
 
     const superClass: ModelType = (this as any).__proto__;
 
-    const superOptions: MongooseOptions = superClass.$mongooseOptions || {};
+    const superOptions: MongooseOptions =
+      superClass.$mongooseOptions(tenancy) || {};
 
     const mixinModels: ModelType[] = _.union(
       Reflect.getOwnMetadata(MIXIN_KEY, this.prototype) || [],
     );
-    const mixinOptions = _.map(mixinModels, model => model.$mongooseOptions);
+    const mixinOptions = _.map(mixinModels, model =>
+      model.$mongooseOptions(tenancy),
+    );
 
     const schemas = _.flatten([
       _.map(mixinOptions, opt => opt.schema),
@@ -235,9 +245,19 @@ export class Model {
       }
     }
 
+    const collection = _.chain([
+      tenancy === 'default'
+        ? sbaseMongooseConfig.multiTenancy.defaultCollectionNamespace
+        : tenancy,
+      mongooseOptions.config.collection,
+    ])
+      .filter(x => !!x)
+      .join('.')
+      .value();
+
     const mongooseSchema = new Schema(
       mongooseOptions.schema,
-      _.clone(mongooseOptions.config),
+      _.extend(_.clone(mongooseOptions.config), { collection }),
     );
 
     (mongooseSchema as any).parentSchema = superOptions.mongooseSchema;
@@ -328,11 +348,7 @@ export class Model {
     if (!mongooseInstance) {
       mongooseInstance = require('mongoose');
     }
-
-    return mongooseInstance.model(
-      this.name,
-      this.$mongooseOptions.mongooseSchema,
-    ) as MModel<D> & M;
+    return registerMultiTenancy<D, M, void>(mongooseInstance, this);
   }
 
   public static $registerA7Model<D extends Document, M>(
@@ -341,12 +357,61 @@ export class Model {
     if (!mongooseInstance) {
       mongooseInstance = require('mongoose');
     }
-
-    return mongooseInstance.model(
-      this.name,
-      this.$mongooseOptions.mongooseSchema,
-    ) as MModel<D> & M & A7ModelType;
+    return registerMultiTenancy<D, M, A7ModelType>(mongooseInstance, this);
   }
+}
+
+const mongooseInstanceMap: {
+  [tenancy: string]: Mongoose;
+} = {};
+
+function registerMultiTenancy<D extends Document, M, A>(
+  mongooseInstance: Mongoose,
+  model: ModelType,
+): MModel<D> & M & A {
+  if (!sbaseMongooseConfig.multiTenancy.enabled) {
+    return mongooseInstance.model(
+      model.name,
+      model.$mongooseOptions().mongooseSchema,
+    ) as any;
+  }
+
+  const tenants = ['default'].concat(sbaseMongooseConfig.multiTenancy.tenants);
+  const tenantMap: {
+    [key: string]: MModel<D> & M & A;
+  } = {};
+
+
+  for (const tenancy of tenants) {
+    let mi = mongooseInstanceMap[tenancy];
+
+    if (mi == null) {
+      mi = new Mongoose();
+      (mi as any).connections[0] = mongooseInstance.connection;
+      mongooseInstanceMap[tenancy] = mi;
+    }
+
+    const m = mi.model(
+      model.name,
+      model.$mongooseOptions(tenancy).mongooseSchema,
+    ) as any;
+    tenantMap[tenancy] = m;
+  }
+
+  return new Proxy<MModel<D> & M & A>({} as any, {
+    get: (_obj: {}, prop: string) => {
+      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn();
+      const m: any = tenantMap[tenancy];
+      const res = m[prop];
+      return _.isFunction(res) ? res.bind(m) : res;
+    },
+    set: (_obj: {}, prop: string, value: any) => {
+      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn();
+      const m: any = tenantMap[tenancy];
+      m[prop] = value;
+      return true;
+    },
+  });
 }
 
 export interface DocumentModel extends Document {}
@@ -469,21 +534,21 @@ export function Validate(validator: Validator, schema: any = {}) {
 }
 
 export function Field(schema: any = {}): PropertyDecorator {
-  function mapModelSchame(o: any): any {
+  function mapModelSchema(o: any): any {
     if (_.isArray(o)) {
-      return _.map(o, x => mapModelSchame(x));
+      return _.map(o, x => mapModelSchema(x));
     } else if (_.isFunction(o)) {
       if (o.prototype instanceof Model) {
         const func = Object.getOwnPropertyDescriptor(
           o.__proto__,
           '$mongooseOptions',
         );
-        return func.get.call(o).mongooseSchema;
+        return func.value.call(o).mongooseSchema;
       } else {
         return o;
       }
     } else if (_.isObject(o) && o.__proto__.constructor.name === 'Object') {
-      return _.mapObject(o, x => mapModelSchame(x));
+      return _.mapObject(o, x => mapModelSchema(x));
     } else {
       return o;
     }
@@ -508,7 +573,7 @@ export function Field(schema: any = {}): PropertyDecorator {
       schema.default = schema.type;
     }
 
-    schemas[propertyName] = _.extend({}, existing, mapModelSchame(schema));
+    schemas[propertyName] = _.extend({}, existing, mapModelSchema(schema));
     Reflect.defineMetadata(SCHEMA_KEY, schemas, target);
   };
 }
@@ -625,6 +690,10 @@ export interface MongooseOptions {
   plugins?: Plugin[];
   indexes?: Index[];
   updateValidators?: UpdateValidator[];
+}
+
+export interface MongooseOptionsMap {
+  [key: string]: MongooseOptions;
 }
 
 export interface Pre {
