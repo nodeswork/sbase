@@ -365,6 +365,18 @@ const mongooseInstanceMap: {
   [tenancy: string]: Mongoose;
 } = {};
 
+const lazyFns = [
+  'createMiddleware',
+  'getMiddleware',
+  'findMiddleware',
+  'updateMiddleware',
+  'deleteMiddleware',
+];
+
+const shareFns = [
+  'on',
+];
+
 function registerMultiTenancy<D extends Document, M, A>(
   mongooseInstance: Mongoose,
   model: ModelType,
@@ -389,7 +401,7 @@ function registerMultiTenancy<D extends Document, M, A>(
       mi.connect(
         sbaseMongooseConfig.multiTenancy.uris,
         sbaseMongooseConfig.multiTenancy.options,
-        (err) => {
+        err => {
           sbaseMongooseConfig.multiTenancy.onError(err, tenancy);
         },
       );
@@ -406,6 +418,27 @@ function registerMultiTenancy<D extends Document, M, A>(
 
   return new Proxy<MModel<D> & M & A>({} as any, {
     get: (_obj: {}, prop: string) => {
+      if (lazyFns.indexOf(prop) >= 0) {
+        const ret = function () {
+          const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+          const m: any = tenantMap[tenancy];
+          const actualFn = m[prop];
+
+          return actualFn.apply(this, arguments);
+        };
+        return ret;
+      }
+
+      if (shareFns.indexOf(prop) >= 0) {
+        const ret = function () {
+          return _.map(tenants, tenancy => {
+            const m: any = tenantMap[tenancy];
+            return m[prop].apply(this, arguments);
+          });
+        };
+        return ret;
+      }
+
       const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       const res = m[prop];
