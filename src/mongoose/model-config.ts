@@ -73,7 +73,7 @@ export interface MultiTenancyOptions {
   enabled?: boolean;
   defaultCollectionNamespace?: string;
   tenants?: string[];
-  tenancyFn?: () => string;
+  tenancyFn?: (prop: string) => string;
   uris?: string;
   options?: ConnectionOptions;
   onError?: (err: any, tenancy: string) => void;

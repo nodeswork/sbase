@@ -406,13 +406,13 @@ function registerMultiTenancy<D extends Document, M, A>(
 
   return new Proxy<MModel<D> & M & A>({} as any, {
     get: (_obj: {}, prop: string) => {
-      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn();
+      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       const res = m[prop];
       return _.isFunction(res) ? res.bind(m) : res;
     },
     set: (_obj: {}, prop: string, value: any) => {
-      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn();
+      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       m[prop] = value;
       return true;
