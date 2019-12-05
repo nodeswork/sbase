@@ -365,13 +365,7 @@ const mongooseInstanceMap: {
   [tenancy: string]: Mongoose;
 } = {};
 
-const lazyFns: string[] = [
-  // 'createMiddleware',
-  // 'getMiddleware',
-  // 'findMiddleware',
-  // 'updateMiddleware',
-  // 'deleteMiddleware',
-];
+const lazyFns: string[] = [];
 
 const shareFns = [
   'on',
@@ -416,7 +410,7 @@ function registerMultiTenancy<D extends Document, M, A>(
     tenantMap[tenancy] = m;
   }
 
-  return new Proxy<MModel<D> & M & A>({} as any, {
+  const proxy: any = new Proxy<MModel<D> & M & A>({} as any, {
     get: (_obj: {}, prop: string) => {
       if (lazyFns.indexOf(prop) >= 0) {
         const ret = function () {
@@ -442,7 +436,8 @@ function registerMultiTenancy<D extends Document, M, A>(
       const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       const res = m[prop];
-      return _.isFunction(res) ? res.bind(_obj) : res;
+      m._proxy = proxy;
+      return _.isFunction(res) ? res.bind(m) : res;
     },
     set: (_obj: {}, prop: string, value: any) => {
       const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
@@ -451,13 +446,15 @@ function registerMultiTenancy<D extends Document, M, A>(
       return true;
     },
   });
+
+  return proxy;
 }
 
 export interface DocumentModel extends Document {}
 
 export class DocumentModel extends Model {
   public static cast<D extends DocumentModel>(): IModel<D> {
-    return (this as any) as IModel<D>;
+    return (this as any)._proxy || this;
   }
 }
 
