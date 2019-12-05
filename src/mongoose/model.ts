@@ -365,12 +365,12 @@ const mongooseInstanceMap: {
   [tenancy: string]: Mongoose;
 } = {};
 
-const lazyFns = [
-  'createMiddleware',
-  'getMiddleware',
-  'findMiddleware',
-  'updateMiddleware',
-  'deleteMiddleware',
+const lazyFns: string[] = [
+  // 'createMiddleware',
+  // 'getMiddleware',
+  // 'findMiddleware',
+  // 'updateMiddleware',
+  // 'deleteMiddleware',
 ];
 
 const shareFns = [
@@ -433,7 +433,7 @@ function registerMultiTenancy<D extends Document, M, A>(
         const ret = function () {
           return _.map(tenants, tenancy => {
             const m: any = tenantMap[tenancy];
-            return m[prop].apply(this, arguments);
+            return m[prop].apply(m, arguments);
           });
         };
         return ret;
@@ -442,7 +442,7 @@ function registerMultiTenancy<D extends Document, M, A>(
       const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       const res = m[prop];
-      return _.isFunction(res) ? res.bind(m) : res;
+      return _.isFunction(res) ? res.bind(_obj) : res;
     },
     set: (_obj: {}, prop: string, value: any) => {
       const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);

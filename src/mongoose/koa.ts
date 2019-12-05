@@ -24,7 +24,7 @@ export class KoaMiddlewares extends model.DocumentModel {
         options,
         ctx.overrides && ctx.overrides.options,
       );
-      let rModel = self;
+      const rModel = self;
       const omits = _.union(['_id'], opts.omits, self.schema.api.AUTOGEN);
       let doc = _.omit(ctx.request.body, omits);
       doc = _.extend(doc, ctx.overrides && ctx.overrides.doc);
