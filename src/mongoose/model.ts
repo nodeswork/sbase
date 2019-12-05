@@ -381,13 +381,19 @@ function registerMultiTenancy<D extends Document, M, A>(
     [key: string]: MModel<D> & M & A;
   } = {};
 
-
   for (const tenancy of tenants) {
     let mi = mongooseInstanceMap[tenancy];
 
     if (mi == null) {
       mi = new Mongoose();
-      (mi as any).connections[0] = mongooseInstance.connection;
+      mi.connect(
+        sbaseMongooseConfig.multiTenancy.uris,
+        sbaseMongooseConfig.multiTenancy.options,
+        (err) => {
+          sbaseMongooseConfig.multiTenancy.onError(err, tenancy);
+        },
+      );
+      sbaseMongooseConfig.multiTenancy.onMongooseInstanceCreated(mi, tenancy);
       mongooseInstanceMap[tenancy] = mi;
     }
 

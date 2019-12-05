@@ -1,3 +1,5 @@
+import { ConnectionOptions, Mongoose } from 'mongoose';
+
 declare module 'koa' {
   export interface Request {
     body: any;
@@ -72,6 +74,10 @@ export interface MultiTenancyOptions {
   defaultCollectionNamespace?: string;
   tenants?: string[];
   tenancyFn?: () => string;
+  uris?: string;
+  options?: ConnectionOptions;
+  onError?: (err: any, tenancy: string) => void;
+  onMongooseInstanceCreated?: (mongoose: Mongoose, tenancy: string) => void;
 }
 
 export interface SBaseMongooseConfig {
@@ -84,5 +90,8 @@ export const sbaseMongooseConfig: SBaseMongooseConfig = {
     defaultCollectionNamespace: '',
     tenants: [],
     tenancyFn: () => 'default',
+    options: {},
+    onError: () => {},
+    onMongooseInstanceCreated: () => {},
   },
 };
