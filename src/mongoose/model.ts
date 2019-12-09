@@ -435,8 +435,13 @@ function registerMultiTenancy<D extends Document, M, A>(
 
       const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
-      const res = m[prop];
       m._proxy = proxy;
+
+      if (prop === '$modelClass') {
+        return m;
+      }
+
+      const res = m[prop];
       return _.isFunction(res) ? res.bind(m) : res;
     },
     set: (_obj: {}, prop: string, value: any) => {
