@@ -6,7 +6,11 @@ import * as dataLevel from './data-level';
 export type A7ModelType = typeof A7Model &
   dataLevel.DataLevelModelType &
   koa.KoaMiddlewaresType &
-  timestamp.TimestampModelType;
+  timestamp.TimestampModelType & A7ModelClass;
+
+export interface A7ModelClass {
+  $modelClass?: any;
+}
 
 export interface A7Model extends koa.KoaMiddlewares, timestamp.TimestampModel {}
 
