@@ -261,7 +261,12 @@ export class KoaMiddlewares extends model.DocumentModel {
         self.schema.api.READONLY,
         self.schema.api.AUTOGEN,
       );
-      let doc = _.omit(ctx.request.body, omits);
+
+      const fOmits = _.filter(Object.keys(ctx.request.body), k => {
+        return _.find(omits, o => o === k || k.startsWith(o + '.')) != null;
+      });
+
+      let doc = _.omit(ctx.request.body, fOmits);
       doc = _.extend(doc, ctx.overrides && ctx.overrides.doc);
       const upDoc = {
         $set: doc,
@@ -428,7 +433,7 @@ KoaMiddlewares.Plugin({
   fn: apiLevel,
 });
 
-function apiLevel(schema: Schema, options: object) {
+function apiLevel(schema: Schema, _options: object) {
   for (let s = schema; s; s = s.parentSchema) {
     if (s.api == null) {
       s.api = {
