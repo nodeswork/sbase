@@ -824,7 +824,7 @@ export const preQueries = [
 const STATIC_FILTER_NAMES = ['name', 'length', 'prototype'];
 
 export function combineValidator<T>(
-  fn: (this: T) => boolean | Promise<boolean>,
+  fn: (this: T, _v: any) => boolean | Promise<boolean>,
 ): () => boolean | Promise<boolean> {
   return function(this: T | Query<T>) {
     if (this instanceof Query) {
