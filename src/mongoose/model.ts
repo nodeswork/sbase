@@ -367,9 +367,7 @@ const mongooseInstanceMap: {
 
 const lazyFns: string[] = [];
 
-const shareFns = [
-  'on',
-];
+const shareFns = ['on'];
 
 function registerMultiTenancy<D extends Document, M, A>(
   mongooseInstance: Mongoose,
@@ -413,7 +411,7 @@ function registerMultiTenancy<D extends Document, M, A>(
   const proxy: any = new Proxy<MModel<D> & M & A>({} as any, {
     get: (_obj: {}, prop: string) => {
       if (lazyFns.indexOf(prop) >= 0) {
-        const ret = function () {
+        const ret = function() {
           const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
           const m: any = tenantMap[tenancy];
           const actualFn = m[prop];
@@ -424,7 +422,7 @@ function registerMultiTenancy<D extends Document, M, A>(
       }
 
       if (shareFns.indexOf(prop) >= 0) {
-        const ret = function () {
+        const ret = function() {
           return _.map(tenants, tenancy => {
             const m: any = tenantMap[tenancy];
             return m[prop].apply(m, arguments);
@@ -793,8 +791,8 @@ export interface Index {
 }
 
 export interface Validator {
-  validator: () => any;
-  message: string | ((props: object) => string);
+  validator: (v: any) => any;
+  message: string | ((props: { value: any }) => string);
 }
 
 export interface UpdateValidator {
