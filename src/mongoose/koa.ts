@@ -224,7 +224,9 @@ export class KoaMiddlewares extends model.DocumentModel {
   public static updateMiddleware(options: UpdateOptions): IMiddleware {
     const self = this.cast<KoaMiddlewares>();
 
-    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+    options = _.defaults({}, options, DEFAULT_UPDATE_OPTIONS);
+
+    const idFieldName = options.idFieldName;
 
     async function update(ctx: IRouterContext, next: INext) {
       const opts = _.extend(
@@ -235,12 +237,12 @@ export class KoaMiddlewares extends model.DocumentModel {
       const query = (ctx.overrides && ctx.overrides.query) || {};
       if (opts.field !== '*') {
         if (opts.field.indexOf('.') >= 0) {
-          query._id = dotty.get(ctx.request, opts.field);
+          query[idFieldName] = dotty.get(ctx.request, opts.field);
         } else {
-          query._id = ctx.params[opts.field];
+          query[idFieldName] = ctx.params[opts.field];
         }
 
-        if (query._id == null) {
+        if (query[idFieldName] == null) {
           throw new NodesworkError('invalid value', {
             responseCode: 422,
             path: opts.field,
@@ -263,6 +265,7 @@ export class KoaMiddlewares extends model.DocumentModel {
       };
       const omits = _.union(
         ['_id'],
+        [idFieldName],
         opts.omits,
         self.schema.api.READONLY,
         self.schema.api.AUTOGEN,
@@ -310,7 +313,8 @@ export class KoaMiddlewares extends model.DocumentModel {
   public static deleteMiddleware(options: DeleteOptions): IMiddleware {
     const self = this.cast<KoaMiddlewares>();
 
-    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+    options = _.defaults({}, options, DEFAULT_DELETE_OPTIONS);
+    const idFieldName = options.idFieldName;
 
     async function del(ctx: IRouterContext, next: INext) {
       const opts = _.extend(
@@ -321,9 +325,9 @@ export class KoaMiddlewares extends model.DocumentModel {
       const query = (ctx.overrides && ctx.overrides.query) || {};
 
       if (opts.field.indexOf('.') >= 0) {
-        query._id = dotty.get(ctx.request, opts.field);
+        query[idFieldName] = dotty.get(ctx.request, opts.field);
       } else {
-        query._id = ctx.params[opts.field];
+        query[idFieldName] = ctx.params[opts.field];
       }
 
       const queryOption: any = {};
@@ -378,11 +382,28 @@ const DEFAULT_COMMON_OPTIONS = {
   transform: _.identity,
 };
 
-const DEFAULT_GET_OPTIONS = {
-  target: 'object',
-  transform: _.identity,
+const DEFAULT_SINGLE_ITEM_OPTIONS: Partial<SingleItemOptions> = {
   idFieldName: '_id',
+  nullable: false,
 };
+
+const DEFAULT_GET_OPTIONS: Partial<GetOptions> = _.defaults(
+  {},
+  DEFAULT_COMMON_OPTIONS,
+  DEFAULT_SINGLE_ITEM_OPTIONS,
+);
+
+const DEFAULT_UPDATE_OPTIONS: Partial<UpdateOptions> = _.defaults(
+  {},
+  DEFAULT_COMMON_OPTIONS,
+  DEFAULT_SINGLE_ITEM_OPTIONS,
+)
+
+const DEFAULT_DELETE_OPTIONS: Partial<DeleteOptions> = _.defaults(
+  {},
+  DEFAULT_COMMON_OPTIONS,
+  DEFAULT_SINGLE_ITEM_OPTIONS,
+)
 
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size: 20,
@@ -408,14 +429,28 @@ export interface CreateOptions
     CommonResponseOptions,
     CommonWriteOptions {}
 
+/**
+ * When read/write/delete to a single item.
+ */
+export interface SingleItemOptions {
+  // The field name to extract.
+  field: string;
+
+  // The field where stores the id, default: _id.
+  idFieldName?: string;
+
+  // When a null value is acceptable, default: false.
+  nullable?: boolean;
+}
+
+/**
+ * Get Middleware Options.
+ */
 export interface GetOptions
   extends CommonOptions,
     CommonResponseOptions,
-    CommonReadOptions {
-  field: string;
-  idFieldName?: string; // the field storing the id, default: _id.
-  nullable?: boolean;
-}
+    CommonReadOptions,
+    SingleItemOptions {}
 
 export interface FindOptions
   extends CommonOptions,
@@ -432,15 +467,10 @@ export interface FindOptions
 export interface UpdateOptions
   extends CommonOptions,
     CommonResponseOptions,
-    CommonWriteOptions {
-  field: string;
-  nullable?: boolean;
-}
+    CommonWriteOptions,
+    SingleItemOptions {}
 
-export interface DeleteOptions extends CommonOptions {
-  field: string;
-  nullable?: boolean;
-}
+export interface DeleteOptions extends CommonOptions, SingleItemOptions {}
 
 KoaMiddlewares.Plugin({
   fn: apiLevel,
