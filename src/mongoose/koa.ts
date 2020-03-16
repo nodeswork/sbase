@@ -64,10 +64,15 @@ export class KoaMiddlewares extends model.DocumentModel {
     return create;
   }
 
+  /**
+   * Returns Koa get middleware.
+   */
   public static getMiddleware(options: GetOptions): IMiddleware {
     const self = this.cast<KoaMiddlewares>();
 
-    _.defaults(options, DEFAULT_COMMON_OPTIONS);
+    options = _.defaults({}, options, DEFAULT_GET_OPTIONS);
+
+    const idFieldName = options.idFieldName;
 
     async function get(ctx: IRouterContext, next: INext) {
       const opts = _.extend(
@@ -78,15 +83,16 @@ export class KoaMiddlewares extends model.DocumentModel {
       const query = (ctx.overrides && ctx.overrides.query) || {};
       if (opts.field !== '*') {
         if (opts.field.indexOf('.') >= 0) {
-          query._id = dotty.get(ctx.request, opts.field);
+          query[idFieldName] = dotty.get(ctx.request, opts.field);
         } else {
-          query._id = ctx.params[opts.field];
+          query[idFieldName] = ctx.params[opts.field];
         }
 
-        if (query._id == null) {
+        if (query[idFieldName] == null) {
           throw new NodesworkError('invalid value', {
             responseCode: 422,
             path: opts.field,
+            idFieldName,
           });
         }
       }
@@ -372,6 +378,12 @@ const DEFAULT_COMMON_OPTIONS = {
   transform: _.identity,
 };
 
+const DEFAULT_GET_OPTIONS = {
+  target: 'object',
+  transform: _.identity,
+  idFieldName: '_id',
+};
+
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size: 20,
   sizeChoices: [20, 50, 100, 200],
@@ -401,6 +413,7 @@ export interface GetOptions
     CommonResponseOptions,
     CommonReadOptions {
   field: string;
+  idFieldName?: string; // the field storing the id, default: _id.
   nullable?: boolean;
 }
 
