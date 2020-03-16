@@ -1,6 +1,6 @@
 {
   "name": "@nodeswork/sbase",
-  "version": "0.5.65",
+  "version": "0.5.66",
   "description": "Basic REST api foundation from Nodeswork.",
   "types": "index.d.ts",
   "scripts": {
