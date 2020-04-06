@@ -38,12 +38,15 @@ export class KoaMiddlewares extends model.DocumentModel {
       doc = (ctx as any)[opts.target];
       let object: KoaMiddlewares = ((await rModel.create(
         doc,
+        _.pick(opts, 'lean'),
       )) as any) as KoaMiddlewares;
 
       if (opts.project || opts.level) {
-        object = await self.findById(object._id, opts.project, {
-          level: opts.level,
-        });
+        object = await self.findById(
+          object._id,
+          opts.project,
+          _.pick(opts, 'level', 'lean'),
+        );
       }
 
       (ctx as any)[opts.target] = object;
@@ -103,10 +106,7 @@ export class KoaMiddlewares extends model.DocumentModel {
         });
       }
 
-      const queryOption: any = {};
-      if (opts.level) {
-        queryOption.level = opts.level;
-      }
+      const queryOption: any = _.pick(opts, 'level', 'lean');
 
       let queryPromise = self.findOne(query, opts.project, queryOption);
 
@@ -160,7 +160,7 @@ export class KoaMiddlewares extends model.DocumentModel {
         ctx.overrides && ctx.overrides.options,
       );
       const query = (ctx.overrides && ctx.overrides.query) || {};
-      const queryOption: any = {};
+      const queryOption: any = _.pick(opts, 'sort', 'lean', 'level');
       let pagination = null;
 
       if (opts.pagination) {
@@ -171,16 +171,8 @@ export class KoaMiddlewares extends model.DocumentModel {
         queryOption.limit = pagination.size;
       }
 
-      if (opts.sort) {
-        queryOption.sort = opts.sort;
-      }
-
       if (ctx.overrides && ctx.overrides.sort) {
         queryOption.sort = ctx.overrides.sort;
-      }
-
-      if (opts.level) {
-        queryOption.level = opts.level;
       }
 
       let queryPromise = self.find(query, opts.project, queryOption);
@@ -262,6 +254,7 @@ export class KoaMiddlewares extends model.DocumentModel {
         level: opts.level,
         runValidators: true,
         context: 'query',
+        lean: opts.lean,
       };
       const omits = _.union(
         ['_id'],
@@ -373,6 +366,8 @@ export interface CommonOptions {
   // the target field name write to ctx, default: object
   target?: string;
 
+  lean?: boolean;
+
   // transform the result before write to body
   transform?: (a: any, ctx: IRouterContext) => Promise<any>;
 }
@@ -397,13 +392,13 @@ const DEFAULT_UPDATE_OPTIONS: Partial<UpdateOptions> = _.defaults(
   {},
   DEFAULT_COMMON_OPTIONS,
   DEFAULT_SINGLE_ITEM_OPTIONS,
-)
+);
 
 const DEFAULT_DELETE_OPTIONS: Partial<DeleteOptions> = _.defaults(
   {},
   DEFAULT_COMMON_OPTIONS,
   DEFAULT_SINGLE_ITEM_OPTIONS,
-)
+);
 
 const DEFAULT_FIND_PAGINATION_OPTIONS = {
   size: 20,
