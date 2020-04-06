@@ -9,6 +9,7 @@ import {
   Level,
   Model,
   A7Model,
+  DBRefArray,
 } from '../../src/mongoose';
 
 enum DataLevels {
@@ -49,8 +50,25 @@ class DLRootModel extends A7Model {
   @Field() f1: DL1;
 }
 
+@Config({
+  collection: 'sbase.tests.dlrootref',
+  dataLevel: {
+    levels: DataLevels,
+  },
+})
+class DLRootRefModel extends A7Model {
+  @DBRefArray('DLRootModel')
+  refs: DLRoot[];
+}
+
 const DLRoot = DLRootModel.$registerA7Model<DLRootModel, typeof DLRootModel>();
 type DLRoot = DLRootModel;
+
+const DLRootRef = DLRootRefModel.$registerA7Model<
+  DLRootRefModel,
+  typeof DLRootRefModel
+>();
+type DLRootRef = DLRootRefModel;
 
 describe('NModel Data Level', () => {
   const d1 = {
@@ -104,9 +122,13 @@ describe('NModel Data Level', () => {
     },
   };
 
+  let m1: DLRoot;
+
   beforeEach(async () => {
     await DLRoot.deleteMany({});
-    await DLRoot.create(d1);
+    await DLRootRef.deleteMany({});
+    m1 = await DLRoot.create(d1);
+    await DLRootRef.create({ refs: [m1] });
   });
 
   it('should be able to retrieve all values', async () => {
@@ -171,5 +193,20 @@ describe('NModel Data Level', () => {
     _.pick(data.toJSON({ level: DataLevels.L31 }), 'f1').should.be.deepEqual(
       e31,
     );
+  });
+
+  it('should be able to populate refs within query', async () => {
+    const data = await DLRootRef.findOne({}, null, {
+      populate: [{ path: 'refs', options: { level: DataLevels.L1 } }],
+    });
+    data.refs[0]._id.toString().should.be.equal(m1._id.toString());
+    _.pick(data.refs[0].toJSON(), 'f1').should.be.deepEqual(e1);
+
+    let data2 = await DLRootRef.findOne({});
+
+    data2 = await data2
+      .populate({ path: 'refs', options: { level: DataLevels.L1 } })
+      .execPopulate();
+    _.pick(data2.refs[0].toJSON(), 'f1').should.be.deepEqual(e1);
   });
 });
