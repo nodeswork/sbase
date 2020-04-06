@@ -8,6 +8,7 @@ mongoose.connect(
     useNewUrlParser: true,
   },
 );
+mongoose.set('debug', true);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useFindAndModify', false);
 

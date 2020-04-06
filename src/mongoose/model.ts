@@ -601,12 +601,14 @@ export function Field(schema: any = {}): PropertyDecorator {
       let type = Reflect.getMetadata('design:type', target, propertyName);
       schema.type = type;
     }
+
     if (
       schema.default === undefined &&
       schema.type &&
-      ((_.isArray(schema.type) &&
+      (
+        /*(_.isArray(schema.type) &&
         schema.type[0] &&
-        schema.type[0].prototype instanceof Model) ||
+        schema.type[0].prototype instanceof Model) || */
         schema.type.prototype instanceof Model)
     ) {
       schema.default = schema.type;

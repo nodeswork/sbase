@@ -69,7 +69,6 @@ describe('NModel Data Level', () => {
   const e1: any = {
     f1: {
       f11: 'v11',
-      f13: [],
     },
   };
 
@@ -77,7 +76,6 @@ describe('NModel Data Level', () => {
     f1: {
       f11: 'v11',
       f12: 'v12',
-      f13: [],
     },
   };
 
