@@ -27,9 +27,7 @@ export function compose(middleware: Function[]) {
   return function(context: any, next: Function) {
     // last called middleware #
     let index = -1;
-    const rid = `${context.request.method} ${context.request.path} ${
-      context.requestId
-    }`;
+    const rid = `${context.request.method} ${context.request.path} ${context.requestId}`;
 
     return dispatch.call(this, 0);
 
@@ -64,4 +62,8 @@ export function compose(middleware: Function[]) {
       }
     }
   };
+}
+
+export function isPromise<T>(promise: any): promise is Promise<T> {
+  return promise && promise.then != null;
 }

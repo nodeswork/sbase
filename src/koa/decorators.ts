@@ -12,7 +12,8 @@ import {
 import { OverrideRule, overrides } from './overrides';
 import { ParamsOptions, params } from './params';
 
-import { compose } from './utils';
+import { compose, isPromise } from './utils';
+import { sbaseKoaConfig } from './koa-config';
 
 export function Config(options: Router.IRouterOptions) {
   return (cls: any) => {
@@ -128,7 +129,10 @@ export function Delete(
 export function Middleware(
   middlewares: Router.IMiddleware | Router.IMiddleware[],
 ): ClassDecorator & PropertyDecorator {
-  middlewares = _.flatten([middlewares]);
+  middlewares = _.chain([middlewares])
+    .flatten()
+    .map(sbaseKoaConfig.middlewareMapper)
+    .value();
 
   return (
     target: any,
@@ -148,6 +152,22 @@ export function Middleware(
   };
 }
 
+/**
+ * A IF middleware that helps a branch checking.  Usage:
+ *
+ *     @If(predictor, ifClause)
+ *     - execute ifClause when predictor returns true.
+ *     - execute next middleware when predictor returns false.
+ *
+ *     @If(predictor, ifClause, elseClause)
+ *     - execute ifClause when predictor returns true.
+ *     - execute elseClause when predictor returns false.
+ *
+ * @param predictor - Predict which clause to execute.
+ * @param ifClause - Execute when predictor returns true.
+ * @param elseClause - Execute when predictor returns false. By default, execute
+ *                     else clause.
+ */
 export function If(
   predictor: (ctx: Router.IRouterContext) => boolean | Promise<boolean>,
   ifClause: Router.IMiddleware,
@@ -155,8 +175,7 @@ export function If(
 ) {
   return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
     const value = predictor(ctx);
-    const boolValue = value && (value as Promise<boolean>).then ?
-      await value : value;
+    const boolValue = isPromise(value) ? await value : value;
 
     if (boolValue) {
       await ifClause(ctx, next);
@@ -168,20 +187,47 @@ export function If(
   });
 }
 
+/**
+ * A WHEN middleware that helps a branch checking, next middleware will always
+ * be executed regardless what predictor returns.
+ *
+ * @param predictor - Predict when the when clause will be executed.
+ * @param whenClause - Execute when predictor returns true.
+ */
 export function When(
   predictor: (ctx: Router.IRouterContext) => boolean | Promise<boolean>,
   whenClause: Router.IMiddleware,
 ) {
   return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
     const value = predictor(ctx);
-    const boolValue = value && (value as Promise<boolean>).then ?
-      await value : value;
+    const boolValue = isPromise(value) ? await value : value;
 
     if (boolValue && whenClause) {
       await whenClause(ctx, () => Promise.resolve({}));
     }
 
     await next();
+  });
+}
+
+/**
+ * A CHECK middleware that helps determines if to execute next middleware.
+ * Usage:
+ *
+ *   @Check((ctx: Router.IRouterContext) => ctx.isAuthenticated())
+ *
+ * @param predictor - Returns true to execute next middleware.
+ */
+export function Check(
+  predictor: (ctx: Router.IRouterContext) => boolean | Promise<boolean>,
+) {
+  return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
+    const value = predictor(ctx);
+    const boolValue = isPromise(value) ? await value : value;
+
+    if (boolValue) {
+      await next();
+    }
   });
 }
 
