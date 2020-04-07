@@ -6,9 +6,10 @@ mongoose.connect(
   'mongodb://localhost:27017/test',
   {
     useNewUrlParser: true,
+    useUnifiedTopology: true,
   },
 );
-mongoose.set('debug', true);
+// mongoose.set('debug', true);
 mongoose.set('useCreateIndex', true);
 mongoose.set('useFindAndModify', false);
 
@@ -16,7 +17,7 @@ sbaseMongooseConfig.multiTenancy.uris = 'mongodb://localhost:27017/test';
 sbaseMongooseConfig.multiTenancy.options = {
   useNewUrlParser: true,
 };
-sbaseMongooseConfig.multiTenancy.enabled = true;
+sbaseMongooseConfig.multiTenancy.enabled = false;
 sbaseMongooseConfig.multiTenancy.defaultCollectionNamespace = 'public';
 sbaseMongooseConfig.multiTenancy.tenants = ['mtTest'];
 
