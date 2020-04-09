@@ -38,7 +38,6 @@ export class KoaMiddlewares extends model.DocumentModel {
       doc = (ctx as any)[opts.target];
       let object: KoaMiddlewares = ((await rModel.create(
         doc,
-        _.pick(opts, 'lean'),
       )) as any) as KoaMiddlewares;
 
       if (opts.project || opts.level) {
