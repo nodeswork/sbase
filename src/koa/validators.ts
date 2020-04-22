@@ -239,7 +239,8 @@ export function isLength(a: any, b?: number): Validator {
 const isString: Validator = (_target, _path, val) =>
   val == null || _.isString(val);
 
-const isArray: Validator = (_target, _path, val) => val == null || _.isArray(val);
+const isArray: Validator = (_target, _path, val) =>
+  val == null || _.isArray(val);
 
 const isNumber: Validator = (_target, _path, val) =>
   val == null || _.isNumber(val);
@@ -465,9 +466,9 @@ export function split(separator: string = ',', restricted: boolean = false) {
   return split;
 }
 
-export function withDefault(option: any) {
+export function withDefault(option: any, includeEmptyString: boolean = false) {
   const withDefault: Validator = (target, path, val, root) => {
-    if (val == null) {
+    if (val == null || (val === '' && includeEmptyString)) {
       val = _.isFunction(option) ? option(root) : option;
       dotty.set(target, path, val);
     }
@@ -475,6 +476,17 @@ export function withDefault(option: any) {
   };
 
   return withDefault;
+}
+
+export function replace(matcher: any, replacer: any) {
+  const replace: Validator = (target, path, val) => {
+    if (val === matcher || (_.isArray(matcher) && matcher.indexOf(val) >= 0)) {
+      dotty.set(target, path, replacer);
+    }
+    return true;
+  };
+
+  return replace;
 }
 
 export function extractId(field: string = '_id') {
