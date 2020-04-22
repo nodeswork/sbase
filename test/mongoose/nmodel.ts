@@ -142,7 +142,7 @@ describe('NModel Basics', () => {
     });
     const post = await Post.findOneAndUpdate(
       {
-        user,
+        user: user._id,
       },
       {
         user,

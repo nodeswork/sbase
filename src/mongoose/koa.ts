@@ -182,17 +182,18 @@ export class KoaMiddlewares extends model.DocumentModel {
 
       const object = await queryPromise;
 
-      (ctx as any)[opts.target] = object;
+      (ctx as any)[opts.target] =
+        pagination == null
+          ? object
+          : {
+              pageSize: opts.pagination.size,
+              page: opts.pagination.page,
+              total: await self.find(query).count(),
+              data: object,
+            };
 
       if (opts.triggerNext) {
         await next();
-      }
-
-      if (pagination) {
-        const totalPage = Math.floor(
-          ((await self.find(query).count()) - 1) / pagination.size + 1,
-        );
-        ctx.response.set('total_page', totalPage.toString());
       }
 
       if (!opts.noBody) {
@@ -508,4 +509,11 @@ export function Readonly(schema: any = {}) {
       api: READONLY,
     }),
   );
+}
+
+export interface PaginationData<T> {
+  pageSize: number;
+  page: number;
+  total: number;
+  data: T[];
 }
