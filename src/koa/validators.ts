@@ -458,7 +458,7 @@ export function split(separator: string = ',', restricted: boolean = false) {
     }
 
     if (val != null) {
-      dotty.set(target, path, val.split(separator));
+      dotty.set(target, path, val === '' ? [] : val.split(separator));
     }
     return true;
   };
