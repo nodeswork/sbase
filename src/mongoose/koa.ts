@@ -154,10 +154,15 @@ export class KoaMiddlewares extends model.DocumentModel {
       size: options.pagination ? options.pagination.size : 0,
     };
 
-    const paginationParams = params({
-      'query.page': [validators.toInt()],
-      'query.size': [validators.toInt()],
-    });
+    const paginationParams =
+      options.pagination &&
+      params({
+        'query.page': [validators.toInt()],
+        'query.size': [
+          validators.toInt(),
+          validators.isEnum(options.pagination.sizeChoices),
+        ],
+      });
 
     async function find(ctx: IRouterContext, next: INext) {
       const opts = _.extend(
