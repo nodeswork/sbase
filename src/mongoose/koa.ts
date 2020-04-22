@@ -3,10 +3,12 @@ import * as model from './model';
 
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
-import { NodesworkError } from '@nodeswork/utils';
-import { withInheritedProps as dotty } from 'object-path';
 
 import { Field } from './';
+import { NodesworkError } from '@nodeswork/utils';
+import { withInheritedProps as dotty } from 'object-path';
+import { params } from '../koa/params';
+import * as validators from '../koa/validators';
 
 export const READONLY = 'READONLY';
 export const AUTOGEN = 'AUTOGEN';
@@ -152,6 +154,11 @@ export class KoaMiddlewares extends model.DocumentModel {
       size: options.pagination ? options.pagination.size : 0,
     };
 
+    const paginationParams = params({
+      'query.page': [validators.toInt()],
+      'query.size': [validators.toInt()],
+    });
+
     async function find(ctx: IRouterContext, next: INext) {
       const opts = _.extend(
         {},
@@ -163,6 +170,11 @@ export class KoaMiddlewares extends model.DocumentModel {
       let pagination = null;
 
       if (opts.pagination) {
+        await paginationParams(ctx, () => null);
+        if (ctx.status === 422) {
+          return;
+        }
+
         pagination = ctx.request.query;
         _.defaults(pagination, defaultPagination);
 
