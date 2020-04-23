@@ -603,15 +603,11 @@ export function Field(schema: any = {}): PropertyDecorator {
     }
 
     if (
-      schema.default === undefined &&
+      _.isUndefined(schema.default) &&
       schema.type &&
-      (
-        /*(_.isArray(schema.type) &&
-        schema.type[0] &&
-        schema.type[0].prototype instanceof Model) || */
-        schema.type.prototype instanceof Model)
+      schema.type.prototype instanceof Model
     ) {
-      schema.default = schema.type;
+      schema.default = () => ({});
     }
 
     schemas[propertyName] = _.extend({}, existing, mapModelSchema(schema));
