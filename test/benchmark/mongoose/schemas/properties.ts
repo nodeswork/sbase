@@ -25,7 +25,7 @@ export type Property = NProperty;
 export const propertySchema = new mongoose.Schema({
   address: {
     type: addressSchema,
-    default: addressSchema,
+    default: () => ({}),
   },
 });
 

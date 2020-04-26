@@ -1,5 +1,7 @@
 export * from './a7-model';
 export * from './data-level';
+export * from './declarations';
+export * from './discriminator';
 export * from './koa';
 export * from './model-config';
 export * from './model';

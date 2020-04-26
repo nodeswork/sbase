@@ -77,7 +77,7 @@ export class Model {
 
     d('generate $mongooseOptions for %O', this.name);
 
-    var mongooseOptionsMap: MongooseOptionsMap = Reflect.getOwnMetadata(
+    let mongooseOptionsMap: MongooseOptionsMap = Reflect.getOwnMetadata(
       MONGOOSE_OPTIONS_KEY,
       this.prototype,
     );
@@ -342,22 +342,24 @@ export class Model {
     return mongooseOptions;
   }
 
-  public static $register<D extends Document, M>(
+  public static $register<T extends ModelType>(
+    this: T,
     mongooseInstance?: Mongoose,
-  ): MModel<D> & M {
+  ): MModel<InstanceType<T> & Document> & T {
     if (!mongooseInstance) {
       mongooseInstance = require('mongoose');
     }
-    return registerMultiTenancy<D, M, void>(mongooseInstance, this);
+    return registerMultiTenancy(mongooseInstance, this) as any;
   }
 
-  public static $registerA7Model<D extends Document, M>(
+  public static $registerA7Model<T extends ModelType>(
+    this: T,
     mongooseInstance?: Mongoose,
-  ): MModel<D> & M & A7ModelType {
+  ): MModel<InstanceType<T> & Document> & T & A7ModelType {
     if (!mongooseInstance) {
       mongooseInstance = require('mongoose');
     }
-    return registerMultiTenancy<D, M, A7ModelType>(mongooseInstance, this);
+    return registerMultiTenancy(mongooseInstance, this) as any;
   }
 }
 
@@ -365,14 +367,14 @@ const mongooseInstanceMap: {
   [tenancy: string]: Mongoose;
 } = {};
 
-const lazyFns: string[] = [];
+export const lazyFns: string[] = [];
 
-const shareFns = ['on'];
+export const shareFns = ['on'];
 
-function registerMultiTenancy<D extends Document, M, A>(
+function registerMultiTenancy<T extends ModelType>(
   mongooseInstance: Mongoose,
-  model: ModelType,
-): MModel<D> & M & A {
+  model: T,
+): MModel<Document> & T {
   if (!sbaseMongooseConfig.multiTenancy.enabled) {
     return mongooseInstance.model(
       model.name,
@@ -382,7 +384,7 @@ function registerMultiTenancy<D extends Document, M, A>(
 
   const tenants = ['default'].concat(sbaseMongooseConfig.multiTenancy.tenants);
   const tenantMap: {
-    [key: string]: MModel<D> & M & A;
+    [key: string]: MModel<Document> & T;
   } = {};
 
   for (const tenancy of tenants) {
@@ -408,13 +410,17 @@ function registerMultiTenancy<D extends Document, M, A>(
     tenantMap[tenancy] = m;
   }
 
-  const proxy: any = new Proxy<MModel<D> & M & A>({} as any, {
+  const proxy: any = new Proxy<MModel<Document> & T>({} as any, {
     get: (_obj: {}, prop: string) => {
+      if (prop === '$tenantMap') {
+        return tenantMap;
+      }
+
       if (lazyFns.indexOf(prop) >= 0) {
         const ret = function() {
-          const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
-          const m: any = tenantMap[tenancy];
-          const actualFn = m[prop];
+          const t = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+          const m1: any = tenantMap[t];
+          const actualFn = m1[prop];
 
           return actualFn.apply(this, arguments);
         };
@@ -422,10 +428,10 @@ function registerMultiTenancy<D extends Document, M, A>(
       }
 
       if (shareFns.indexOf(prop) >= 0) {
-        const ret = function() {
-          return _.map(tenants, tenancy => {
-            const m: any = tenantMap[tenancy];
-            return m[prop].apply(m, arguments);
+        const ret = () => {
+          return _.map(tenants, t => {
+            const m2: any = tenantMap[t];
+            return m2[prop].apply(m2, arguments);
           });
         };
         return ret;
@@ -598,7 +604,7 @@ export function Field(schema: any = {}): PropertyDecorator {
     const existing = schemas[propertyName];
 
     if (schema.type == null && existing == null) {
-      let type = Reflect.getMetadata('design:type', target, propertyName);
+      const type = Reflect.getMetadata('design:type', target, propertyName);
       schema.type = type;
     }
 
@@ -616,7 +622,7 @@ export function Field(schema: any = {}): PropertyDecorator {
 }
 
 export function Mixin(model: ModelType) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const models: ModelType[] =
       Reflect.getOwnMetadata(MIXIN_KEY, constructor.prototype) || [];
 
@@ -626,7 +632,7 @@ export function Mixin(model: ModelType) {
 }
 
 export function Config(config: SchemaOptions) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const configs: SchemaOptions =
       Reflect.getOwnMetadata(CONFIG_KEY, constructor.prototype) || {};
 
@@ -636,7 +642,7 @@ export function Config(config: SchemaOptions) {
 }
 
 export function Plugin(plugin: Plugin) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const plugins: Plugin[] =
       Reflect.getOwnMetadata(PLUGIN_KEY, constructor.prototype) || [];
 
@@ -646,13 +652,13 @@ export function Plugin(plugin: Plugin) {
 }
 
 export function Pre(pre: Pre) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     pushMetadata(PRE_KEY, constructor.prototype, pre);
   };
 }
 
 export function Pres(names: string[], pre: PPre) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const pres = _.map(names, name => _.extend({ name }, pre));
     pushMetadata(PRE_KEY, constructor.prototype, ...pres);
   };
@@ -671,7 +677,7 @@ export function Virtual(options: VirtualOptions) {
 }
 
 export function Post(post: Post) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const posts: Post[] =
       Reflect.getOwnMetadata(POST_KEY, constructor.prototype) || [];
     posts.push(post);
@@ -680,7 +686,7 @@ export function Post(post: Post) {
 }
 
 export function Posts(names: string[], post: PPost) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const posts: Post[] =
       Reflect.getOwnMetadata(POST_KEY, constructor.prototype) || [];
     for (const name of names) {
@@ -691,7 +697,7 @@ export function Posts(names: string[], post: PPost) {
 }
 
 export function Index(index: Index) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const indexes: Index[] =
       Reflect.getOwnMetadata(INDEX_KEY, constructor.prototype) || [];
     indexes.push(index);
@@ -700,7 +706,7 @@ export function Index(index: Index) {
 }
 
 export function UpdateValidator(validate: UpdateValidator) {
-  return <T extends { new (...args: any[]): {} }>(constructor: T) => {
+  return <T extends new (...args: any[]) => {}>(constructor: T) => {
     const validates: UpdateValidator[] =
       Reflect.getOwnMetadata(UPDATE_VALIDATOR_KEY, constructor.prototype) || [];
     validates.push(validate);

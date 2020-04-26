@@ -37,10 +37,10 @@
     "should": "^11.2.1",
     "source-map-support": "^0.5.9",
     "ts-node": "^7.0.1",
-    "typescript": "^2.9.2"
+    "typescript": "^3.6.4"
   },
   "peerDependencies": {
-    "mongoose": "^5.9.7"
+    "mongoose": "^5.9.10"
   },
   "dependencies": {
     "@nodeswork/utils": "^0.1.13",

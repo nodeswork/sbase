@@ -82,10 +82,10 @@ class PostModel extends sbase.mongoose.A7Model {
   text: string;
 }
 
-const User = UserModel.$register<UserModel, typeof UserModel>();
+const User = UserModel.$register();
 type User = UserModel;
 
-const Post = PostModel.$register<PostModel, typeof PostModel>();
+const Post = PostModel.$register();
 type Post = PostModel;
 
 describe('NModel Basics', () => {
