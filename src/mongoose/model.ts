@@ -412,6 +412,7 @@ function registerMultiTenancy<T extends ModelType>(
 
   const proxy: any = new Proxy<MModel<Document> & T>({} as any, {
     get: (_obj: {}, prop: string) => {
+      // console.log('prop', prop);
       if (prop === '$tenantMap') {
         return tenantMap;
       }

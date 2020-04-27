@@ -49,7 +49,7 @@ function discriminatorMultiTenancy<
     [key: string]: MModel<Document> & T;
   } = {};
 
-  const currentTenantMap = this.$tenantMap;
+  const currentTenantMap = (model as any)._proxy.$tenantMap;
 
   for (const tenancy of tenants) {
     tenantMap[tenancy] = currentTenantMap[tenancy].discriminator(
