@@ -205,7 +205,7 @@ export class KoaMiddlewares extends model.DocumentModel {
           : {
               pageSize: pagination.size,
               page: pagination.page,
-              total: await self.find(query).count(),
+              total: await self.find(query).countDocuments(),
               data: object,
             };
 
