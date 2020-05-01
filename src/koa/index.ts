@@ -8,5 +8,6 @@ export * from './decorators';
 export * from './koa-config';
 export * from './overrides';
 export * from './params';
+export * from './utils';
 
 export { validators };

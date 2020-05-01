@@ -70,6 +70,32 @@ export class KoaMiddlewares extends model.DocumentModel {
 
   /**
    * Returns Koa get middleware.
+   *
+   * Examples:
+   *
+   * 1. Load from ctx.params.  This is the most common case where the url path
+   *    stores the model id.
+   *
+   *    @Post('/articles/:articleId')
+   *    getArticle = models.Article.getMiddleware({ field: 'articleId' });
+   *
+   * 2. Load from ctx.request.
+   *
+   *    // When there is a dot in the field path, it will load from ctx.request.
+   *    @Middleware(models.Article.getMiddleware({ field: 'body.articleId' }));
+   *
+   * 3. No need to specify id.
+   *    // Pass a star.
+   *    @Middleware(models.Article.getMiddleware({ field: '*' }));
+   *
+   * @param options.field specifies which field to load the id key value.
+   * @param options.idFieldName specifies the field name in query.
+   *                            Default: '_id'.
+   * @param options.target specifies which field under ctx to set the target.
+   *                       Default: 'object'.
+   * @param options.triggerNext specifies whether to trigger next middleware.
+   *                            Default: false.
+   * @param options.transform a map function before send to ctx.body.
    */
   public static getMiddleware(options: GetOptions): IMiddleware {
     const self = this.cast<KoaMiddlewares>();
