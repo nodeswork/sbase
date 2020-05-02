@@ -61,13 +61,10 @@ class DLRootRefModel extends A7Model {
   refs: DLRoot[];
 }
 
-const DLRoot = DLRootModel.$registerA7Model<DLRootModel, typeof DLRootModel>();
+const DLRoot = DLRootModel.$registerA7Model();
 type DLRoot = DLRootModel;
 
-const DLRootRef = DLRootRefModel.$registerA7Model<
-  DLRootRefModel,
-  typeof DLRootRefModel
->();
+const DLRootRef = DLRootRefModel.$registerA7Model();
 type DLRootRef = DLRootRefModel;
 
 describe('NModel Data Level', () => {

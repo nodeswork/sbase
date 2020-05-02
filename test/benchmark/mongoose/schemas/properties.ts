@@ -13,10 +13,7 @@ export class NProperty extends A7Model {
   @Field() address: Address;
 }
 
-export const Property = NProperty.$registerA7Model<
-  NProperty,
-  typeof NProperty
->();
+export const Property = NProperty.$registerA7Model();
 export type Property = NProperty;
 
 /**

@@ -21,7 +21,7 @@ export class NPerson extends A7Model {
   }
 }
 
-export const Person = NPerson.$registerA7Model<NPerson, typeof NPerson>();
+export const Person = NPerson.$registerA7Model();
 export type Person = NPerson;
 
 /**
