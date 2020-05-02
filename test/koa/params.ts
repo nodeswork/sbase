@@ -1,7 +1,7 @@
-import * as should from 'should';
 import * as Router from 'koa-router';
 
 import { ParamsContext, params, validators } from '../../src/koa';
+import { NodesworkError } from '@nodeswork/utils';
 
 describe('koa.params', () => {
   it('should validate require', async () => {
@@ -9,11 +9,13 @@ describe('koa.params', () => {
       foo: validators.required,
     });
     const ctx = getFakeContext({});
-    await m(ctx, null);
-    ctx.status.should.be.equal(422);
-    ctx.errors.should.be.deepEqual([
-      { path: 'foo', value: undefined, failed: 'required', reason: '' },
-    ]);
+    m(ctx, null).should.be.rejectedWith(NodesworkError, {
+      meta: {
+        errors: [
+          { path: 'foo', value: undefined, failed: 'required', reason: '' },
+        ],
+      },
+    });
   });
 
   it('should validate require with exclamation mark', async () => {
@@ -21,11 +23,13 @@ describe('koa.params', () => {
       '!foo': [],
     });
     const ctx = getFakeContext({});
-    await m(ctx, null);
-    ctx.status.should.be.equal(422);
-    ctx.errors.should.be.deepEqual([
-      { path: 'foo', value: undefined, failed: 'required', reason: '' },
-    ]);
+    m(ctx, null).should.be.rejectedWith(NodesworkError, {
+      meta: {
+        errors: [
+          { path: 'foo', value: undefined, failed: 'required', reason: '' },
+        ],
+      },
+    });
   });
 
   it('should modified by ltrim', async () => {
@@ -98,16 +102,18 @@ describe('koa.params', () => {
     const ctx = getFakeContext({
       query: { foo: 'a,b,c' },
     });
-    await m(ctx, () => null);
-    ctx.errors.should.deepEqual([
-      {
-        path: '~request.query.foo.2',
-        value: 'c',
-        failed: 'array>isEnum',
-        reason: '',
+    m(ctx, () => null).should.be.rejectedWith(NodesworkError, {
+      meta: {
+        errors: [
+          {
+            path: '~request.query.foo.2',
+            value: 'c',
+            failed: 'array>isEnum',
+            reason: '',
+          },
+        ],
       },
-    ]);
-    ctx.request.query.foo.should.deepEqual(['a', 'b', 'c']);
+    });
   });
 });
 
