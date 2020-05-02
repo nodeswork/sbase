@@ -1,8 +1,8 @@
 import * as Router from 'koa-router';
 import * as _ from 'underscore';
-
 import * as validators from './validators';
 
+import { NodesworkError } from '@nodeswork/utils';
 import { withInheritedProps as dotty } from 'object-path';
 
 export interface ParamError {
@@ -42,12 +42,13 @@ export function params(options: ParamsOptions): Router.IMiddleware {
 
   return async (
     ctx: Router.IRouterContext & ParamsContext,
-    next: () => void,
+    next: () => any,
   ) => {
     ctx.errors = processValidators(ctx.request, mappedOptions, ctx);
     if (!_.isEmpty(ctx.errors)) {
-      ctx.body = { errors: ctx.errors };
-      ctx.status = 422;
+      throw NodesworkError.unprocessableEntity(undefined, {
+        errors: ctx.errors,
+      });
     } else {
       await next();
     }
