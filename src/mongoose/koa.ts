@@ -166,7 +166,37 @@ export class KoaMiddlewares extends model.DocumentModel {
     return get;
   }
 
-  public static findMiddleware(options: FindOptions): IMiddleware {
+  /**
+   * Returns KOA find middleware.
+   *
+   * Examples:
+   *
+   * 1. Normal query.
+   *
+   *    @Get('/articles')
+   *    find = models.Article.findMiddleware();
+   *
+   * 2. Pagination.  User query.size, query.page to calculate numbers to skip.
+   *
+   *    @Get('/articles')
+   *    find = models.Article.findMiddleware({
+   *      pagination: {
+   *        size: 50,  // single page size
+   *        sizeChoices: [50, 100, 200],
+   *        // where to store the full IPaginationData<any>.
+   *        target: 'articlesWithPagination',
+   *      },
+   *    })
+   *
+   *  @param options.pagination.size specifies max number of returning records.
+   *  @param options.pagination.sizeChoices
+   *  @param options.pagination.target specifies where to store the full data.
+   *  @param options.sort specifies the returning order.
+   *  @param options.level specifies the data level.
+   *  @param options.project specifies the projection.
+   *  @param options.populate specifies the populates.
+   */
+  public static findMiddleware(options: FindOptions = {}): IMiddleware {
     const self = this.cast<KoaMiddlewares>();
 
     _.defaults(options, DEFAULT_COMMON_OPTIONS);
@@ -225,7 +255,9 @@ export class KoaMiddlewares extends model.DocumentModel {
 
       const object = await queryPromise;
 
-      (ctx as any)[opts.target] =
+      (ctx as any)[opts.target] = object;
+
+      const bodyTarget: any =
         pagination == null
           ? object
           : {
@@ -235,16 +267,25 @@ export class KoaMiddlewares extends model.DocumentModel {
               data: object,
             };
 
+      if (pagination && pagination.target) {
+        (ctx as any)[pagination.target] = bodyTarget;
+      }
+
       if (opts.triggerNext) {
         await next();
       }
 
       if (!opts.noBody) {
-        const body = (ctx as any)[opts.target];
-        for (let i = 0; i < body.length; i++) {
-          body[i] = await opts.transform(body[i], ctx);
+        const objects = (ctx as any)[opts.target];
+        for (let i = 0; i < objects.length; i++) {
+          objects[i] = await opts.transform(objects[i], ctx);
         }
-        ctx.body = body;
+
+        if (pagination && pagination.target) {
+          bodyTarget.data = objects;
+        }
+
+        ctx.body = bodyTarget;
       }
     }
 
@@ -497,6 +538,7 @@ export interface FindOptions
   pagination?: {
     size?: number;
     sizeChoices?: number[];
+    target?: string;
   };
 
   sort?: object;
