@@ -238,31 +238,25 @@ export function Check(
  *   @Tee((ctx: Router.IRouterContext) => console.log(ctx.path))
  *
  * @param fn - The side function to execute.
+ * @param post - specifies run tee after returned.
  */
-export function Tee(fn: (ctx: Router.IRouterContext) => void | Promise<void>) {
+export function Tee(
+  fn: (ctx: Router.IRouterContext) => void | Promise<void>,
+  post?: boolean,
+) {
   return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
-    const value = fn(ctx);
-    if (isPromise(value)) {
-      await value;
+    if (!post) {
+      const value = fn(ctx);
+      if (isPromise(value)) {
+        await value;
+      }
     }
     await next();
-  });
-}
-
-/**
- * A Post-Tee middleware that helps execute a side function.
- * Usage:
- *
- *   @PTee((ctx: Router.IRouterContext) => console.log(ctx.path))
- *
- * @param fn - The side function to execute.
- */
-export function PTee(fn: (ctx: Router.IRouterContext) => void | Promise<void>) {
-  return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
-    await next();
-    const value = fn(ctx);
-    if (isPromise(value)) {
-      await value;
+    if (post) {
+      const value = fn(ctx);
+      if (isPromise(value)) {
+        await value;
+      }
     }
   });
 }
