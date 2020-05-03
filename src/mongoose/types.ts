@@ -4,14 +4,17 @@ import { Document, Model as MModel } from 'mongoose';
 import { A7Model } from './a7-model';
 import { Model } from './model';
 
+type OrdinaryFields = '_id' | 'createdAt' | 'lastUpdateTime';
+
 type AsObjectSingle<T extends Model> = Omit<
   T,
-  Exclude<keyof A7Model, '_id' | 'createdAt' | 'lastUpdateTime'>
+  Exclude<keyof A7Model, OrdinaryFields>
 >;
 
 export type AsObject<T extends Model> = {
-  [key in keyof AsObjectSingle<T>]: T[key];
-};
+  [key in keyof AsObjectSingle<Omit<T, OrdinaryFields>>]: T[key];
+} &
+  Partial<Pick<T, OrdinaryFields & keyof T>>;
 
 export type DeepPartial<T> = T extends Function
   ? T
