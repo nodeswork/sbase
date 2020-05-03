@@ -4,25 +4,26 @@ import { Document, Model as MModel } from 'mongoose';
 import { A7ModelType } from './a7-model';
 import { sbaseMongooseConfig } from './model-config';
 import { DocumentModel, Model, lazyFns, shareFns } from './model';
+import { ConvertModel } from './types';
 
 export class Discriminator extends DocumentModel {
   public static $discriminator<
-    T extends MModel<Document> & typeof Discriminator,
+    T extends ConvertModel<Document, any> & typeof Discriminator,
     M extends typeof Model
   >(
     this: T,
     m: M,
-  ): MModel<T & InstanceType<M> & Document> & T & M {
+  ): ConvertModel<T & InstanceType<M> & Document, T & InstanceType<M>> & T & M {
     return discriminatorMultiTenancy(this, m);
   }
 
   public static $discriminatorA7Model<
-    T extends MModel<Document> & typeof Discriminator,
+    T extends ConvertModel<Document, any> & typeof Discriminator,
     M extends typeof Model
   >(
     this: T,
     m: M,
-  ): MModel<T & InstanceType<M> & Document> &
+  ): ConvertModel<T & InstanceType<M> & Document, T & InstanceType<M>> &
     T &
     M &
     A7ModelType {
@@ -31,14 +32,14 @@ export class Discriminator extends DocumentModel {
 }
 
 function discriminatorMultiTenancy<
-  T extends MModel<Document>,
+  T extends ConvertModel<Document, any>,
   M extends typeof Model
 >(
   model: T,
   dm: M,
 ): MModel<T & InstanceType<M> & Document> & T & M {
   if (!sbaseMongooseConfig.multiTenancy.enabled) {
-    return model.discriminator<InstanceType<T> & InstanceType<M> & Document>(
+    return model.discriminator(
       dm.name,
       dm.$mongooseOptions().mongooseSchema,
     ) as any;

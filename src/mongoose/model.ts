@@ -6,14 +6,16 @@ import {
   Document,
   Model as MModel,
   Mongoose,
+  Query,
   Schema,
   SchemaOptions,
   SchemaTypes,
-  Query,
 } from 'mongoose';
 import { MongoError } from 'mongodb';
+
 import { A7ModelType } from './a7-model';
-import { pushMetadata, extendMetadata } from './helpers';
+import { ConvertModel } from './types';
+import { extendMetadata, pushMetadata } from './helpers';
 import { sbaseMongooseConfig } from './model-config';
 
 const d = debug('sbase:model');
@@ -345,7 +347,7 @@ export class Model {
   public static $register<T extends ModelType>(
     this: T,
     mongooseInstance?: Mongoose,
-  ): MModel<InstanceType<T> & Document> & T {
+  ): ConvertModel<InstanceType<T> & Document, InstanceType<T>> & T {
     if (!mongooseInstance) {
       mongooseInstance = require('mongoose');
     }
@@ -355,7 +357,9 @@ export class Model {
   public static $registerA7Model<T extends ModelType>(
     this: T,
     mongooseInstance?: Mongoose,
-  ): MModel<InstanceType<T> & Document> & T & A7ModelType {
+  ): ConvertModel<InstanceType<T> & Document, InstanceType<T>> &
+    T &
+    A7ModelType {
     if (!mongooseInstance) {
       mongooseInstance = require('mongoose');
     }

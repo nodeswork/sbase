@@ -8,11 +8,27 @@ const d = debug('sbase:overrides');
 
 import { withInheritedProps as dotty } from 'object-path';
 
+/**
+ * Generate an overrides middleware to help build mongoose queries.
+ *
+ * 1. Fetch query params to override query:
+ *    overrides('request.query.status->query.status')
+ *    overrides('request.body.status->query.status')
+ *
+ * 2. Set object to override query:
+ *    overrides(['constValue', 'query.status'])
+ *
+ * 3. Extract object from ctx:
+ *    overrides([(ctx) =>
+ *      moment(ctx.request.query.date).startOf('month').toDate(),
+ *      'query.date',
+ *    ])
+ */
 export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
-  const rs: Array<{
+  const rs: {
     src: string[] | OverrideRuleExtractFn;
     dst: string[];
-  }> = [];
+  }[] = [];
 
   for (const rule of rules) {
     if (_.isString(rule)) {
@@ -29,7 +45,7 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
 
   d('Prepared overrides: %O', rs);
 
-  return async (ctx: Router.IRouterContext, next: () => void) => {
+  return async (ctx: Router.IRouterContext, next: () => any) => {
     for (const { src, dst } of rs) {
       let value;
 
@@ -57,7 +73,7 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
 }
 
 export function clearOverrides(): Router.IMiddleware {
-  return async (ctx: Router.IRouterContext, next: () => void) => {
+  return async (ctx: Router.IRouterContext, next: () => any) => {
     ctx.overrides = {
       query: {},
       doc: {},

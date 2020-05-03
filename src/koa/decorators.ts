@@ -308,6 +308,22 @@ export const Overrides = (...rules: OverrideRule[]) => {
   return Middleware(overrides(...rules));
 };
 
+/**
+ * Generate an overrides middleware to help build mongoose queries.
+ *
+ * 1. Fetch query params to override query:
+ *    overrides('request.query.status->query.status')
+ *    overrides('request.body.status->query.status')
+ *
+ * 2. Set object to override query:
+ *    overrides(['constValue', 'query.status'])
+ *
+ * 3. Extract object from ctx:
+ *    overrides([(ctx) =>
+ *      moment(ctx.request.query.date).startOf('month').toDate(),
+ *      'query.date',
+ *    ])
+ */
 export const Params = (options: ParamsOptions) => {
   return Middleware(params(options));
 };

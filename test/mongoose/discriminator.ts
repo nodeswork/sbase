@@ -20,6 +20,8 @@ export class ClickEventModel extends sbase.mongoose.A7Model {
   posY: number;
 }
 
+export interface ClickEventModel extends EventModel {}
+
 const Event = EventModel.$registerA7Model();
 type Event = EventModel;
 
@@ -34,8 +36,6 @@ describe('Discriminator model', () => {
   it('saves general event', async () => {
     const e = await Event.create({
       name: 'general event',
-      posX: 0,
-      posY: 0,
     });
 
     e.name.should.be.equal('general event');
