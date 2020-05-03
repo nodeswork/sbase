@@ -15,11 +15,13 @@ export type AsObject<T extends Model> = {
     : T[key];
 };
 
-export type AsObjectPartial<T extends Model> = {
-  [key in keyof AsObjectSingle<T>]: T[key] extends Model
-    ? AsObjectPartial<T[key]>
-    : T[key];
-};
+export type AsObjectPartial<T extends Model> = Partial<
+  {
+    [key in keyof AsObjectSingle<T>]: T[key] extends Model
+      ? AsObjectPartial<T[key]>
+      : T[key];
+  }
+>;
 
 export type PartialDoc<X> = AsObjectPartial<X>;
 
