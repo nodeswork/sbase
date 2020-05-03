@@ -37,7 +37,7 @@ function discriminatorMultiTenancy<
 >(
   model: T,
   dm: M,
-): MModel<T & InstanceType<M> & Document> & T & M {
+): ConvertModel<T & InstanceType<M> & Document, T & InstanceType<M>> & T & M {
   if (!sbaseMongooseConfig.multiTenancy.enabled) {
     return model.discriminator(
       dm.name,
