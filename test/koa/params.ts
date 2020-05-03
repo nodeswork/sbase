@@ -9,8 +9,9 @@ describe('koa.params', () => {
       foo: validators.required,
     });
     const ctx = getFakeContext({});
-    m(ctx, null).should.be.rejectedWith(NodesworkError, {
+    await m(ctx, null).should.be.rejectedWith(NodesworkError, {
       meta: {
+        responseCode: 422,
         errors: [
           { path: 'foo', value: undefined, failed: 'required', reason: '' },
         ],
@@ -23,8 +24,9 @@ describe('koa.params', () => {
       '!foo': [],
     });
     const ctx = getFakeContext({});
-    m(ctx, null).should.be.rejectedWith(NodesworkError, {
+    await m(ctx, null).should.be.rejectedWith(NodesworkError, {
       meta: {
+        responseCode: 422,
         errors: [
           { path: 'foo', value: undefined, failed: 'required', reason: '' },
         ],
@@ -102,8 +104,9 @@ describe('koa.params', () => {
     const ctx = getFakeContext({
       query: { foo: 'a,b,c' },
     });
-    m(ctx, () => null).should.be.rejectedWith(NodesworkError, {
+    await m(ctx, () => null).should.be.rejectedWith(NodesworkError, {
       meta: {
+        responseCode: 422,
         errors: [
           {
             path: '~request.query.foo.2',
