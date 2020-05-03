@@ -14,42 +14,8 @@ export type Validator = (
 ) => boolean | string | ParamError | ParamError[];
 
 // --------------------------- Validators ----------------------------------- //
-// TODO: remove after https://github.com/Microsoft/TypeScript/issues/14127 fixed
-export {
-  isArray,
-  isAscii,
-  isBase64,
-  isBoolean,
-  isCreditCard,
-  isDataURI,
-  isEmpty,
-  isFullWidth,
-  isHalfWidth,
-  isHexColor,
-  isHexadecimal,
-  isISIN,
-  isISO31661Alpha2,
-  isISO8601,
-  isISRC,
-  isJSON,
-  isLatLong,
-  isLowercase,
-  isMACAddress,
-  isMD5,
-  isMimeType,
-  isMongoId,
-  isMultibyte,
-  isNumber,
-  isNumeric,
-  isPort,
-  isString,
-  isSurrogatePair,
-  isUppercase,
-  isVariableWidth,
-  required,
-};
 
-const required: Validator = (_target, _path, val) => val != null;
+export const required: Validator = (_target, _path, val) => val != null;
 
 export function contains(seed: string) {
   const contains: Validator = (_target, _path, val) =>
@@ -81,10 +47,10 @@ export function isAlphanumeric(locale?: ValidatorJS.AlphaLocale) {
   return isAlphanumeric;
 }
 
-const isAscii: Validator = (_target, _path, val) =>
+export const isAscii: Validator = (_target, _path, val) =>
   val == null || validator.isAscii(val);
 
-const isBase64: Validator = (_target, _path, val) =>
+export const isBase64: Validator = (_target, _path, val) =>
   val == null || validator.isBase64(val);
 
 export function isBefore(date?: string) {
@@ -93,7 +59,7 @@ export function isBefore(date?: string) {
   return isBefore;
 }
 
-const isBoolean: Validator = (_target, _path, val) =>
+export const isBoolean: Validator = (_target, _path, val) =>
   val == null || validator.isBoolean(val);
 
 export function isByteLength(min: number, max?: number): Validator;
@@ -106,7 +72,7 @@ export function isByteLength(a: any, b?: number): Validator {
   return isByteLength;
 }
 
-const isCreditCard: Validator = (_target, _path, val) =>
+export const isCreditCard: Validator = (_target, _path, val) =>
   validator.isCreditCard(val);
 
 export function isCurrency(options?: ValidatorJS.IsCurrencyOptions): Validator {
@@ -115,7 +81,7 @@ export function isCurrency(options?: ValidatorJS.IsCurrencyOptions): Validator {
   return isCurrency;
 }
 
-const isDataURI: Validator = (_target, _path, val) =>
+export const isDataURI: Validator = (_target, _path, val) =>
   val == null || validator.isDataURI(val);
 
 export function isDecimal(options?: ValidatorJS.IsDecimalOptions): Validator {
@@ -136,7 +102,7 @@ export function isEmail(options?: ValidatorJS.IsEmailOptions): Validator {
   return isEmail;
 }
 
-const isEmpty: Validator = (_target, _path, val) =>
+export const isEmpty: Validator = (_target, _path, val) =>
   val == null || validator.isEmpty(val);
 
 export function isEnum(
@@ -161,10 +127,10 @@ export function isFloat(options?: ValidatorJS.IsFloatOptions): Validator {
   return isFloat;
 }
 
-const isFullWidth: Validator = (_target, _path, val) =>
+export const isFullWidth: Validator = (_target, _path, val) =>
   val == null || validator.isFullWidth(val);
 
-const isHalfWidth: Validator = (_target, _path, val) =>
+export const isHalfWidth: Validator = (_target, _path, val) =>
   val == null || validator.isHalfWidth(val);
 
 export function isHash(algorithm: ValidatorJS.HashAlgorithm): Validator {
@@ -173,10 +139,10 @@ export function isHash(algorithm: ValidatorJS.HashAlgorithm): Validator {
   return isHash;
 }
 
-const isHexColor: Validator = (_target, _path, val) =>
+export const isHexColor: Validator = (_target, _path, val) =>
   val == null || validator.isHexColor(val);
 
-const isHexadecimal: Validator = (_target, _path, val) =>
+export const isHexadecimal: Validator = (_target, _path, val) =>
   val == null || validator.isHexadecimal(val);
 
 export function isIP(version?: number): Validator {
@@ -191,16 +157,16 @@ export function isISSN(options?: ValidatorJS.IsISSNOptions): Validator {
   return isISSN;
 }
 
-const isISIN: Validator = (_target, _path, val) =>
+export const isISIN: Validator = (_target, _path, val) =>
   val == null || validator.isISIN(val);
 
-const isISO8601: Validator = (_target, _path, val) =>
+export const isISO8601: Validator = (_target, _path, val) =>
   val == null || validator.isISO8601(val);
 
-const isISO31661Alpha2: Validator = (_target, _path, val) =>
+export const isISO31661Alpha2: Validator = (_target, _path, val) =>
   val == null || validator.isISO31661Alpha2(val);
 
-const isISRC: Validator = (_target, _path, val) =>
+export const isISRC: Validator = (_target, _path, val) =>
   val == null || validator.isISRC(val);
 
 export function isIn(values: any[]): Validator {
@@ -215,10 +181,10 @@ export function isInt(options?: ValidatorJS.IsIntOptions): Validator {
   return isInt;
 }
 
-const isJSON: Validator = (_target, _path, val) =>
+export const isJSON: Validator = (_target, _path, val) =>
   val == null || validator.isJSON(val);
 
-const isLatLong: Validator = (_target, _path, val) =>
+export const isLatLong: Validator = (_target, _path, val) =>
   val == null || validator.isLatLong(val);
 
 export function isLength(min: number, max?: number): Validator;
@@ -236,25 +202,25 @@ export function isLength(a: any, b?: number): Validator {
   return isLength;
 }
 
-const isString: Validator = (_target, _path, val) =>
+export const isString: Validator = (_target, _path, val) =>
   val == null || _.isString(val);
 
-const isArray: Validator = (_target, _path, val) =>
+export const isArray: Validator = (_target, _path, val) =>
   val == null || _.isArray(val);
 
-const isNumber: Validator = (_target, _path, val) =>
+export const isNumber: Validator = (_target, _path, val) =>
   val == null || _.isNumber(val);
 
-const isLowercase: Validator = (_target, _path, val) =>
+export const isLowercase: Validator = (_target, _path, val) =>
   val == null || validator.isLowercase(val);
 
-const isMACAddress: Validator = (_target, _path, val) =>
+export const isMACAddress: Validator = (_target, _path, val) =>
   val == null || validator.isMACAddress(val);
 
-const isMD5: Validator = (_target, _path, val) =>
+export const isMD5: Validator = (_target, _path, val) =>
   val == null || validator.isMD5(val);
 
-const isMimeType: Validator = (_target, _path, val) =>
+export const isMimeType: Validator = (_target, _path, val) =>
   val == null || validator.isMimeType(val);
 
 export function isInRange(min: number, max?: number): Validator {
@@ -273,16 +239,16 @@ export function isMobilePhone(
   return isMobilePhone;
 }
 
-const isMongoId: Validator = (_target, _path, val) =>
+export const isMongoId: Validator = (_target, _path, val) =>
   val == null || validator.isMongoId(val);
 
-const isMultibyte: Validator = (_target, _path, val) =>
+export const isMultibyte: Validator = (_target, _path, val) =>
   val == null || validator.isMultibyte(val);
 
-const isNumeric: Validator = (_target, _path, val) =>
+export const isNumeric: Validator = (_target, _path, val) =>
   val == null || validator.isNumeric(val);
 
-const isPort: Validator = (_target, _path, val) =>
+export const isPort: Validator = (_target, _path, val) =>
   val == null || validator.isPort(val);
 
 export function isPostalCode(locale: ValidatorJS.PostalCodeLocale): Validator {
@@ -291,7 +257,7 @@ export function isPostalCode(locale: ValidatorJS.PostalCodeLocale): Validator {
   return isPostalCode;
 }
 
-const isSurrogatePair: Validator = (_target, _path, val) =>
+export const isSurrogatePair: Validator = (_target, _path, val) =>
   val == null || validator.isSurrogatePair(val);
 
 export function isURL(options?: ValidatorJS.IsURLOptions): Validator {
@@ -308,10 +274,10 @@ export function isUUID(
   return isUUID;
 }
 
-const isUppercase: Validator = (_target, _path, val) =>
+export const isUppercase: Validator = (_target, _path, val) =>
   val == null || validator.isUppercase(val);
 
-const isVariableWidth: Validator = (_target, _path, val) =>
+export const isVariableWidth: Validator = (_target, _path, val) =>
   val == null || validator.isVariableWidth(val);
 
 export function isWhitelisted(chars: string | string[]): Validator {
@@ -466,7 +432,7 @@ export function split(separator: string = ',', restricted: boolean = false) {
   return split;
 }
 
-export function withDefault(option: any, includeEmptyString: boolean = false) {
+export function withDefault(option: any, includeEmptyString: boolean = true) {
   const withDefault: Validator = (target, path, val, root) => {
     if (val == null || (val === '' && includeEmptyString)) {
       val = _.isFunction(option) ? option(root) : option;
@@ -580,9 +546,9 @@ export function array(options: ParamsOptions | Validator | Validator[]) {
         }
       }
 
-      const nerrors = processValidators(val[index], mappedOptions, root);
+      const nErrors = processValidators(val[index], mappedOptions, root);
 
-      for (const error of nerrors) {
+      for (const error of nErrors) {
         errors.push({
           path: index + '.' + error.path,
           value: error.value,
