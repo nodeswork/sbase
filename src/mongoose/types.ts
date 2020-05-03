@@ -10,9 +10,18 @@ type AsObjectSingle<T extends Model> = Omit<
 >;
 
 export type AsObject<T extends Model> = {
-  [key in keyof AsObjectSingle<T>]: T[key];
+  [key in keyof AsObjectSingle<T>]: T[key] extends Model
+    ? AsObject<T[key]>
+    : T[key];
 };
-export type PartialDoc<X> = Partial<AsObject<X>>;
+
+export type AsObjectPartial<T extends Model> = {
+  [key in keyof AsObjectSingle<T>]: T[key] extends Model
+    ? AsObjectPartial<T[key]>
+    : T[key];
+};
+
+export type PartialDoc<X> = AsObjectPartial<X>;
 
 export interface ModifiedMongooseModel<T extends Document, M>
   extends Omit<MModel<T>, 'create' | 'insertMany'> {
