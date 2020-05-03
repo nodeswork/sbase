@@ -231,6 +231,24 @@ export function Check(
   });
 }
 
+/**
+ * A Tee middleware that helps execute a side function.
+ * Usage:
+ *
+ *   @Tee((ctx: Router.IRouterContext) => console.log(ctx.path))
+ *
+ * @param fn - The side function to execute.
+ */
+export function Tee(fn: (ctx: Router.IRouterContext) => void | Promise<void>) {
+  return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
+    const value = fn(ctx);
+    if (isPromise(value)) {
+      await value;
+    }
+    await next();
+  });
+}
+
 function buildConstructorMiddleware(
   cls: any,
   middlewares: Router.IMiddleware[],
