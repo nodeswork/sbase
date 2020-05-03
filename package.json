@@ -65,5 +65,15 @@
     "reflect-metadata": "^0.1.12",
     "underscore": "^1.9.1",
     "validator": "^8.2.0"
+  },
+  "importSort": {
+    ".js, .jsx, .es6, .es": {
+      "parser": "babylon",
+      "style": "renke"
+    },
+    ".ts, .tsx": {
+      "parser": "typescript",
+      "style": "renke"
+    }
   }
 }

@@ -1,11 +1,10 @@
 import * as _ from 'underscore';
 import * as moment from 'moment-timezone';
 import * as validator from 'validator';
-
-import { ParamError, ParamsOptions, processValidators } from './params';
-
 import { withInheritedProps as dotty } from 'object-path';
 import { unitOfTime } from 'moment';
+
+import { ParamError, ParamsOptions, processValidators } from './params';
 
 /* tslint:disable:rule1 no-shadowed-variable */
 
@@ -338,20 +337,28 @@ export function isStartOf(unit: unitOfTime.StartOf, tz?: string) {
       return true;
     }
     const time = tz ? moment(val).tz(tz) : moment(val);
-    return time.isSame(time.clone().startOf(unit));
+    if (time.isSame(time.clone().startOf(unit))) {
+      return true;
+    }
+
+    return unit;
   };
   return isStartOf;
 }
 
 export function isEndOf(unit: unitOfTime.StartOf, tz?: string) {
-  const isStartOf: Validator = (_target, _path, val) => {
+  const isEndOf: Validator = (_target, _path, val) => {
     if (val == null) {
       return true;
     }
     const time = tz ? moment(val).tz(tz) : moment(val);
-    return time.isSame(time.clone().endOf(unit));
+    if (time.isSame(time.clone().endOf(unit))) {
+      return true;
+    }
+
+    return unit;
   };
-  return isStartOf;
+  return isEndOf;
 }
 
 // --------------------------- Sanitizers ----------------------------------- //
