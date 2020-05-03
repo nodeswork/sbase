@@ -13,16 +13,13 @@ export type AsObject<T extends Model> = {
   [key in keyof AsObjectSingle<T>]: T[key];
 };
 
-export type DeepPartial<T> = T extends Function ? T : (T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T);
+export type DeepPartial<T> = T extends Function
+  ? T
+  : T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
 
-export type AsObjectPartial<T extends Model> = DeepPartial<
-  {
-    [key in keyof AsObjectSingle<T>]: T[key];
-    // T[key] extends Model
-      // ? AsObjectPartial<T[key]>
-      // : T[key];
-  }
->;
+export type AsObjectPartial<T extends Model> = DeepPartial<AsObject<T>>;
 
 export type PartialDoc<X> = AsObjectPartial<X>;
 
