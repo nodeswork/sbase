@@ -6,3 +6,4 @@ export * from './model-config';
 export * from './model';
 export * from './soft-delete';
 export * from './timestamp';
+export * from './types';

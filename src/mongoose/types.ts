@@ -1,7 +1,7 @@
 import * as mongodb from 'mongodb';
 import { Document, Model as MModel } from 'mongoose';
 
-import { A7Model } from '../../mongoose';
+import { A7Model } from './a7-model';
 import { Model } from './model';
 
 type AsObjectSingle<T extends Model> = Omit<
