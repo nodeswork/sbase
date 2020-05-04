@@ -241,19 +241,19 @@ export function Check(
  * @param post - specifies run tee after returned.
  */
 export function Tee(
-  fn: (ctx: Router.IRouterContext) => void | Promise<void>,
+  fn: (ctx: Router.IRouterContext, next: () => any) => void | Promise<void>,
   post?: boolean,
 ) {
   return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
     if (!post) {
-      const value = fn(ctx);
+      const value = fn(ctx, () => {});
       if (isPromise(value)) {
         await value;
       }
     }
     await next();
     if (post) {
-      const value = fn(ctx);
+      const value = fn(ctx, () => {});
       if (isPromise(value)) {
         await value;
       }
