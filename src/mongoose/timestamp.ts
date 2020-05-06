@@ -15,12 +15,12 @@ export class TimestampModel extends model.Model {
     default: Date.now,
     index: true,
   })
-  createdAt: Date;
+  createdAt?: Date;
 
   @model.Field({
     index: true,
   })
-  lastUpdateTime: Date;
+  lastUpdateTime?: Date;
 }
 
 function setLastUpdateTimeOnSave(next: () => void) {

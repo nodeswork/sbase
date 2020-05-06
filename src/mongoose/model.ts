@@ -108,19 +108,19 @@ export class Model {
     const mixinModels: ModelType[] = _.union(
       Reflect.getOwnMetadata(MIXIN_KEY, this.prototype) || [],
     );
-    const mixinOptions = _.map(mixinModels, model =>
+    const mixinOptions = _.map(mixinModels, (model) =>
       model.$mongooseOptions(tenancy),
     );
 
     const schemas = _.flatten([
-      _.map(mixinOptions, opt => opt.schema),
+      _.map(mixinOptions, (opt) => opt.schema),
       superOptions.schema,
       Reflect.getOwnMetadata(SCHEMA_KEY, this.prototype),
     ]);
     mongooseOptions.schema = _.extend({}, ...schemas);
 
     const configs = _.flatten([
-      _.map(mixinOptions, opt => opt.config),
+      _.map(mixinOptions, (opt) => opt.config),
       superOptions.config,
       Reflect.getOwnMetadata(CONFIG_KEY, this.prototype),
     ]);
@@ -129,90 +129,90 @@ export class Model {
     mongooseOptions.pres = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.pres),
+          _.map(mixinOptions, (opt) => opt.pres),
           superOptions.pres,
           Reflect.getOwnMetadata(PRE_KEY, this.prototype),
         ]),
       ),
-      x => !!x,
+      (x) => !!x,
     );
 
     mongooseOptions.posts = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.posts),
+          _.map(mixinOptions, (opt) => opt.posts),
           superOptions.posts,
           Reflect.getOwnMetadata(POST_KEY, this.prototype),
         ]),
       ),
-      x => !!x,
+      (x) => !!x,
     );
 
     mongooseOptions.virtuals = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.virtuals),
+          _.map(mixinOptions, (opt) => opt.virtuals),
           superOptions.virtuals,
           Reflect.getOwnMetadata(VIRTUAL_KEY, this.prototype),
         ]),
       ),
-      x => !!x,
+      (x) => !!x,
     );
 
     mongooseOptions.updateValidators = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.updateValidators),
+          _.map(mixinOptions, (opt) => opt.updateValidators),
           superOptions.updateValidators,
           Reflect.getOwnMetadata(UPDATE_VALIDATOR_KEY, this.prototype),
         ]),
       ),
-      x => !!x,
+      (x) => !!x,
     );
 
     mongooseOptions.plugins = _.sortBy(
       _.filter(
         _.union(
           _.flatten([
-            _.map(mixinOptions, opt => opt.plugins),
+            _.map(mixinOptions, (opt) => opt.plugins),
             superOptions.plugins,
             Reflect.getOwnMetadata(PLUGIN_KEY, this.prototype),
           ]),
         ),
-        x => !!x,
+        (x) => !!x,
       ),
-      plugin => plugin.priority,
+      (plugin) => plugin.priority,
     );
 
     mongooseOptions.indexes = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.indexes),
+          _.map(mixinOptions, (opt) => opt.indexes),
           superOptions.indexes,
           Reflect.getOwnMetadata(INDEX_KEY, this.prototype),
         ]),
       ),
-      x => !!x,
+      (x) => !!x,
     );
 
     mongooseOptions.methods = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.methods),
+          _.map(mixinOptions, (opt) => opt.methods),
           superOptions.methods,
         ]),
       ),
-      x => !!x,
+      (x) => !!x,
     );
 
     mongooseOptions.statics = _.filter(
       _.union(
         _.flatten([
-          _.map(mixinOptions, opt => opt.statics),
+          _.map(mixinOptions, (opt) => opt.statics),
           superOptions.statics,
         ]),
       ),
-      x => !!x,
+      (x) => !!x,
     );
 
     for (const name of Object.getOwnPropertyNames(this.prototype)) {
@@ -253,7 +253,7 @@ export class Model {
         : tenancy,
       mongooseOptions.config.collection,
     ])
-      .filter(x => !!x)
+      .filter((x) => !!x)
       .join('.')
       .value();
 
@@ -399,7 +399,7 @@ function registerMultiTenancy<T extends ModelType>(
       mi.connect(
         sbaseMongooseConfig.multiTenancy.uris,
         sbaseMongooseConfig.multiTenancy.options,
-        err => {
+        (err) => {
           sbaseMongooseConfig.multiTenancy.onError(err, tenancy);
         },
       );
@@ -421,7 +421,7 @@ function registerMultiTenancy<T extends ModelType>(
       }
 
       if (lazyFns.indexOf(prop) >= 0) {
-        const ret = function() {
+        const ret = function () {
           const t = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
           const m1: any = tenantMap[t];
           const actualFn = m1[prop];
@@ -433,7 +433,7 @@ function registerMultiTenancy<T extends ModelType>(
 
       if (shareFns.indexOf(prop) >= 0) {
         const ret = () => {
-          return _.map(tenants, t => {
+          return _.map(tenants, (t) => {
             const m2: any = tenantMap[t];
             return m2[prop].apply(m2, arguments);
           });
@@ -585,7 +585,7 @@ export function Validate(validator: Validator, schema: any = {}) {
 export function Field(schema: any = {}): PropertyDecorator {
   function mapModelSchema(o: any): any {
     if (_.isArray(o)) {
-      return _.map(o, x => mapModelSchema(x));
+      return _.map(o, (x) => mapModelSchema(x));
     } else if (_.isFunction(o)) {
       if (o.prototype instanceof Model) {
         const func = Object.getOwnPropertyDescriptor(
@@ -597,7 +597,7 @@ export function Field(schema: any = {}): PropertyDecorator {
         return o;
       }
     } else if (_.isObject(o) && o.__proto__.constructor.name === 'Object') {
-      return _.mapObject(o, x => mapModelSchema(x));
+      return _.mapObject(o, (x) => mapModelSchema(x));
     } else {
       return o;
     }
@@ -663,7 +663,7 @@ export function Pre(pre: Pre) {
 
 export function Pres(names: string[], pre: PPre) {
   return <T extends new (...args: any[]) => {}>(constructor: T) => {
-    const pres = _.map(names, name => _.extend({ name }, pre));
+    const pres = _.map(names, (name) => _.extend({ name }, pre));
     pushMetadata(PRE_KEY, constructor.prototype, ...pres);
   };
 }
@@ -816,6 +816,8 @@ export interface VirtualOptions {
   foreignField: string;
   justOne?: boolean;
   options?: any;
+  count?: boolean;
+  match?: object;
 }
 
 export class NativeError extends global.Error {}
@@ -834,7 +836,7 @@ const STATIC_FILTER_NAMES = ['name', 'length', 'prototype'];
 export function combineValidator<T>(
   fn: (this: T, _v: any) => boolean | Promise<boolean>,
 ): () => boolean | Promise<boolean> {
-  return function(this: T | Query<T>) {
+  return function (this: T | Query<T>) {
     if (this instanceof Query) {
       return fn.apply(this.getUpdate().$set, arguments);
     } else {

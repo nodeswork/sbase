@@ -316,10 +316,6 @@ function buildPropertyMiddleware(
   Reflect.defineMetadata(METADATA_KEY, meta, cls);
 }
 
-export const Overrides = (...rules: OverrideRule[]) => {
-  return Middleware(overrides(...rules));
-};
-
 /**
  * Generate an overrides middleware to help build mongoose queries.
  *
@@ -336,6 +332,10 @@ export const Overrides = (...rules: OverrideRule[]) => {
  *      'query.date',
  *    ])
  */
+export const Overrides = (...rules: OverrideRule[]) => {
+  return Middleware(overrides(...rules));
+};
+
 export const Params = (options: ParamsOptions) => {
   return Middleware(params(options));
 };
