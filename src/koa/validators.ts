@@ -528,10 +528,16 @@ export function withDefault(option: any, includeEmptyString: boolean = true) {
   return withDefault;
 }
 
+/**
+ * String.replace
+ *
+ * @param matcher
+ * @param replacer
+ */
 export function replace(matcher: any, replacer: any) {
   const replace: Validator = (target, path, val) => {
-    if (val === matcher || (_.isArray(matcher) && matcher.indexOf(val) >= 0)) {
-      dotty.set(target, path, replacer);
+    if (val != null && _.isString(val)) {
+      dotty.set(target, path, val.replace(matcher, replacer));
     }
     return true;
   };
