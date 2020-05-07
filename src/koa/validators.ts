@@ -426,6 +426,24 @@ export function stripLow(keep_new_lines?: boolean) {
   return stripLow;
 }
 
+export function toJSON() {
+  const toJSON: Validator = (target, path, val) => {
+    if (val != null && _.isString(val)) {
+      let obj: any;
+      try {
+        obj = JSON.parse(val);
+      } catch (error) {
+        return 'not a valid json';
+      }
+      dotty.set(target, path, obj);
+    }
+
+    return true;
+  };
+
+  return toJSON;
+}
+
 export function toBoolean(strict?: boolean) {
   const toBoolean: Validator = (target, path, val) => {
     if (val != null && !_.isBoolean(val)) {
@@ -566,7 +584,7 @@ export function array(options: ParamsOptions | Validator | Validator[]) {
       : _.map(options, (v, key) => {
           const vs: Validator[] = _.chain([v])
             .flatten()
-            .filter(x => !!x)
+            .filter((x) => !!x)
             .value();
 
           if (key.startsWith('!')) {
