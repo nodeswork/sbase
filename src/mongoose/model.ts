@@ -469,7 +469,7 @@ function registerMultiTenancy<T extends ModelType>(
   return proxy;
 }
 
-export interface DocumentModel extends Document {}
+export interface DocumentModel extends Omit<Document, 'toJSON'> {}
 
 export class DocumentModel extends Model {
   public static cast<D extends DocumentModel>(): IModel<D> {
