@@ -2,8 +2,9 @@ import * as _ from 'underscore';
 import { DocumentToObjectOptions, Schema, SchemaOptions } from 'mongoose';
 
 import * as model from './model';
-import { Field } from './';
+import { AsObject } from '../../mongoose';
 import { DataLevelConfig } from './model-config';
+import { Field } from './';
 
 export type DataLevelModelType = typeof DataLevelModel;
 
@@ -12,7 +13,7 @@ export type DataLevelModelType = typeof DataLevelModel;
   priority: 100,
 })
 export class DataLevelModel extends model.DocumentModel {
-  public toJSON(options?: DocumentToObjectOptions): object {
+  public toJSON(options?: DocumentToObjectOptions): AsObject<this> {
     let obj = this.toObject(options);
     if (options && options.level) {
       const fields = _.keys(
@@ -30,21 +31,21 @@ export class DataLevelModel extends model.DocumentModel {
 
 function deepOmit(obj: any, fields: string[]): any {
   if (_.isArray(obj)) {
-    return _.map(obj, o => deepOmit(o, fields));
+    return _.map(obj, (o) => deepOmit(o, fields));
   }
 
-  const grouped = _.groupBy(fields, f => (f.indexOf('.') === -1 ? 1 : 0));
+  const grouped = _.groupBy(fields, (f) => (f.indexOf('.') === -1 ? 1 : 0));
   if (grouped[1]) {
     obj = _.omit(obj, ...grouped[1]);
   }
   if (grouped[0]) {
     const goal: any = _.chain(grouped[0])
-      .map(v => {
+      .map((v) => {
         const idx = v.indexOf('.');
         return [v.substr(0, idx), v.substring(idx + 1)];
       })
-      .groupBy(pair => pair[0])
-      .mapObject(pairs => _.map(pairs, p => p[1]))
+      .groupBy((pair) => pair[0])
+      .mapObject((pairs) => _.map(pairs, (p) => p[1]))
       .value();
     _.each(goal, (fs: string[], name: string) => {
       if (obj && obj[name]) {
@@ -144,14 +145,14 @@ function fetchModelFields(
     }
   });
 
-  const filtered: string[] = _.filter(fields, target => {
-    return _.all(fields, r => {
+  const filtered: string[] = _.filter(fields, (target) => {
+    return _.all(fields, (r) => {
       return target.indexOf(r + '.') !== 0;
     });
   });
 
   const result: any = {};
-  _.each(filtered, f => {
+  _.each(filtered, (f) => {
     result[f] = 0;
   });
 
@@ -174,7 +175,10 @@ function addToLevelMap(schema: Schema, lps: LevelPath[]) {
     if (st && st.schema) {
       const s: Schema = st.schema;
       _.each(s.dataLevel.levelMap, (ps, l) => {
-        levelMap[l] = _.union(levelMap[l], _.map(ps, p => `${path}.${p}`));
+        levelMap[l] = _.union(
+          levelMap[l],
+          _.map(ps, (p) => `${path}.${p}`),
+        );
       });
     }
   });

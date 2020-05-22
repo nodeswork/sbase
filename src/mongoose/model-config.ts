@@ -39,6 +39,14 @@ declare module 'mongoose' {
   interface DocumentToObjectOptions {
     level?: string;
   }
+
+  interface QueryFindBaseOptions {
+    level?: string;
+  }
+
+  interface QueryPopulateOptions {
+    level?: string;
+  }
 }
 
 export interface IOverwrites {
