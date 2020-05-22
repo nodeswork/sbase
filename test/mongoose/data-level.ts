@@ -1,15 +1,15 @@
 import * as _ from 'underscore';
-import * as should from 'should';
 import * as mongoose from 'mongoose';
+import * as should from 'should';
 
 import {
+  A7Model,
   ArrayField,
   Config,
+  DBRefArray,
   Field,
   Level,
   Model,
-  A7Model,
-  DBRefArray,
 } from '../../src/mongoose';
 
 enum DataLevels {

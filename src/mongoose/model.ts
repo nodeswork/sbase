@@ -3,7 +3,8 @@ import 'reflect-metadata';
 import * as _ from 'underscore';
 import debug from 'debug';
 import {
-  Document,
+  Document as MDocument,
+  DocumentToObjectOptions,
   Model as MModel,
   Mongoose,
   Query,
@@ -14,6 +15,7 @@ import {
 import { MongoError } from 'mongodb';
 
 import { A7ModelType } from './a7-model';
+import { AsObject } from '../../mongoose';
 import { ConvertModel } from './types';
 import { extendMetadata, pushMetadata } from './helpers';
 import { sbaseMongooseConfig } from './model-config';
@@ -22,6 +24,10 @@ const d = debug('sbase:model');
 
 export type ModelType = typeof Model;
 export type IModel<E extends DocumentModel> = MModel<E>;
+
+export interface Document extends MDocument {
+  toJSON(options?: DocumentToObjectOptions): AsObject<this>;
+}
 
 /**
  * Wrapped Model from mongoose.Model.

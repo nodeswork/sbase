@@ -97,9 +97,12 @@ namespace mongoose {
     multipleCastError?: boolean;
     /** Field selection. Equivalent to .select(fields).findOneAndUpdate() */
     fields?: any | string;
-    /** If true, delete any properties whose value is undefined when casting an update. In other words,
-    if this is set, Mongoose will delete baz from the update in Model.updateOne({}, { foo: 'bar', baz: undefined })
-    before sending the update to the server.**/
+    /**
+     * If true, delete any properties whose value is undefined when casting an
+     * update. In other words, if this is set, Mongoose will delete baz from the
+     * update in Model.updateOne({}, { foo: 'bar', baz: undefined }) before
+     * sending the update to the server.
+     */
     omitUndefined?: boolean;
     session?: ClientSession;
     /**
