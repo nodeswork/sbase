@@ -1,5 +1,5 @@
-import * as should from 'should';
 import * as mongoose from 'mongoose';
+import * as should from 'should';
 
 import * as sbase from '../../src';
 
@@ -140,12 +140,13 @@ describe('NModel Basics', () => {
       },
       bio: 'tie',
     });
+
     const post = await Post.findOneAndUpdate(
       {
         user: user._id,
       },
       {
-        user,
+        user: user._id,
         post: 'Text',
       },
       {
@@ -154,5 +155,11 @@ describe('NModel Basics', () => {
       },
     );
     post.user.should.be.ok();
+  });
+
+  it('should modelize object', async () => {
+    const u = Name.modelize({ first: 'a' });
+    u.should.be.instanceof(Name);
+    u.toJSON().should.have.properties({ first: 'a' });
   });
 });

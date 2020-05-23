@@ -15,7 +15,7 @@ import {
 import { MongoError } from 'mongodb';
 
 import { A7ModelType } from './a7-model';
-import { AsObject } from '../../mongoose';
+import { AsObject, AsObjectPartial } from '../../mongoose';
 import { ConvertModel } from './types';
 import { extendMetadata, pushMetadata } from './helpers';
 import { sbaseMongooseConfig } from './model-config';
@@ -29,10 +29,28 @@ export interface Document extends MDocument {
   toJSON(options?: DocumentToObjectOptions): AsObject<this>;
 }
 
+export interface Model {
+  toJSON(options?: DocumentToObjectOptions): AsObject<this>;
+}
+
 /**
  * Wrapped Model from mongoose.Model.
  */
 export class Model {
+  public static modelize<T extends new (...args: any[]) => any>(
+    this: T,
+    o: AsObjectPartial<InstanceType<T>>,
+  ): InstanceType<T> {
+    const p = {
+      toJSON() {
+        return this;
+      },
+    };
+    Object.setPrototypeOf(o, p);
+    Object.setPrototypeOf(p, this.prototype);
+    return o as any;
+  }
+
   public static Schema(schema: Schema): ModelType {
     extendMetadata(SCHEMA_KEY, this.prototype, schema);
     return this;
