@@ -29,6 +29,10 @@ export interface Document extends MDocument {
   toJSON(options?: DocumentToObjectOptions): AsObject<this>;
 }
 
+export interface Model {
+  toJSON(options?: DocumentToObjectOptions): AsObject<this>;
+}
+
 /**
  * Wrapped Model from mongoose.Model.
  */

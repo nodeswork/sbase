@@ -61,7 +61,6 @@
     "lru-cache": "^4.1.3",
     "moment": "^2.25.1",
     "moment-timezone": "^0.5.28",
-    "mongoose": "^5.9.15",
     "object-path": "^0.11.4",
     "reflect-metadata": "^0.1.12",
     "underscore": "^1.9.1",
