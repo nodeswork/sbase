@@ -469,10 +469,10 @@ function registerMultiTenancy<T extends ModelType>(
       }
 
       if (shareFns.indexOf(prop) >= 0) {
-        const ret = () => {
+        const ret = (...args: any[]) => {
           return _.map(tenants, (t) => {
             const m2: any = tenantMap[t];
-            return m2[prop].apply(m2, arguments);
+            return m2[prop].apply(m2, args);
           });
         };
         return ret;
