@@ -274,16 +274,17 @@ export class Model {
     }
 
     const collection =
-      mongooseOptions.config.collection &&
-      _.chain([
-        tenancy === 'default' && sbaseConfig != null
-          ? sbaseConfig.multiTenancy.defaultCollectionNamespace
-          : tenancy,
-        mongooseOptions.config.collection,
-      ])
-        .filter((x) => !!x)
-        .join('.')
-        .value();
+      sbaseConfig != null && mongooseOptions.config.collection
+        ? _.chain([
+            tenancy === 'default'
+              ? sbaseConfig.multiTenancy.defaultCollectionNamespace
+              : tenancy,
+            mongooseOptions.config.collection,
+          ])
+            .filter((x) => !!x)
+            .join('.')
+            .value()
+        : mongooseOptions.config.collection;
 
     const mongooseSchema = new Schema(
       mongooseOptions.schema,
