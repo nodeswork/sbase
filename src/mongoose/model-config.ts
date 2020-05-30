@@ -1,3 +1,4 @@
+import * as _ from 'underscore';
 import { ConnectionOptions, Mongoose } from 'mongoose';
 
 declare module 'koa' {
@@ -92,14 +93,24 @@ export interface SBaseMongooseConfig {
   multiTenancy?: MultiTenancyOptions;
 }
 
-export const sbaseMongooseConfig: SBaseMongooseConfig = {
-  multiTenancy: {
-    enabled: false,
-    defaultCollectionNamespace: '',
-    tenants: [],
-    tenancyFn: () => 'default',
-    options: {},
-    onError: () => {},
-    onMongooseInstanceCreated: () => {},
-  },
+export const DEFAULT_MONGOOSE_MULTI_TENANCY_OPTIONS: MultiTenancyOptions = {
+  enabled: false,
+  defaultCollectionNamespace: '',
+  tenants: [],
+  tenancyFn: () => 'default',
+  options: {},
+  onError: () => {},
+  onMongooseInstanceCreated: () => {},
 };
+
+export const sbaseMongooseConfig: SBaseMongooseConfig = {
+  multiTenancy: _.clone(DEFAULT_MONGOOSE_MULTI_TENANCY_OPTIONS),
+};
+
+export function newMongooseInstance(
+  sbaseConfig: SBaseMongooseConfig,
+): Mongoose {
+  const mongoose = new Mongoose();
+  (mongoose as any).sbaseConfig = sbaseConfig;
+  return mongoose;
+}

@@ -15,10 +15,9 @@ import {
 import { MongoError } from 'mongodb';
 
 import { A7ModelType } from './a7-model';
-import { AsObject, AsObjectPartial } from '../../mongoose';
-import { ConvertModel } from './types';
+import { AsObject, AsObjectPartial, ConvertModel } from './types';
+import { SBaseMongooseConfig, sbaseMongooseConfig } from './model-config';
 import { extendMetadata, pushMetadata } from './helpers';
-import { sbaseMongooseConfig } from './model-config';
 
 const d = debug('sbase:model');
 
@@ -96,7 +95,10 @@ export class Model {
     return this;
   }
 
-  public static $mongooseOptions(tenancy: string = 'default'): MongooseOptions {
+  public static $mongooseOptions(
+    sbaseConfig?: SBaseMongooseConfig,
+    tenancy: string = 'default',
+  ): MongooseOptions {
     if (this === Model) {
       return null;
     }
@@ -127,13 +129,13 @@ export class Model {
     const superClass: ModelType = (this as any).__proto__;
 
     const superOptions: MongooseOptions =
-      superClass.$mongooseOptions(tenancy) || {};
+      superClass.$mongooseOptions(sbaseConfig, tenancy) || {};
 
     const mixinModels: ModelType[] = _.union(
       Reflect.getOwnMetadata(MIXIN_KEY, this.prototype) || [],
     );
     const mixinOptions = _.map(mixinModels, (model) =>
-      model.$mongooseOptions(tenancy),
+      model.$mongooseOptions(sbaseConfig, tenancy),
     );
 
     const schemas = _.flatten([
@@ -273,7 +275,7 @@ export class Model {
 
     const collection = _.chain([
       tenancy === 'default'
-        ? sbaseMongooseConfig.multiTenancy.defaultCollectionNamespace
+        ? sbaseConfig.multiTenancy.defaultCollectionNamespace
         : tenancy,
       mongooseOptions.config.collection,
     ])
@@ -372,10 +374,7 @@ export class Model {
     this: T,
     mongooseInstance?: Mongoose,
   ): ConvertModel<InstanceType<T> & Document, InstanceType<T>> & T {
-    if (!mongooseInstance) {
-      mongooseInstance = require('mongoose');
-    }
-    return registerMultiTenancy(mongooseInstance, this) as any;
+    return registerMultiTenancy(this, mongooseInstance) as any;
   }
 
   public static $registerA7Model<T extends ModelType>(
@@ -384,10 +383,7 @@ export class Model {
   ): ConvertModel<InstanceType<T> & Document, InstanceType<T>> &
     T &
     A7ModelType {
-    if (!mongooseInstance) {
-      mongooseInstance = require('mongoose');
-    }
-    return registerMultiTenancy(mongooseInstance, this) as any;
+    return registerMultiTenancy(this, mongooseInstance) as any;
   }
 }
 
@@ -400,17 +396,25 @@ export const lazyFns: string[] = [];
 export const shareFns = ['on'];
 
 function registerMultiTenancy<T extends ModelType>(
-  mongooseInstance: Mongoose,
   model: T,
+  mongooseInstance?: Mongoose,
 ): MModel<Document> & T {
-  if (!sbaseMongooseConfig.multiTenancy.enabled) {
+  if (!mongooseInstance) {
+    mongooseInstance = require('mongoose');
+    (mongooseInstance as any).sbaseConfig = sbaseMongooseConfig;
+  }
+
+  const sbaseConfig: SBaseMongooseConfig = (mongooseInstance as any)
+    .sbaseConfig;
+
+  if (!sbaseConfig.multiTenancy.enabled) {
     return mongooseInstance.model(
       model.name,
       model.$mongooseOptions().mongooseSchema,
     ) as any;
   }
 
-  const tenants = ['default'].concat(sbaseMongooseConfig.multiTenancy.tenants);
+  const tenants = ['default'].concat(sbaseConfig.multiTenancy.tenants);
   const tenantMap: {
     [key: string]: MModel<Document> & T;
   } = {};
@@ -421,19 +425,19 @@ function registerMultiTenancy<T extends ModelType>(
     if (mi == null) {
       mi = new Mongoose();
       mi.connect(
-        sbaseMongooseConfig.multiTenancy.uris,
-        sbaseMongooseConfig.multiTenancy.options,
+        sbaseConfig.multiTenancy.uris,
+        sbaseConfig.multiTenancy.options,
         (err) => {
-          sbaseMongooseConfig.multiTenancy.onError(err, tenancy);
+          sbaseConfig.multiTenancy.onError(err, tenancy);
         },
       );
-      sbaseMongooseConfig.multiTenancy.onMongooseInstanceCreated(mi, tenancy);
+      sbaseConfig.multiTenancy.onMongooseInstanceCreated(mi, tenancy);
       mongooseInstanceMap[tenancy] = mi;
     }
 
     const m = mi.model(
       model.name,
-      model.$mongooseOptions(tenancy).mongooseSchema,
+      model.$mongooseOptions(sbaseConfig, tenancy).mongooseSchema,
     ) as any;
     tenantMap[tenancy] = m;
   }
@@ -446,7 +450,7 @@ function registerMultiTenancy<T extends ModelType>(
 
       if (lazyFns.indexOf(prop) >= 0) {
         const ret = function () {
-          const t = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+          const t = sbaseConfig.multiTenancy.tenancyFn(prop);
           const m1: any = tenantMap[t];
           const actualFn = m1[prop];
 
@@ -465,7 +469,7 @@ function registerMultiTenancy<T extends ModelType>(
         return ret;
       }
 
-      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+      const tenancy = sbaseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       m._proxy = proxy;
 
@@ -477,7 +481,7 @@ function registerMultiTenancy<T extends ModelType>(
       return _.isFunction(res) ? res.bind(m) : res;
     },
     set: (_obj: {}, prop: string, value: any) => {
-      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+      const tenancy = sbaseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       m[prop] = value;
       return true;
