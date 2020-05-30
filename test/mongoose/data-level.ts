@@ -1,6 +1,4 @@
 import * as _ from 'underscore';
-import * as mongoose from 'mongoose';
-import * as should from 'should';
 
 import {
   A7Model,
@@ -194,7 +192,7 @@ describe('NModel Data Level', () => {
 
   it('should be able to populate refs within query', async () => {
     const data = await DLRootRef.findOne({}, null, {
-      populate: [{ path: 'refs', options: { level: DataLevels.L1 } }],
+      populate: { path: 'refs', options: { level: DataLevels.L1 } },
     });
     data.refs[0]._id.toString().should.be.equal(m1._id.toString());
     _.pick(data.refs[0].toJSON(), 'f1').should.be.deepEqual(e1);

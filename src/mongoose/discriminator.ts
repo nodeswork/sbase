@@ -2,9 +2,9 @@ import * as _ from 'underscore';
 import { Document, Model as MModel } from 'mongoose';
 
 import { A7ModelType } from './a7-model';
-import { sbaseMongooseConfig } from './model-config';
-import { DocumentModel, Model, lazyFns, shareFns } from './model';
 import { ConvertModel } from './types';
+import { DocumentModel, Model, lazyFns, shareFns } from './model';
+import { SBaseMongooseConfig } from './model-config';
 
 export class Discriminator extends DocumentModel {
   public static $discriminator<
@@ -38,14 +38,20 @@ function discriminatorMultiTenancy<
   model: T,
   dm: M,
 ): ConvertModel<T & InstanceType<M> & Document, T & InstanceType<M>> & T & M {
-  if (!sbaseMongooseConfig.multiTenancy.enabled) {
-    return model.discriminator(
+  const sbaseConfig: SBaseMongooseConfig = (model as any).sbaseConfig;
+
+  if (!sbaseConfig.multiTenancy.enabled) {
+    const m = model.discriminator(
       dm.name,
       dm.$mongooseOptions().mongooseSchema,
     ) as any;
+
+    m.sbaseConfig = sbaseConfig;
+
+    return m;
   }
 
-  const tenants = ['default'].concat(sbaseMongooseConfig.multiTenancy.tenants);
+  const tenants = ['default'].concat(sbaseConfig.multiTenancy.tenants);
   const tenantMap: {
     [key: string]: MModel<Document> & T;
   } = {};
@@ -53,17 +59,21 @@ function discriminatorMultiTenancy<
   const currentTenantMap = (model as any)._proxy.$tenantMap;
 
   for (const tenancy of tenants) {
-    tenantMap[tenancy] = currentTenantMap[tenancy].discriminator(
+    const m = currentTenantMap[tenancy].discriminator(
       dm.name,
-      dm.$mongooseOptions(tenancy).mongooseSchema,
+      dm.$mongooseOptions(sbaseConfig, tenancy).mongooseSchema,
     );
+
+    m.sbaseConfig = sbaseConfig;
+
+    tenantMap[tenancy] = m;
   }
 
   const proxy: any = new Proxy<MModel<Document> & T>({} as any, {
     get: (_obj: {}, prop: string) => {
       if (lazyFns.indexOf(prop) >= 0) {
-        const ret = function() {
-          const t = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+        const ret = function () {
+          const t = sbaseConfig.multiTenancy.tenancyFn(prop);
           const m1: any = tenantMap[t];
           const actualFn = m1[prop];
 
@@ -74,7 +84,7 @@ function discriminatorMultiTenancy<
 
       if (shareFns.indexOf(prop) >= 0) {
         const ret = () => {
-          return _.map(tenants, t => {
+          return _.map(tenants, (t) => {
             const m2: any = tenantMap[t];
             return m2[prop].apply(m2, arguments);
           });
@@ -82,7 +92,7 @@ function discriminatorMultiTenancy<
         return ret;
       }
 
-      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+      const tenancy = sbaseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       m._proxy = proxy;
 
@@ -94,7 +104,7 @@ function discriminatorMultiTenancy<
       return _.isFunction(res) ? res.bind(m) : res;
     },
     set: (_obj: {}, prop: string, value: any) => {
-      const tenancy = sbaseMongooseConfig.multiTenancy.tenancyFn(prop);
+      const tenancy = sbaseConfig.multiTenancy.tenancyFn(prop);
       const m: any = tenantMap[tenancy];
       m[prop] = value;
       return true;

@@ -1,5 +1,5 @@
-import { Person, MongoosePerson } from './schemas/persons';
-import { Property, MongooseProperty } from './schemas/properties';
+import { MongoosePerson, Person } from './schemas/persons';
+import { MongooseProperty, Property } from './schemas/properties';
 
 describe('benchmark.mongoose', () => {
   beforeEach(async () => {
@@ -70,7 +70,7 @@ describe('benchmark.mongoose', () => {
           firstName: `foo name ${i}`,
         },
         null,
-        { populate: [{ path: 'home' }] },
+        { populate: [{ path: 'home' }] as any },
       );
     }
   });
@@ -82,7 +82,7 @@ describe('benchmark.mongoose', () => {
           firstName: `foo name ${i}`,
         },
         null,
-        { populate: [{ path: 'home' }] },
+        { populate: [{ path: 'home' }] as any },
       );
     }
   });
@@ -125,9 +125,7 @@ describe('benchmark.mongoose', () => {
 
   it(`[sbase]\t\truns ${INSERT_BATCH} synchronize persons find limit 10 using lean`, async () => {
     for (let i = 0; i < INSERT_BATCH; i++) {
-      await Person.find({}, null)
-        .skip(i)
-        .limit(10);
+      await Person.find({}, null).skip(i).limit(10);
     }
   });
 });

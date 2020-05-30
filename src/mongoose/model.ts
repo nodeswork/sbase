@@ -273,15 +273,17 @@ export class Model {
       }
     }
 
-    const collection = _.chain([
-      tenancy === 'default'
-        ? sbaseConfig.multiTenancy.defaultCollectionNamespace
-        : tenancy,
-      mongooseOptions.config.collection,
-    ])
-      .filter((x) => !!x)
-      .join('.')
-      .value();
+    const collection =
+      mongooseOptions.config.collection &&
+      _.chain([
+        tenancy === 'default' && sbaseConfig != null
+          ? sbaseConfig.multiTenancy.defaultCollectionNamespace
+          : tenancy,
+        mongooseOptions.config.collection,
+      ])
+        .filter((x) => !!x)
+        .join('.')
+        .value();
 
     const mongooseSchema = new Schema(
       mongooseOptions.schema,
@@ -408,10 +410,14 @@ function registerMultiTenancy<T extends ModelType>(
     .sbaseConfig;
 
   if (!sbaseConfig.multiTenancy.enabled) {
-    return mongooseInstance.model(
+    const m = mongooseInstance.model(
       model.name,
       model.$mongooseOptions().mongooseSchema,
     ) as any;
+
+    m.sbaseConfig = sbaseConfig;
+
+    return m;
   }
 
   const tenants = ['default'].concat(sbaseConfig.multiTenancy.tenants);
@@ -439,6 +445,9 @@ function registerMultiTenancy<T extends ModelType>(
       model.name,
       model.$mongooseOptions(sbaseConfig, tenancy).mongooseSchema,
     ) as any;
+
+    m.sbaseConfig = sbaseConfig;
+
     tenantMap[tenancy] = m;
   }
 
