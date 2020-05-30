@@ -1,14 +1,13 @@
 import * as _ from 'underscore';
-import * as model from './model';
-
 import { IMiddleware, IRouterContext } from 'koa-router';
 import { ModelPopulateOptions, Schema, SchemaType } from 'mongoose';
-
-import { Field } from './';
 import { NodesworkError } from '@nodeswork/utils';
 import { withInheritedProps as dotty } from 'object-path';
-import { params } from '../koa/params';
+
+import * as model from './model';
 import * as validators from '../koa/validators';
+import { Field } from './';
+import { params } from '../koa/params';
 
 export const READONLY = 'READONLY';
 export const AUTOGEN = 'AUTOGEN';
@@ -348,8 +347,8 @@ export class KoaMiddlewares extends model.DocumentModel {
         self.schema.api.AUTOGEN,
       );
 
-      const fOmits = _.filter(Object.keys(ctx.request.body), k => {
-        return _.find(omits, o => o === k || k.startsWith(o + '.')) != null;
+      const fOmits = _.filter(Object.keys(ctx.request.body), (k) => {
+        return _.find(omits, (o) => o === k || k.startsWith(o + '.')) != null;
       });
 
       let doc = _.omit(ctx.request.body, fOmits);
@@ -453,7 +452,7 @@ export interface CommonOptions {
   lean?: boolean;
 
   // transform the result before write to body
-  transform?: (a: any, ctx: IRouterContext) => Promise<any>;
+  transform?: (a: any, ctx: IRouterContext) => any | Promise<any>;
 }
 
 const DEFAULT_COMMON_OPTIONS = {
