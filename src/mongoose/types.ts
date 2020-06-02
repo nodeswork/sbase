@@ -24,9 +24,9 @@ export type DeepPartial<T> = T extends Function
 
 export type AsObjectPartial<T extends Model> = DeepPartial<AsObject<T>>;
 
-export type PartialDoc<X> = AsObjectPartial<X>;
+export type PartialDoc<X extends Model> = AsObjectPartial<X>;
 
-export interface ModifiedMongooseModel<T extends Document, M>
+export interface ModifiedMongooseModel<T extends Document, M extends Model>
   extends Omit<MModel<T>, 'create' | 'insertMany'> {
   create(doc: PartialDoc<M>, options?: mongoose.SaveOptions): Promise<T>;
 
@@ -47,7 +47,10 @@ export interface ModifiedMongooseModel<T extends Document, M>
   ): Promise<T>;
 }
 
-export type ConvertModel<T extends Document, X> = ModifiedMongooseModel<T, X>;
+export type ConvertModel<
+  T extends Document,
+  X extends Model
+> = ModifiedMongooseModel<T, X>;
 
 namespace mongoose {
   export interface SaveOptions {

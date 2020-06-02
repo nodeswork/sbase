@@ -601,3 +601,16 @@ export interface PaginationData<T> {
   total: number;
   data: T[];
 }
+
+export function isPaginationData<T>(
+  data: PaginationData<T> | any,
+): data is PaginationData<T> {
+  return (
+    data &&
+    data.pageSize != null &&
+    data.page != null &&
+    data.total != null &&
+    data.data != null &&
+    _.isArray(data.data)
+  );
+}
