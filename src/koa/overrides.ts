@@ -1,12 +1,11 @@
 import '../mongoose/model-config';
 
-import * as Router from 'koa-router';
 import * as _ from 'underscore';
+import * as Router from 'koa-router';
 import debug from 'debug';
+import { withInheritedProps as dotty } from 'object-path';
 
 const d = debug('sbase:overrides');
-
-import { withInheritedProps as dotty } from 'object-path';
 
 /**
  * Generate an overrides middleware to help build mongoose queries.
@@ -23,6 +22,9 @@ import { withInheritedProps as dotty } from 'object-path';
  *      moment(ctx.request.query.date).startOf('month').toDate(),
  *      'query.date',
  *    ])
+ *
+ * 4. Append to array target:
+ *    overrides(['constValue', 'query.$or.[].status'])
  */
 export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
   const rs: {
@@ -59,7 +61,7 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
       }
 
       if (value !== undefined) {
-        dotty.set(ctx, ['overrides'].concat(dst), value);
+        setValue(ctx, ['overrides'].concat(dst), value);
         d(
           'Set overrides %O with value %O, result: %O',
           dst,
@@ -82,6 +84,24 @@ export function clearOverrides(): Router.IMiddleware {
   };
 }
 
+function setValue(target: any, keys: string[], value: any) {
+  const parts: string[] = [];
+  keys = _.map(keys, (key: string) => {
+    if (key === '[]') {
+      if (!dotty.has(target, parts)) {
+        dotty.set(target, parts, []);
+      }
+
+      key = dotty.get(target, parts).length.toString();
+    }
+
+    parts.push(key);
+    return key;
+  });
+
+  dotty.set(target, keys, value);
+}
+
 function split(str: string): string[] {
   const strs = str.split('.');
   for (let i = strs.length - 1; i >= 1; i--) {
@@ -92,14 +112,16 @@ function split(str: string): string[] {
     }
   }
 
-  return _.filter(strs, x => !!x);
+  return _.filter(strs, (x) => !!x);
 }
+
+export type OverrideConst = object | string | number | boolean;
 
 export type OverrideRuleExtractFn = (
   ctx: Router.IRouterContext,
-) => object | Promise<object>;
+) => OverrideConst | Promise<OverrideConst>;
 
 export type OverrideRule =
   | string
-  | [object, string]
+  | [OverrideConst, string]
   | [OverrideRuleExtractFn, string];
