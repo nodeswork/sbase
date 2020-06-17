@@ -46,4 +46,17 @@ describe('koa.overrides', () => {
       overrides: { foo: [{ foo2: 'const' }, { foo2: 'const2' }] },
     });
   });
+
+  it('overrides regex value', async () => {
+    const ctx: any = {};
+
+    await overrides(
+      ['^foo.*$', 'foo.[].foo2', 'regex'],
+      ['const2', 'foo.[].foo2'],
+    )(ctx, () => Promise.resolve());
+
+    ctx.should.be.deepEqual({
+      overrides: { foo: [{ foo2: /^foo.*$/ }, { foo2: 'const2' }] },
+    });
+  });
 });
