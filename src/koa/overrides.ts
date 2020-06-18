@@ -31,12 +31,13 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
     src: string[] | OverrideRuleExtractFn;
     dst: string[];
     format?: OverrideRuleFormat;
+    args: any[];
   }[] = [];
 
   for (const rule of rules) {
     if (_.isString(rule)) {
       const [os, odWithFormat] = rule.split('->');
-      const [od, format] = odWithFormat.split(':');
+      const [od, format, ...args] = odWithFormat.split(':');
       if (!od) {
         throw new Error(`Rule ${rule} is not correct`);
       }
@@ -47,14 +48,16 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
         src: split(os),
         dst: split(od),
         format: format as OverrideRuleFormat,
+        args,
       });
     } else {
-      const [os, odWithFormat, format1] = rule;
-      const [od, format] = odWithFormat.split(':');
+      const [os, odWithFormat, format1, ...args1] = rule;
+      const [od, format, ...args] = odWithFormat.split(':');
       rs.push({
         src: _.isFunction(os) ? os : () => os,
         dst: split(od),
         format: (format || format1) as OverrideRuleFormat,
+        args: args.concat(args1),
       });
     }
   }
@@ -62,7 +65,7 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
   d('Prepared overrides: %O', rs);
 
   return async (ctx: Router.IRouterContext, next: () => any) => {
-    for (const { src, dst, format } of rs) {
+    for (const { src, dst, format, args } of rs) {
       let value;
 
       if (_.isArray(src)) {
@@ -76,7 +79,7 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
 
       switch (format) {
         case 'regex':
-          value = new RegExp(value);
+          value = new RegExp(value, ...args);
           break;
         case 'date':
           value = new Date(value);
@@ -146,7 +149,7 @@ export type OverrideRuleExtractFn = (
 
 export type OverrideRule =
   | string
-  | [OverrideConst, string, string?]
-  | [OverrideRuleExtractFn, string, string?];
+  | [OverrideConst, string, string?, ...any[]]
+  | [OverrideRuleExtractFn, string, string?, ...any[]];
 
 export type OverrideRuleFormat = 'regex' | 'date';
