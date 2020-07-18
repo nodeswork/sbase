@@ -461,6 +461,25 @@ export function toDate(target: any, path: string, val: any) {
   return true;
 }
 
+export function toSeconds() {
+  const toSeconds: Validator = (target: any, path: string, val: any) => {
+    if (val != null && val) {
+      if (!_.isDate(val)) {
+        dotty.set(
+          target,
+          path,
+          Math.floor(validator.toDate(val).getTime() / 1000),
+        );
+      } else if (_.isDate(val)) {
+        dotty.set(target, path, Math.floor(val.getTime() / 1000));
+      }
+    }
+    return true;
+  };
+
+  return toSeconds;
+}
+
 export function toFloat(target: any, path: string, val: any) {
   if (val != null && !_.isNumber(val)) {
     dotty.set(target, path, validator.toFloat(val));

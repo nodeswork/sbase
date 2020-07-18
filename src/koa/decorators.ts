@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
-import * as Router from 'koa-router';
 import * as _ from 'underscore';
+import * as Router from 'koa-router';
 
 import {
   IHandlerOptions,
@@ -11,7 +11,6 @@ import {
 } from './declarations';
 import { OverrideRule, overrides } from './overrides';
 import { ParamsOptions, params } from './params';
-
 import { compose, isPromise } from './utils';
 import { sbaseKoaConfig } from './koa-config';
 
@@ -238,27 +237,32 @@ export function Check(
  *   @Tee((ctx: Router.IRouterContext) => console.log(ctx.path))
  *
  * @param fn - The side function to execute.
- * @param post - specifies run tee after returned.
+ * @param opts.post - specifies run tee after returned.
  */
 export function Tee(
   fn: (ctx: Router.IRouterContext, next: () => any) => void | Promise<void>,
-  post?: boolean,
+  opts: TeeOptions = {},
 ) {
+  async function process(ctx: Router.IRouterContext) {
+    const value = fn(ctx, () => {});
+    if (isPromise(value)) {
+      await value;
+    }
+  }
+
   return Middleware(async (ctx: Router.IRouterContext, next: () => any) => {
-    if (!post) {
-      const value = fn(ctx, () => {});
-      if (isPromise(value)) {
-        await value;
-      }
+    if (!opts.post) {
+      await process(ctx);
     }
     await next();
-    if (post) {
-      const value = fn(ctx, () => {});
-      if (isPromise(value)) {
-        await value;
-      }
+    if (opts.post) {
+      await process(ctx);
     }
   });
+}
+
+export interface TeeOptions {
+  post?: boolean;
 }
 
 function buildConstructorMiddleware(
