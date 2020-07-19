@@ -324,14 +324,14 @@ function buildPropertyMiddleware(
  * Generate an overrides middleware to help build mongoose queries.
  *
  * 1. Fetch query params to override query:
- *    overrides('request.query.status->query.status')
- *    overrides('request.body.status->query.status')
+ *    @Overrides('request.query.status->query.status')
+ *    @Overrides('request.body.status->query.status')
  *
  * 2. Set object to override query:
- *    overrides(['constValue', 'query.status'])
+ *    @Overrides(['constValue', 'query.status'])
  *
  * 3. Extract object from ctx:
- *    overrides([(ctx) =>
+ *    @Overrides([(ctx) =>
  *      moment(ctx.request.query.date).startOf('month').toDate(),
  *      'query.date',
  *    ])
@@ -340,6 +340,11 @@ export const Overrides = (...rules: OverrideRule[]) => {
   return Middleware(overrides(...rules));
 };
 
+/**
+ * Clear existing overrides.
+ *
+ *   @ClearOverrides()
+ */
 export const ClearOverrides = () => {
   return Middleware(clearOverrides());
 };
