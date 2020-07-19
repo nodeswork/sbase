@@ -336,7 +336,7 @@ export function isStartOf(unit: unitOfTime.StartOf, tz?: string) {
     if (val == null) {
       return true;
     }
-    const time = tz ? moment(val).tz(tz) : moment(val);
+    const time = tz ? moment(new Date(val)).tz(tz) : moment(val);
     if (time.isSame(time.clone().startOf(unit))) {
       return true;
     }
@@ -351,7 +351,7 @@ export function isEndOf(unit: unitOfTime.StartOf, tz?: string) {
     if (val == null) {
       return true;
     }
-    const time = tz ? moment(val).tz(tz) : moment(val);
+    const time = tz ? moment(new Date(val)).tz(tz) : moment(val);
     if (time.isSame(time.clone().endOf(unit))) {
       return true;
     }
