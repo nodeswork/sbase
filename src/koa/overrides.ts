@@ -45,7 +45,8 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
         format != null &&
         format !== 'regex' &&
         format !== 'date' &&
-        format !== 'string'
+        format !== 'string' &&
+        format !== 'seconds'
       ) {
         throw new Error(`Unknown format ${format}`);
       }
@@ -91,6 +92,9 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
           break;
         case 'string':
           value = value.toString();
+          break;
+        case 'seconds':
+          value = new Date(value).getTime() / 1000;
           break;
       }
 
@@ -160,4 +164,4 @@ export type OverrideRule =
   | [OverrideConst, string, string?, ...any[]]
   | [OverrideRuleExtractFn, string, string?, ...any[]];
 
-export type OverrideRuleFormat = 'regex' | 'date' | 'string';
+export type OverrideRuleFormat = 'regex' | 'date' | 'string' | 'seconds';
