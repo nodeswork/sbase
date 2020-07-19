@@ -41,7 +41,12 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
       if (!od) {
         throw new Error(`Rule ${rule} is not correct`);
       }
-      if (format != null && format !== 'regex') {
+      if (
+        format != null &&
+        format !== 'regex' &&
+        format !== 'date' &&
+        format !== 'string'
+      ) {
         throw new Error(`Unknown format ${format}`);
       }
       rs.push({
@@ -83,6 +88,9 @@ export function overrides(...rules: OverrideRule[]): Router.IMiddleware {
           break;
         case 'date':
           value = new Date(value);
+          break;
+        case 'string':
+          value = value.toString();
           break;
       }
 
@@ -152,4 +160,4 @@ export type OverrideRule =
   | [OverrideConst, string, string?, ...any[]]
   | [OverrideRuleExtractFn, string, string?, ...any[]];
 
-export type OverrideRuleFormat = 'regex' | 'date';
+export type OverrideRuleFormat = 'regex' | 'date' | 'string';

@@ -72,4 +72,17 @@ describe('koa.overrides', () => {
       overrides: { foo: [{ foo2: /^foo.*$/i }, { foo2: 'const2' }] },
     });
   });
+
+  it('overrides date string value', async () => {
+    const ctx: any = {
+      foo: new Date('2020-01-01'),
+    };
+
+    await overrides('foo->foo:string')(ctx, () => Promise.resolve());
+
+    ctx.should.be.deepEqual({
+      foo: ctx.foo,
+      overrides: { foo: new Date('2020-01-01').toString() },
+    });
+  });
 });
