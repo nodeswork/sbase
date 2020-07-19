@@ -9,7 +9,7 @@ import {
   METADATA_KEY,
   Method,
 } from './declarations';
-import { OverrideRule, overrides } from './overrides';
+import { OverrideRule, clearOverrides, overrides } from './overrides';
 import { ParamsOptions, params } from './params';
 import { compose, isPromise } from './utils';
 import { sbaseKoaConfig } from './koa-config';
@@ -339,6 +339,8 @@ function buildPropertyMiddleware(
 export const Overrides = (...rules: OverrideRule[]) => {
   return Middleware(overrides(...rules));
 };
+
+export const ClearOverrides = Middleware(clearOverrides);
 
 export const Params = (options: ParamsOptions) => {
   return Middleware(params(options));
