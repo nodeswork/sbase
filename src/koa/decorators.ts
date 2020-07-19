@@ -340,7 +340,9 @@ export const Overrides = (...rules: OverrideRule[]) => {
   return Middleware(overrides(...rules));
 };
 
-export const ClearOverrides = Middleware(clearOverrides);
+export const ClearOverrides = () => {
+  return Middleware(clearOverrides);
+};
 
 export const Params = (options: ParamsOptions) => {
   return Middleware(params(options));
