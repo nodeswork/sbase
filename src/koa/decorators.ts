@@ -341,7 +341,7 @@ export const Overrides = (...rules: OverrideRule[]) => {
 };
 
 export const ClearOverrides = () => {
-  return Middleware(clearOverrides);
+  return Middleware(clearOverrides());
 };
 
 export const Params = (options: ParamsOptions) => {
