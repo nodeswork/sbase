@@ -11,7 +11,7 @@ describe('koa.validators', () => {
     });
 
     it('should validate utc time', () => {
-      validate(isStartOf('month', 'Etc/UTC'), '2019-01-01').should.be.true();
+      validate(isStartOf('month', 'Etc/UTC'), '2020-04-01').should.be.true();
     });
   });
 });
